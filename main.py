@@ -1,28 +1,38 @@
-url = "https://www.tradingview.com/chart/?symbol=BINANCE%3AXRPUSDT"
-
-import os, asyncio
+import asyncio
 from base64 import b64decode
-from crawl4ai import AsyncWebCrawler, CacheMode
+from crawl4ai import AsyncWebCrawler, CacheMode, BrowserConfig
+
+url = "https://poloniex.com/trade/XRP_USDT"
 
 
 async def main():
-    async with AsyncWebCrawler() as crawler:
+    # JavaScript code to wait for page load plus an additional 5 seconds
+    js_code = """
+    await new Promise(resolve => {
+        window.addEventListener('load', () => {
+            setTimeout(resolve, 5000);  // Wait 5 seconds after load
+        });
+    });
+    """
+
+    async with AsyncWebCrawler(config=BrowserConfig(headless=True)) as crawler:
         result = await crawler.arun(
-            url="https://en.wikipedia.org/wiki/List_of_common_misconceptions",
+            url=url,
             cache_mode=CacheMode.BYPASS,
             pdf=True,
             screenshot=True,
+            js_code=js_code,  # Execute this before capturing
         )
 
         if result.success:
             # Save screenshot
             if result.screenshot:
-                with open("wikipedia_screenshot.png", "wb") as f:
+                with open("screenshot.png", "wb") as f:
                     f.write(b64decode(result.screenshot))
 
             # Save PDF
             if result.pdf:
-                with open("wikipedia_page.pdf", "wb") as f:
+                with open("page.pdf", "wb") as f:
                     f.write(result.pdf)
 
             print("[OK] PDF & screenshot captured.")
