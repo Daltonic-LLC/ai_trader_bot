@@ -2,3 +2,8 @@
 ai_dev
 page.pdf
 screenshot.png
+/screenshots
+/__pycache__
+/.vscode
+/.idea
+/.git

@@ -1,8 +1,8 @@
 import asyncio
 from base64 import b64decode
-from crawl4ai import AsyncWebCrawler, CacheMode, BrowserConfig
+from crawl4ai import AsyncWebCrawler, CacheMode, BrowserConfig, CrawlerRunConfig
 
-url = "https://poloniex.com/trade/XRP_USDT"
+url = "https://www.tradingview.com/chart/?symbol=BINANCE%3AXRPUSDT"
 
 
 async def main():
@@ -15,14 +15,21 @@ async def main():
     });
     """
 
-    async with AsyncWebCrawler(config=BrowserConfig(headless=True)) as crawler:
-        result = await crawler.arun(
-            url=url,
-            cache_mode=CacheMode.BYPASS,
-            pdf=True,
-            screenshot=True,
-            js_code=js_code,  # Execute this before capturing
-        )
+    config = CrawlerRunConfig(
+        # Force the crawler to wait until images are fully loaded
+        wait_for_images=True,
+        screenshot=True,
+        js_code=js_code,
+        screenshot_wait_for=10000,
+        cache_mode=CacheMode.BYPASS,
+        magic=True,
+        verbose=True,
+    )
+
+    async with AsyncWebCrawler(
+        config=BrowserConfig(headless=True, viewport_width=2048, viewport_height=1080)
+    ) as crawler:
+        result = await crawler.arun(url=url, config=config)
 
         if result.success:
             # Save screenshot
@@ -30,12 +37,7 @@ async def main():
                 with open("screenshot.png", "wb") as f:
                     f.write(b64decode(result.screenshot))
 
-            # Save PDF
-            if result.pdf:
-                with open("page.pdf", "wb") as f:
-                    f.write(result.pdf)
-
-            print("[OK] PDF & screenshot captured.")
+            print("[OK] screenshot captured.")
         else:
             print("[ERROR]", result.error_message)
 
