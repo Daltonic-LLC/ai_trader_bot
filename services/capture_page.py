@@ -3,7 +3,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 
-class ScreenshotService:
+class CaptureService:
     def take_screenshot(
         self,
         url: str,
@@ -38,7 +38,7 @@ class ScreenshotService:
             raise ValueError("Format must be 'png' or 'jpeg'")
 
         # Create screenshots directory if it doesn’t exist
-        screenshots_dir = Path(__file__).parent / "screenshots"
+        screenshots_dir = Path(__file__).parent.parent / "screenshots"
         screenshots_dir.mkdir(exist_ok=True)
 
         # Use Playwright to capture the screenshot
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     parser.add_argument("--scale", type=float, default=1, help="Device scale factor")
     args = parser.parse_args()
 
-    service = ScreenshotService()
+    service = CaptureService()
     try:
         path = service.take_screenshot(
             url=args.url,
