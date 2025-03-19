@@ -2,7 +2,7 @@ import time
 import random
 from pathlib import Path
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
-from typing import List, Dict
+from typing import List, Dict, Tuple
 import json
 import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
@@ -15,14 +15,14 @@ class CoinNewsService:
         nltk.download("vader_lexicon", quiet=True)
         self.sid = SentimentIntensityAnalyzer()
 
-    def get_news_posts(
+    def get_news_and_sentiment(
         self,
         coin: str,
         num_posts: int = 20,
         save_dir: str = "news",
-    ) -> List[Dict]:
+    ) -> Tuple[List[Dict], float]:
         """
-        Gather recent news posts for the specified cryptocurrency and save them to a JSON file.
+        Gather recent news posts and calculate sentiment score for the specified cryptocurrency.
 
         Args:
             coin (str): The cryptocurrency slug (e.g., 'bitcoin', 'xrp').
@@ -30,8 +30,12 @@ class CoinNewsService:
             save_dir (str): Directory to save raw JSON data. Defaults to 'news'.
 
         Returns:
-            List[Dict]: List of post dictionaries.
+            Tuple[List[Dict], float]: A tuple containing a list of post dictionaries and the sentiment score.
+
+        Raises:
+            Exception: If navigation or data extraction fails.
         """
+        # Ensure save directory exists
         save_path = Path(save_dir)
         save_path.mkdir(exist_ok=True, parents=True)
 
@@ -45,104 +49,116 @@ class CoinNewsService:
             page = context.new_page()
 
             try:
+                # Navigate to the coin's "Top" news page
                 url = f"https://coinmarketcap.com/community/coins/{coin}/top/"
                 print(f"Navigating to {url}...")
                 page.goto(url, wait_until="networkidle", timeout=self.timeout)
-                time.sleep(5)  # Allow initial page load
+                time.sleep(5)  # Initial wait for page load
 
-                # Switch to 'Top' tab if not already selected
-                top_tab = page.locator('li[data-test="tab-top"]').first
-                if top_tab and top_tab.is_visible():
-                    if "Tab_selected__zLjtL" not in top_tab.get_attribute("class"):
-                        top_tab.click()
-                        print("Switched to 'Top' tab.")
-                        time.sleep(3)
+                # Wait for initial feed items
+                try:
+                    page.wait_for_selector(
+                        '[data-test="feed-item"]', state="visible", timeout=self.timeout
+                    )
+                except PlaywrightTimeoutError:
+                    print("No feed items found within timeout period.")
+                    return [], 0.5
 
-                print("Waiting for initial feed items...")
-                page.wait_for_selector('[data-test="feed-item"]', timeout=self.timeout)
-
-                # Advanced scrolling to load more posts
-                max_attempts = 20
+                # Initialize variables for advanced loading
+                max_attempts = num_posts
+                consecutive_failures = 0
                 attempt = 0
-                current_items = page.locator('[data-test="feed-item"]').all()
-                while len(current_items) < num_posts and attempt < max_attempts:
-                    previous_count = len(current_items)
-                    technique = attempt % 3  # Cycle through 3 scrolling techniques
 
-                    if technique == 0:
-                        print("Using scroll to bottom technique...")
-                        page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                    elif technique == 1 and current_items:
-                        print("Using scroll to last item technique...")
-                        last_item = current_items[-1]
-                        last_item.scroll_into_view_if_needed()
+                print("Starting advanced loading process...")
+                while attempt < max_attempts:
+                    current_items = page.locator('[data-test="feed-item"]').all()
+                    current_count = len(current_items)
+                    if current_count >= num_posts:
+                        print(f"Target reached: {current_count}/{num_posts} posts loaded")
+                        break
+
+                    print(f"Attempt {attempt + 1}: Current posts: {current_count}")
+
+                    # Check for "Load More" button first
+                    load_more = page.locator('button:has-text("Load More")').first
+                    if load_more and load_more.is_visible():
+                        print("Clicking 'Load More' button...")
+                        load_more.click()
+                        time.sleep(3)
+                        consecutive_failures = 0
                     else:
-                        print("Using incremental scrolling technique...")
-                        for i in range(10):
-                            scroll_amount = random.randint(300, 600)
-                            page.evaluate(f"window.scrollBy(0, {scroll_amount})")
-                            time.sleep(random.uniform(0.5, 1.0))
+                        # Apply scrolling technique based on attempt number
+                        technique = attempt % 3
+                        if technique == 0:
+                            print("Scrolling to bottom...")
+                            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                        elif technique == 1 and current_items:
+                            print("Scrolling to last item...")
+                            last_item = current_items[-1]
+                            last_item.scroll_into_view_if_needed()
+                        else:
+                            print("Performing incremental scrolling...")
+                            for i in range(10):
+                                scroll_amount = random.randint(300, 600)
+                                page.evaluate(f"window.scrollBy(0, {scroll_amount})")
+                                time.sleep(random.uniform(0.5, 1.0))
 
-                    # Wait for new content to load
-                    time.sleep(2)
+                        # Wait for new content to load
+                        time.sleep(random.uniform(2.0, 3.5))
 
+                    # Check if new posts loaded
                     new_items = page.locator('[data-test="feed-item"]').all()
                     new_count = len(new_items)
-                    if new_count > previous_count:
-                        print(
-                            f"Loaded {new_count - previous_count} new posts. Total: {new_count}"
-                        )
-                        current_items = new_items
+                    if new_count > current_count:
+                        print(f"Loaded {new_count - current_count} new posts. Total: {new_count}")
+                        consecutive_failures = 0
                     else:
-                        print("No new posts loaded after scrolling.")
-                        # Fallback methods
-                        load_more = page.locator('button:has-text("Load More")').first
-                        if load_more and load_more.is_visible():
-                            print("Clicking 'Load More' button...")
-                            load_more.click()
-                            time.sleep(3)
-                        else:
-                            print("Pressing 'End' key as fallback...")
-                            page.keyboard.press("End")
-                            time.sleep(2)
+                        print("No new posts loaded.")
+                        consecutive_failures += 1
+                        if consecutive_failures >= 5:
+                            print("Stopping after 5 consecutive failures to load new posts.")
+                            break
 
                     attempt += 1
 
-                # Final check and logging
-                if len(current_items) < num_posts:
-                    print(
-                        f"Warning: Only {len(current_items)} posts loaded, less than requested {num_posts}."
-                    )
+                # Final check of loaded items
+                feed_items = page.locator('[data-test="feed-item"]').all()
+                total_items = len(feed_items)
+                print(f"Total items found: {total_items}")
+                if total_items < num_posts:
+                    print(f"Warning: Loaded only {total_items} out of {num_posts} requested posts.")
 
-                # Extract posts
-                feed_items = current_items[:num_posts]  # Limit to requested number
-                for i, item in enumerate(feed_items):
-                    post_data = self._extract_post_data(item, coin)
-                    if post_data:
-                        posts.append(post_data)
-                        print(f"Extracted post {i+1}/{len(feed_items)}")
-
-                # Save to JSON
-                if posts:
-                    timestamp = int(time.time())
-                    json_file = save_path / f"{coin}_news_{timestamp}.json"
-                    with open(json_file, "w", encoding="utf-8") as f:
-                        json.dump(posts, f, ensure_ascii=False, indent=4)
-                    print(f"Saved {len(posts)} posts to {json_file}")
-                else:
-                    print("No posts extracted to save.")
+                # Process up to num_posts items
+                items_to_process = min(total_items, num_posts)
+                for i in range(items_to_process):
+                    try:
+                        item = feed_items[i]
+                        post_data = self._extract_post_data(item, coin)
+                        if post_data:
+                            posts.append(post_data)
+                            print(
+                                f"Extracted post {i+1}/{items_to_process}: {post_data['username']} - "
+                                f"{post_data['text'][0][:50] if post_data['text'] else 'No text'}..."
+                            )
+                    except Exception as e:
+                        print(f"Error processing item {i+1}: {e}")
 
             except PlaywrightTimeoutError as e:
-                print(f"Timeout error for {coin}: {e}")
-                return []
+                raise Exception(f"Timeout error while gathering news for {coin}: {str(e)}")
             except Exception as e:
-                print(f"Failed to gather news for {coin}: {e}")
-                return []
+                raise Exception(f"Failed to gather news for {coin}: {str(e)}")
             finally:
                 browser.close()
 
-        return posts
+        # Save posts as JSON
+        if posts:
+            timestamp = int(time.time())
+            json_file = save_path / f"{coin}_news_{timestamp}.json"
+            with open(json_file, "w", encoding="utf-8") as f:
+                json.dump(posts, f, ensure_ascii=False, indent=4)
+            print(f"Saved posts to {json_file}")
 
+        return posts, sentiment_score
     def _extract_post_data(self, post_element, coin: str) -> Dict:
         """Extract data from a single post element."""
         try:
