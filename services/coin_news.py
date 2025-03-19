@@ -158,7 +158,7 @@ class CoinNewsService:
                 json.dump(posts, f, ensure_ascii=False, indent=4)
             print(f"Saved posts to {json_file}")
 
-        return posts, sentiment_score
+        return posts
     def _extract_post_data(self, post_element, coin: str) -> Dict:
         """Extract data from a single post element."""
         try:
