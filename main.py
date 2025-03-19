@@ -1,14 +1,12 @@
 from services.coin_news import CoinNewsService
 
 if __name__ == "__main__":
-    news = CoinNewsService()
+    service = CoinNewsService()
 
     try:
-        posts, sentiment = news.get_news_and_sentiment(coin="xrp", num_posts=20)
-        print("\nNews Posts:")
-        for post in posts:
-            print(f"User: {post['username']}, Time: {post['time']}, Text: {''.join(post['text'])[:100]}...")
-            print(f"Reactions: {post['reactions']}")
-        print(f"Overall Sentiment Score: {sentiment:.2f}")
+        posts = service.get_news_posts(coin="xrp", num_posts=25)
+        print(f"Gathered {len(posts)} posts.")
+        sentiment = service.calculate_sentiment_from_last_file(coin="xrp")
+        print(f"Sentiment score from last file: {sentiment:.2f}")
     except Exception as e:
         print(f"Error: {e}")
