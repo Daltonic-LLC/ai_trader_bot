@@ -7,5 +7,5 @@ __pycache__
 .vscode
 .idea
 .git
-downloads
-news
+historical_data
+news_data

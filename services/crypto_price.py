@@ -1,25 +1,132 @@
 import time
 import random
+import csv
 from pathlib import Path
-from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
-from typing import List, Dict, Tuple
+from datetime import datetime
+from typing import List, Dict, Tuple, Optional, Union
 import json
 import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 
-class CoinNewsService:
+class CryptoDataService:
+    """
+    A comprehensive service for fetching cryptocurrency data including prices and news sentiment.
+    """
+
     def __init__(self, timeout: int = 60000):
-        """Initialize the CoinNewsService with a default timeout and VADER sentiment analyzer."""
+        """
+        Initialize the CryptoDataService.
+
+        Args:
+            timeout (int): Timeout in milliseconds for browser operations. Default is 60000 (60 seconds).
+        """
         self.timeout = timeout
+        # Initialize VADER sentiment analyzer
         nltk.download("vader_lexicon", quiet=True)
         self.sid = SentimentIntensityAnalyzer()
+
+        # Create data directories
+        self.price_dir = Path("price_data")
+        self.news_dir = Path("news")
+        self.price_dir.mkdir(exist_ok=True, parents=True)
+        self.news_dir.mkdir(exist_ok=True, parents=True)
+
+    def fetch_crypto_price(self, coin: str) -> Optional[float]:
+        """
+        Fetch the current price of a cryptocurrency from CoinMarketCap.
+
+        Args:
+            coin (str): The cryptocurrency slug (e.g., 'bitcoin', 'xrp').
+
+        Returns:
+            Optional[float]: The current price of the cryptocurrency or None if the fetch fails.
+        """
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            try:
+                context = browser.new_context(
+                    viewport={"width": 1280, "height": 800},
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                )
+                page = context.new_page()
+
+                # Navigate to the cryptocurrency's page on CoinMarketCap
+                url = f"https://coinmarketcap.com/currencies/{coin}/"
+                print(f"Navigating to {url} to fetch price...")
+                page.goto(url, wait_until="networkidle", timeout=self.timeout)
+
+                # Wait for price element to load
+                try:
+                    price_selector = 'span[data-test="text-cdp-price-display"]'
+                    page.wait_for_selector(
+                        price_selector, state="visible", timeout=self.timeout
+                    )
+
+                    # Extract the price
+                    price_element = page.locator(price_selector).first
+                    if price_element:
+                        price_text = price_element.inner_text().strip()
+                        # Remove the dollar sign and commas, then convert to float
+                        price = float(price_text.replace("$", "").replace(",", ""))
+                        print(f"Successfully fetched {coin} price: ${price}")
+                        return price
+                    else:
+                        print(f"Price element not found for {coin}")
+                        return None
+
+                except PlaywrightTimeoutError:
+                    print(f"Timeout waiting for price element for {coin}")
+                    return None
+                except Exception as e:
+                    print(f"Error extracting price for {coin}: {e}")
+                    return None
+            finally:
+                browser.close()
+
+    def save_price_to_csv(
+        self, coin: str, price: float, file_path: Optional[str] = None
+    ) -> str:
+        """
+        Save cryptocurrency price data to a CSV file.
+
+        Args:
+            coin (str): The cryptocurrency slug.
+            price (float): The price to save.
+            file_path (Optional[str]): Custom file path. If None, a default path is used.
+
+        Returns:
+            str: The path where the CSV file was saved.
+        """
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        if file_path is None:
+            file_path = self.price_dir / f"{coin}_price_data.csv"
+        else:
+            file_path = Path(file_path)
+
+        # Check if file exists to determine if headers need to be written
+        file_exists = file_path.exists()
+
+        with open(file_path, mode="a", newline="") as file:
+            writer = csv.writer(file)
+
+            # Write headers if file is being created
+            if not file_exists:
+                writer.writerow(["Timestamp", f"{coin.upper()} Price (USD)"])
+
+            # Write the price data
+            writer.writerow([timestamp, price])
+
+        print(f"Price data saved to {file_path}")
+        return str(file_path)
 
     def get_news_and_sentiment(
         self,
         coin: str,
         num_posts: int = 20,
-        save_dir: str = "news_data",
+        save_dir: str = "realtime_data",
     ) -> Tuple[List[Dict], float]:
         """
         Gather recent news posts and calculate sentiment score for the specified cryptocurrency.
@@ -27,17 +134,16 @@ class CoinNewsService:
         Args:
             coin (str): The cryptocurrency slug (e.g., 'bitcoin', 'xrp').
             num_posts (int): Number of recent posts to gather. Defaults to 20.
-            save_dir (str): Directory to save raw JSON data. Defaults to 'news'.
+            save_dir (Optional[str]): Directory to save raw JSON data. Defaults to self.news_dir.
 
         Returns:
             Tuple[List[Dict], float]: A tuple containing a list of post dictionaries and the sentiment score.
-
-        Raises:
-            Exception: If navigation or data extraction fails.
         """
-        # Ensure save directory exists
-        save_path = Path(save_dir)
-        save_path.mkdir(exist_ok=True, parents=True)
+        if save_dir is None:
+            save_path = self.news_dir
+        else:
+            save_path = Path(save_dir)
+            save_path.mkdir(exist_ok=True, parents=True)
 
         posts = []
         with sync_playwright() as p:
@@ -74,7 +180,9 @@ class CoinNewsService:
                     current_items = page.locator('[data-test="feed-item"]').all()
                     current_count = len(current_items)
                     if current_count >= num_posts:
-                        print(f"Target reached: {current_count}/{num_posts} posts loaded")
+                        print(
+                            f"Target reached: {current_count}/{num_posts} posts loaded"
+                        )
                         break
 
                     print(f"Attempt {attempt + 1}: Current posts: {current_count}")
@@ -91,7 +199,9 @@ class CoinNewsService:
                         technique = attempt % 3
                         if technique == 0:
                             print("Scrolling to bottom...")
-                            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                            page.evaluate(
+                                "window.scrollTo(0, document.body.scrollHeight)"
+                            )
                         elif technique == 1 and current_items:
                             print("Scrolling to last item...")
                             last_item = current_items[-1]
@@ -110,13 +220,17 @@ class CoinNewsService:
                     new_items = page.locator('[data-test="feed-item"]').all()
                     new_count = len(new_items)
                     if new_count > current_count:
-                        print(f"Loaded {new_count - current_count} new posts. Total: {new_count}")
+                        print(
+                            f"Loaded {new_count - current_count} new posts. Total: {new_count}"
+                        )
                         consecutive_failures = 0
                     else:
                         print("No new posts loaded.")
                         consecutive_failures += 1
                         if consecutive_failures >= 5:
-                            print("Stopping after 5 consecutive failures to load new posts.")
+                            print(
+                                "Stopping after 5 consecutive failures to load new posts."
+                            )
                             break
 
                     attempt += 1
@@ -126,7 +240,9 @@ class CoinNewsService:
                 total_items = len(feed_items)
                 print(f"Total items found: {total_items}")
                 if total_items < num_posts:
-                    print(f"Warning: Loaded only {total_items} out of {num_posts} requested posts.")
+                    print(
+                        f"Warning: Loaded only {total_items} out of {num_posts} requested posts."
+                    )
 
                 # Process up to num_posts items
                 items_to_process = min(total_items, num_posts)
@@ -144,9 +260,9 @@ class CoinNewsService:
                         print(f"Error processing item {i+1}: {e}")
 
             except PlaywrightTimeoutError as e:
-                raise Exception(f"Timeout error while gathering news for {coin}: {str(e)}")
+                print(f"Timeout error while gathering news for {coin}: {str(e)}")
             except Exception as e:
-                raise Exception(f"Failed to gather news for {coin}: {str(e)}")
+                print(f"Failed to gather news for {coin}: {str(e)}")
             finally:
                 browser.close()
 
@@ -158,7 +274,12 @@ class CoinNewsService:
                 json.dump(posts, f, ensure_ascii=False, indent=4)
             print(f"Saved posts to {json_file}")
 
-        return posts
+        # Calculate sentiment score
+        sentiment_score = self._calculate_sentiment_score(posts)
+        print(f"Calculated sentiment score: {sentiment_score:.2f}")
+
+        return posts, sentiment_score
+
     def _extract_post_data(self, post_element, coin: str) -> Dict:
         """Extract data from a single post element."""
         try:
@@ -232,32 +353,71 @@ class CoinNewsService:
                 text_scores.append(score)
         return sum(text_scores) / len(text_scores) if text_scores else 0.5
 
-    def _get_last_json_file(self, coin: str, save_dir: str) -> str:
-        """Find the most recent JSON file for the specified coin."""
-        save_path = Path(save_dir)
-        files = list(save_path.glob(f"{coin}_news_*.json"))
-        if not files:
-            raise FileNotFoundError(f"No JSON files found for {coin} in {save_dir}")
-        timestamps = [(file, int(file.stem.split("_")[-1])) for file in files]
-        last_file = max(timestamps, key=lambda x: x[1])[0]
-        return str(last_file)
+    def fetch_and_save_crypto_data(
+        self,
+        coin: str,
+        include_news: bool = True,
+        news_posts: int = 20,
+        save_csv: bool = True,
+        csv_path: Optional[str] = None,
+    ) -> Dict[str, Union[float, str, float]]:
+        """
+        Fetch cryptocurrency price and optionally news sentiment, then save to files.
 
-    def calculate_sentiment_from_last_file(
-        self, coin: str, save_dir: str = "news"
-    ) -> float:
-        """Calculate sentiment score from the most recent JSON file for the coin."""
-        last_file = self._get_last_json_file(coin, save_dir)
-        with open(last_file, "r", encoding="utf-8") as f:
-            posts = json.load(f)
-        return self._calculate_sentiment_score(posts)
+        Args:
+            coin (str): The cryptocurrency slug (e.g., 'xrp', 'bitcoin').
+            include_news (bool): Whether to fetch news and calculate sentiment.
+            news_posts (int): Number of news posts to fetch if include_news is True.
+            save_csv (bool): Whether to save price data to CSV.
+            csv_path (Optional[str]): Custom path for CSV file.
+
+        Returns:
+            Dict: Dictionary containing price, sentiment (if requested), and file paths.
+        """
+        result = {
+            "coin": coin,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+
+        # Fetch price
+        price = self.fetch_crypto_price(coin)
+        if price is not None:
+            result["price"] = price
+
+            # Save price to CSV if requested
+            if save_csv:
+                csv_file = self.save_price_to_csv(coin, price, csv_path)
+                result["csv_file"] = csv_file
+        else:
+            result["price"] = None
+            result["error"] = "Failed to fetch price"
+
+        # Fetch news and calculate sentiment if requested
+        if include_news:
+            posts, sentiment = self.get_news_and_sentiment(coin, news_posts)
+            result["sentiment"] = sentiment
+            result["news_count"] = len(posts)
+
+        return result
 
 
 if __name__ == "__main__":
-    service = CoinNewsService()
-    try:
-        posts = service.get_news_posts(coin="xrp", num_posts=20)
-        print(f"Gathered {len(posts)} posts.")
-        sentiment = service.calculate_sentiment_from_last_file(coin="xrp")
-        print(f"Sentiment score from last file: {sentiment:.2f}")
-    except Exception as e:
-        print(f"Error: {e}")
+    # Example usage
+    service = CryptoDataService()
+
+    # Fetch XRP data with news sentiment
+    result = service.fetch_and_save_crypto_data("xrp", include_news=True)
+
+    print("\nSummary of fetched data:")
+    print(f"Coin: {result['coin'].upper()}")
+    print(f"Timestamp: {result['timestamp']}")
+    print(f"Current price: ${result['price']}")
+    if "sentiment" in result:
+        print(f"Sentiment score (0-1): {result['sentiment']:.2f}")
+        sentiment_text = (
+            "Bullish"
+            if result["sentiment"] > 0.6
+            else "Neutral" if result["sentiment"] >= 0.4 else "Bearish"
+        )
+        print(f"Market sentiment: {sentiment_text}")
+    print(f"Data saved to: {result.get('csv_file', 'N/A')}")

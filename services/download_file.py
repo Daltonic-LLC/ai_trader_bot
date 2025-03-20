@@ -8,7 +8,7 @@ class FileDownloadService:
         coin: str,
         start_date: str = None,
         end_date: str = None,
-        download_dir: str = "downloads",
+        download_dir: str = "historical_data",
         timeout: int = 30000,
     ) -> str:
         """
