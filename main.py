@@ -4,7 +4,7 @@ if __name__ == "__main__":
     service = CryptoDataService()
 
     try:
-        result = service.fetch_and_save_crypto_data("xrp", include_news=False)
+        result = service.fetch_and_save_crypto_data("xrp", include_news=True)
     
         print("\nSummary of fetched data:")
         print(f"Coin: {result['coin'].upper()}")

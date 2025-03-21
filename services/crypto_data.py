@@ -1,5 +1,6 @@
 import time
 import csv
+import string
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Tuple, Optional, Union
@@ -30,35 +31,53 @@ class CryptoDataService:
     @staticmethod
     def parse_value(text: Optional[str] = None) -> Union[float, str]:
         """
-        Parse a value string into a float, handling currency symbols and suffixes.
+        Parse a value string into a float, handling currency symbols, suffixes, and units.
 
         Args:
-            text (Optional[str]): The value string to parse (e.g., "$141.86B", "58.1B XRP").
+            text (Optional[str]): The value string to parse (e.g., "$141.86B", "100B XRP").
 
         Returns:
             Union[float, str]: The parsed value or "N/A" if parsing fails.
         """
-        if text is None or not isinstance(text, str):
+        if text is None or not isinstance(text, str) or text.strip() in ("", "No Data"):
             return "N/A"
+        
         text = text.strip()
-        if text == "No Data" or not text:
+        # Find the numeric part with optional suffix (e.g., "100B" from "100B XRP")
+        parts = text.split()
+        if not parts:
             return "N/A"
-        if text.startswith('$'):
-            text = text[1:]
-        if text[-1].isalpha():
-            suffix = text[-1].upper()
-            value_str = text[:-1].replace(',', '')
+        
+        # Use the first part that looks like a number with optional suffix
+        for part in parts:
+            if any(char.isdigit() for char in part):
+                value_text = part
+                break
+        else:
+            return "N/A"
+        
+        # Handle currency symbol
+        if value_text.startswith('$'):
+            value_text = value_text[1:]
+        
+        # Handle suffixes (K, M, B, T)
+        if value_text[-1].isalpha():
+            suffix = value_text[-1].upper()
+            value_str = value_text[:-1].replace(',', '')
             try:
                 value = float(value_str)
                 multipliers = {'K': 1e3, 'M': 1e6, 'B': 1e9, 'T': 1e12}
                 return value * multipliers.get(suffix, 1)
             except ValueError:
                 return "N/A"
+        
+        # Handle plain numbers
         try:
-            return float(text.replace(',', ''))
+            return float(value_text.replace(',', ''))
         except ValueError:
             return "N/A"
 
+    
     def fetch_crypto_data(self, coin: str) -> Optional[Dict[str, Union[float, str, int]]]:
         """
         Fetch comprehensive cryptocurrency data from CoinMarketCap using keyword-based selectors.
@@ -141,17 +160,23 @@ class CryptoDataService:
                     "Circulating supply": "circulating_supply"
                 }
 
+                def normalize_text(text):
+                    text = text.replace('\u00a0', ' ')
+                    text = text.translate(str.maketrans('', '', string.punctuation))
+                    return text.strip().lower()
+
                 for item in metric_items:
-                    label_element = item.locator('dt')
+                    # Locate the label div
+                    label_element = item.locator('div.LongTextDisplay_content-wrapper__2ho_9')
                     if label_element.count() > 0:
                         label_text = label_element.inner_text().strip()
+                        normalized_label = normalize_text(label_text)
                         for keyword, key in label_to_key.items():
-                            if keyword.lower() in label_text.lower():
-                                value_element = item.locator('dd span').first
+                            normalized_keyword = normalize_text(keyword)
+                            if normalized_keyword in normalized_label:
+                                # Locate the value span
+                                value_element = item.locator('div.CoinMetrics_overflow-content__tlFu7 span')
                                 value_text = value_element.inner_text().strip() if value_element.count() > 0 else "N/A"
-                                if value_element.count() == 0:
-                                    value_element = item.locator('dd')
-                                    value_text = value_element.inner_text().strip() if value_element.count() > 0 else "N/A"
                                 data[key] = self.parse_value(value_text)
                                 break
 
