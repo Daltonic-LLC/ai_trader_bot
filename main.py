@@ -1,19 +1,21 @@
-from services.crypto_data import CryptoDataService
+from services.coin_stats import CoinStatsService
+from services.coin_news import NewsSentimentService
+
+def main():
+    coin = "xrp"
+    # coin_service = CoinStatsService()
+    news_service = NewsSentimentService()
+
+    # Fetch and save coin stats
+    # stats_result = coin_service.fetch_and_save_coin_stats(coin)
+    # print("Coin Stats Summary:")
+    # for key, value in stats_result.items():
+    #     print(f"{key.replace('_', ' ').title()}: {value}")
+
+    # Fetch and save news sentiment
+    posts, sentiment = news_service.get_news_and_sentiment(coin)
+    print(f"\nNews Sentiment for {coin}: {sentiment}")
+    print(f"Number of posts: {len(posts)}")
 
 if __name__ == "__main__":
-    service = CryptoDataService()
-
-    try:
-        result = service.fetch_and_save_crypto_data("xrp", include_news=True)
-    
-        print("\nSummary of fetched data:")
-        print(f"Coin: {result['coin'].upper()}")
-        print(f"Timestamp: {result['timestamp']}")
-        print(f"Current price: ${result['price']}")
-        if "sentiment" in result:
-            print(f"Sentiment score (0-1): {result['sentiment']:.2f}")
-            sentiment_text = "Bullish" if result['sentiment'] > 0.6 else "Neutral" if result['sentiment'] >= 0.4 else "Bearish"
-            print(f"Market sentiment: {sentiment_text}")
-        print(f"Data saved to: {result.get('csv_file', 'N/A')}")
-    except Exception as e:
-        print(f"Error: {e}")
+    main()

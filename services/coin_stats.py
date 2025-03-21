@@ -1,32 +1,24 @@
-import time
 import csv
 import string
 from pathlib import Path
 from datetime import datetime
-from typing import List, Dict, Tuple, Optional, Union
-import json
-import nltk
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from typing import Dict, Optional, Union
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
-
-class CryptoDataService:
+class CoinStatsService:
     """
-    A service for fetching and storing comprehensive cryptocurrency data, including price, market metrics, and news sentiment.
+    A service for fetching and storing cryptocurrency statistics, such as price, market cap, and supply metrics.
     """
-
     def __init__(self, timeout: int = 60000):
         """
-        Initialize the CryptoDataService.
+        Initialize the CoinStatsService.
 
         Args:
             timeout (int): Timeout in milliseconds for browser operations. Default is 60 seconds.
         """
         self.timeout = timeout
-        self.base_dir = Path("realtime_data")
+        self.base_dir = Path("data/realtime")
         self.base_dir.mkdir(exist_ok=True, parents=True)
-        nltk.download("vader_lexicon", quiet=True)
-        self.sid = SentimentIntensityAnalyzer()
 
     @staticmethod
     def parse_value(text: Optional[str] = None) -> Union[float, str]:
@@ -43,12 +35,10 @@ class CryptoDataService:
             return "N/A"
         
         text = text.strip()
-        # Find the numeric part with optional suffix (e.g., "100B" from "100B XRP")
         parts = text.split()
         if not parts:
             return "N/A"
         
-        # Use the first part that looks like a number with optional suffix
         for part in parts:
             if any(char.isdigit() for char in part):
                 value_text = part
@@ -56,11 +46,9 @@ class CryptoDataService:
         else:
             return "N/A"
         
-        # Handle currency symbol
         if value_text.startswith('$'):
             value_text = value_text[1:]
         
-        # Handle suffixes (K, M, B, T)
         if value_text[-1].isalpha():
             suffix = value_text[-1].upper()
             value_str = value_text[:-1].replace(',', '')
@@ -71,22 +59,20 @@ class CryptoDataService:
             except ValueError:
                 return "N/A"
         
-        # Handle plain numbers
         try:
             return float(value_text.replace(',', ''))
         except ValueError:
             return "N/A"
 
-    
-    def fetch_crypto_data(self, coin: str) -> Optional[Dict[str, Union[float, str, int]]]:
+    def fetch_coin_stats(self, coin: str) -> Optional[Dict[str, Union[float, str, int]]]:
         """
-        Fetch comprehensive cryptocurrency data from CoinMarketCap using keyword-based selectors.
+        Fetch cryptocurrency statistics from CoinMarketCap.
 
         Args:
             coin (str): The cryptocurrency slug (e.g., 'bitcoin', 'xrp').
 
         Returns:
-            Optional[Dict]: A dictionary with price and market data, or None if fetch fails.
+            Optional[Dict]: A dictionary with coin statistics, or None if fetch fails.
         """
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
@@ -97,24 +83,20 @@ class CryptoDataService:
                 )
                 page = context.new_page()
                 url = f"https://coinmarketcap.com/currencies/{coin}/"
-                print(f"Navigating to {url} to fetch data...")
+                print(f"Navigating to {url} to fetch stats...")
                 page.goto(url, wait_until="networkidle", timeout=self.timeout)
 
-                # Wait for the price element to ensure the page is loaded
                 page.wait_for_selector('span[data-test="text-cdp-price-display"]', timeout=self.timeout)
 
                 data = {"coin": coin}
 
-                # Extract Price
                 price_element = page.locator('span[data-test="text-cdp-price-display"]')
                 price_text = price_element.inner_text().strip() if price_element.count() > 0 else "N/A"
-                print(f"Price text: '{price_text}'")  # Debug
                 data["price"] = self.parse_value(price_text)
 
-                # Extract Price Change 24h (%)
                 change_element = page.locator('div[data-role="el"] p[data-change]')
                 if change_element.count() > 0:
-                    change_text = change_element.inner_text().strip()  # e.g., "4.40% (1d)"
+                    change_text = change_element.inner_text().strip()
                     percentage_str = change_text.split('%')[0].strip()
                     try:
                         percentage = float(percentage_str)
@@ -127,7 +109,6 @@ class CryptoDataService:
                 else:
                     data["price_change_24h_percent"] = "N/A"
 
-                # Extract Low and High 24h from "Price performance" section
                 page.wait_for_selector('div.coin-price-performance', timeout=self.timeout)
                 low_label = page.locator('text="Low"')
                 if low_label.count() > 0:
@@ -145,7 +126,6 @@ class CryptoDataService:
                 else:
                     data["high_24h"] = "N/A"
 
-                # Extract metrics from "XRP statistics" section
                 page.wait_for_selector('div.coin-metrics', timeout=self.timeout)
                 metrics_container = page.locator('div.coin-metrics-table')
                 metric_items = metrics_container.locator('div[data-role="group-item"]').all()
@@ -166,7 +146,6 @@ class CryptoDataService:
                     return text.strip().lower()
 
                 for item in metric_items:
-                    # Locate the label div
                     label_element = item.locator('div.LongTextDisplay_content-wrapper__2ho_9')
                     if label_element.count() > 0:
                         label_text = label_element.inner_text().strip()
@@ -174,33 +153,30 @@ class CryptoDataService:
                         for keyword, key in label_to_key.items():
                             normalized_keyword = normalize_text(keyword)
                             if normalized_keyword in normalized_label:
-                                # Locate the value span
                                 value_element = item.locator('div.CoinMetrics_overflow-content__tlFu7 span')
                                 value_text = value_element.inner_text().strip() if value_element.count() > 0 else "N/A"
                                 data[key] = self.parse_value(value_text)
                                 break
 
-                print(f"Successfully fetched data for {coin}: {data}")
+                print(f"Successfully fetched stats for {coin}: {data}")
                 return data
 
             except PlaywrightTimeoutError:
-                print(f"Timeout fetching data for {coin}")
+                print(f"Timeout fetching stats for {coin}")
                 return None
             except Exception as e:
-                print(f"Error fetching data for {coin}: {e}")
-                import traceback
-                traceback.print_exc()
+                print(f"Error fetching stats for {coin}: {e}")
                 return None
             finally:
                 browser.close()
 
-    def save_price_to_csv(self, coin: str, data: Dict, file_path: Optional[str] = None) -> str:
+    def save_coin_stats_to_csv(self, coin: str, data: Dict, file_path: Optional[str] = None) -> str:
         """
-        Save cryptocurrency data to a CSV file.
+        Save cryptocurrency statistics to a CSV file.
 
         Args:
             coin (str): The cryptocurrency slug.
-            data (Dict): Dictionary containing price and market data.
+            data (Dict): Dictionary containing coin statistics.
             file_path (Optional[str]): Custom file path. If None, uses default path.
 
         Returns:
@@ -208,9 +184,9 @@ class CryptoDataService:
         """
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         if file_path is None:
-            price_dir = self.base_dir / coin / "price_data"
-            price_dir.mkdir(exist_ok=True, parents=True)
-            file_path = price_dir / f"{coin}_price_data.csv"
+            stats_dir = self.base_dir / coin / "stats"
+            stats_dir.mkdir(exist_ok=True, parents=True)
+            file_path = stats_dir / f"{coin}_stats.csv"
         else:
             file_path = Path(file_path)
             file_path.parent.mkdir(exist_ok=True, parents=True)
@@ -235,105 +211,28 @@ class CryptoDataService:
                 writer.writerow(headers)
             writer.writerow(row)
 
-        print(f"Data saved to {file_path}")
+        print(f"Stats saved to {file_path}")
         return str(file_path)
 
-    def get_news_and_sentiment(self, coin: str, num_posts: int = 20, save_dir: Optional[str] = None) -> Tuple[List[Dict], float]:
+    def fetch_and_save_coin_stats(self, coin: str, save_csv: bool = True, csv_path: Optional[str] = None) -> Dict[str, Union[float, str]]:
         """
-        Gather news posts and calculate sentiment score from CoinMarketCap.
+        Fetch and save cryptocurrency statistics.
 
         Args:
             coin (str): The cryptocurrency slug.
-            num_posts (int): Number of news posts to fetch. Default is 20.
-            save_dir (Optional[str]): Directory to save news data. If None, uses default.
-
-        Returns:
-            Tuple[List[Dict], float]: List of news posts and compound sentiment score.
-        """
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            try:
-                page = browser.new_context().new_page()
-                url = f"https://coinmarketcap.com/currencies/{coin}/news/"
-                page.goto(url, wait_until="networkidle", timeout=self.timeout)
-
-                news_items = page.locator('article').all()[:num_posts]
-                posts = []
-                total_sentiment = 0.0
-                for item in news_items:
-                    title = item.locator('h3').inner_text().strip() if item.locator('h3').count() > 0 else "No title"
-                    summary = item.locator('p').inner_text().strip() if item.locator('p').count() > 0 else ""
-                    sentiment = self.sid.polarity_scores(summary or title)['compound']
-                    posts.append({"title": title, "summary": summary, "sentiment": sentiment})
-                    total_sentiment += sentiment
-
-                sentiment_score = total_sentiment / len(posts) if posts else 0.0
-
-                if save_dir is None:
-                    news_dir = self.base_dir / coin / "news_data"
-                else:
-                    news_dir = Path(save_dir)
-                news_dir.mkdir(exist_ok=True, parents=True)
-
-                news_file = news_dir / f"{coin}_news.json"
-                with open(news_file, 'w') as f:
-                    json.dump(posts, f, indent=2)
-                print(f"News data saved to {news_file}")
-
-                return posts, sentiment_score
-
-            except Exception as e:
-                print(f"Error fetching news for {coin}: {e}")
-                return [], 0.0
-            finally:
-                browser.close()
-
-    def fetch_and_save_crypto_data(
-        self,
-        coin: str,
-        include_news: bool = True,
-        news_posts: int = 20,
-        save_csv: bool = True,
-        csv_path: Optional[str] = None
-    ) -> Dict[str, Union[float, str]]:
-        """
-        Fetch and save cryptocurrency data, optionally including news sentiment.
-
-        Args:
-            coin (str): The cryptocurrency slug.
-            include_news (bool): Whether to fetch news sentiment. Default is True.
-            news_posts (int): Number of news posts to fetch. Default is 20.
             save_csv (bool): Whether to save data to CSV. Default is True.
             csv_path (Optional[str]): Custom CSV path. If None, uses default.
 
         Returns:
-            Dict: Results including price, market data, and file paths.
+            Dict: Results including coin statistics and file paths.
         """
         result = {"coin": coin, "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-        # Fetch cryptocurrency data
-        data = self.fetch_crypto_data(coin)
+        data = self.fetch_coin_stats(coin)
         if data:
             result.update(data)
             if save_csv:
-                csv_file = self.save_price_to_csv(coin, data, csv_path)
+                csv_file = self.save_coin_stats_to_csv(coin, data, csv_path)
                 result["csv_file"] = csv_file
         else:
-            result["error"] = "Failed to fetch data"
-
-        # Fetch news sentiment if requested
-        if include_news:
-            posts, sentiment = self.get_news_and_sentiment(coin, news_posts)
-            result["sentiment"] = sentiment
-            result["news_count"] = len(posts)
-
+            result["error"] = "Failed to fetch stats"
         return result
-
-
-if __name__ == "__main__":
-    # Example usage
-    service = CryptoDataService()
-    result = service.fetch_and_save_crypto_data("xrp", include_news=True)
-    print("\nSummary of fetched data:")
-    for key, value in result.items():
-        print(f"{key.replace('_', ' ').title()}: {value}")
