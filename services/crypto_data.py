@@ -11,7 +11,7 @@ from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeo
 
 class CryptoDataService:
     """
-    A service for fetching and storing comprehensive cryptocurrency data, including price and market metrics.
+    A service for fetching and storing comprehensive cryptocurrency data, including price, market metrics, and news sentiment.
     """
 
     def __init__(self, timeout: int = 60000):
@@ -33,14 +33,16 @@ class CryptoDataService:
         Parse a value string into a float, handling currency symbols and suffixes.
 
         Args:
-            text (str): The value string to parse (e.g., "$141.86B", "58.1B").
+            text (str): The value string to parse (e.g., "$141.86B", "58.1B XRP").
 
         Returns:
             Union[float, str]: The parsed value or "N/A" if parsing fails.
         """
         text = text.strip()
-        if text == "No Data":
+        if text == "No Data" or not text:
             return "N/A"
+        # Split on space to remove coin symbol if present
+        text = text.split()[0]
         if text.startswith('$'):
             text = text[1:]
         if text[-1].isalpha():
@@ -51,10 +53,7 @@ class CryptoDataService:
             except ValueError:
                 return "N/A"
             multipliers = {'K': 1e3, 'M': 1e6, 'B': 1e9, 'T': 1e12}
-            if suffix in multipliers:
-                return value * multipliers[suffix]
-            else:
-                return "N/A"
+            return value * multipliers.get(suffix, 1)
         else:
             try:
                 return float(text.replace(',', ''))
@@ -63,7 +62,7 @@ class CryptoDataService:
 
     def fetch_crypto_data(self, coin: str) -> Optional[Dict[str, Union[float, str, int]]]:
         """
-        Fetch comprehensive cryptocurrency data from CoinMarketCap.
+        Fetch comprehensive cryptocurrency data from CoinMarketCap using keyword-based selectors.
 
         Args:
             coin (str): The cryptocurrency slug (e.g., 'bitcoin', 'xrp').
@@ -84,45 +83,62 @@ class CryptoDataService:
                 page.goto(url, wait_until="networkidle", timeout=self.timeout)
 
                 # Wait for the price element to ensure the page is loaded
-                page.wait_for_selector('span[data-test="text-cdp-price-display"]', timeout=self.timeout)
+                page.wait_for_selector('span[data-test="text-cdp-price-display"]', state='visible', timeout=self.timeout)
 
                 data = {"coin": coin}
 
                 # Extract Price
                 price_element = page.locator('span[data-test="text-cdp-price-display"]')
-                price_text = price_element.inner_text().strip()
+                price_text = price_element.inner_text().strip() if price_element.count() > 0 else "N/A"
                 data["price"] = self.parse_value(price_text)
 
-                # Extract 24h Price Change (scoped to the overview section)
-                change_element = page.locator('#section-coin-overview p.change-text')
-                if change_element.count() == 1:
-                    change_text = change_element.inner_text().strip().split('%')[0]
-                    data["price_change_24h_percent"] = float(change_text)
+                # Extract Price Change 24h (%)
+                # Search for element with "data-change" attribute near price
+                change_element = page.locator('div[data-role="el"] p[data-change]')
+                if change_element.count() > 0:
+                    change_text = change_element.inner_text().strip()  # e.g., "4.40% (1d)"
+                    percentage_str = change_text.split('%')[0].strip()
+                    try:
+                        percentage = float(percentage_str)
+                        direction = change_element.get_attribute('data-change')
+                        if direction == 'down':
+                            percentage = -percentage
+                        data["price_change_24h_percent"] = percentage
+                    except ValueError:
+                        data["price_change_24h_percent"] = "N/A"
                 else:
-                    print(f"Error: Expected 1 change element, found {change_element.count()}")
                     data["price_change_24h_percent"] = "N/A"
 
-                # Extract 24h Low/High
-                low_high_div = page.locator('div:has(div:text("Low")):has(div:text("High"))')
-                if low_high_div.count() >= 1:
-                    low_text = low_high_div.locator('span').nth(0).inner_text().strip()
-                    high_text = low_high_div.locator('span').nth(1).inner_text().strip()
+                # Extract Low and High 24h from "Price performance" section
+                # Wait for the price performance section to load
+                page.wait_for_selector('div.coin-price-performance', state='visible', timeout=self.timeout)
+                
+                # Low 24h
+                low_label = page.locator('text="Low"')
+                if low_label.count() > 0:
+                    # Find the next <span> sibling containing the value
+                    low_value = low_label.locator('xpath=following-sibling::span')
+                    low_text = low_value.inner_text().strip() if low_value.count() > 0 else "N/A"
                     data["low_24h"] = self.parse_value(low_text)
+                else:
+                    data["low_24h"] = "N/A"
+
+                # High 24h
+                high_label = page.locator('text="High"')
+                if high_label.count() > 0:
+                    # Find the next <span> sibling containing the value
+                    high_value = high_label.locator('xpath=following-sibling::span')
+                    high_text = high_value.inner_text().strip() if high_value.count() > 0 else "N/A"
                     data["high_24h"] = self.parse_value(high_text)
                 else:
-                    print(f"Error: Expected at least 1 low/high div, found {low_high_div.count()}")
-                    data["low_24h"] = "N/A"
                     data["high_24h"] = "N/A"
 
-                # Fetch all metrics from the coin-metrics-table
+                # Extract metrics from "XRP statistics" section
+                # Wait for stats to load
+                page.wait_for_selector('div.coin-metrics', state='visible', timeout=self.timeout)
                 metrics_container = page.locator('div.coin-metrics-table')
-                if metrics_container.count() == 0:
-                    print("Error: Coin metrics container not found.")
-                    return data
-
                 metric_items = metrics_container.locator('div[data-role="group-item"]').all()
 
-                # Map labels to data keys
                 label_to_key = {
                     "Market cap": "market_cap",
                     "Volume (24h)": "volume_24h",
@@ -134,16 +150,25 @@ class CryptoDataService:
                 }
 
                 for item in metric_items:
-                    label_element = item.locator('dt div.LongTextDisplay_content-wrapper__2ho_9')
-                    value_element = item.locator('dd div.CoinMetrics_overflow-content__tlFu7 span')
+                    # Search for the label text within <dt>
+                    label_element = item.locator('dt >> text')
+                    if label_element.count() > 0:
+                        label_text = label_element.inner_text().strip()
+                        # Clean the label by removing extra text (e.g., icons)
+                        for key in label_to_key.keys():
+                            if key in label_text:
+                                label = key
+                                # Find the value in <dd>, typically in a <span>
+                                value_element = item.locator('dd span').first
+                                value_text = value_element.inner_text().strip() if value_element.count() > 0 else "N/A"
+                                # For "Vol/Mkt Cap (24h)", it might not be in a span
+                                if value_element.count() == 0 and label == "Vol/Mkt Cap (24h)":
+                                    value_element = item.locator('dd')
+                                    value_text = value_element.inner_text().strip() if value_element.count() > 0 else "N/A"
+                                data[label_to_key[label]] = self.parse_value(value_text)
+                                break
 
-                    label = label_element.inner_text().strip() if label_element.count() == 1 else None
-                    value_text = value_element.inner_text().strip() if value_element.count() == 1 else "N/A"
-
-                    if label and label in label_to_key:
-                        data[label_to_key[label]] = self.parse_value(value_text) if value_text != "N/A" else "N/A"
-
-                print(f"Successfully fetched data for {coin}: Price=${data['price']}, Change={data['price_change_24h_percent']}%")
+                print(f"Successfully fetched data for {coin}: Price=${data['price']}, Change={data.get('price_change_24h_percent', 'N/A')}%")
                 return data
 
             except PlaywrightTimeoutError:
@@ -154,7 +179,7 @@ class CryptoDataService:
                 return None
             finally:
                 browser.close()
-
+                
     def save_price_to_csv(self, coin: str, data: Dict, file_path: Optional[str] = None) -> str:
         """
         Save cryptocurrency data to a CSV file.
@@ -216,7 +241,6 @@ class CryptoDataService:
                 url = f"https://coinmarketcap.com/currencies/{coin}/news/"
                 page.goto(url, wait_until="networkidle", timeout=self.timeout)
 
-                # Assuming news articles are in a list with a specific class or structure
                 news_items = page.locator('article').all()[:num_posts]
                 posts = []
                 total_sentiment = 0.0
@@ -293,7 +317,7 @@ class CryptoDataService:
 if __name__ == "__main__":
     # Example usage
     service = CryptoDataService()
-    result = service.fetch_and_save_crypto_data("xrp", include_news=False)
+    result = service.fetch_and_save_crypto_data("xrp", include_news=True)
     print("\nSummary of fetched data:")
     for key, value in result.items():
         print(f"{key.replace('_', ' ').title()}: {value}")
