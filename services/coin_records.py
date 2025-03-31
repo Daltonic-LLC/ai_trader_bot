@@ -2,6 +2,7 @@ import time
 from pathlib import Path
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 from typing import Optional
+import re
 
 class FileDownloadService:
     """
@@ -110,6 +111,34 @@ class FileDownloadService:
                 browser.close()
 
         return str(file_path)
+    
+    def get_latest_file(self, coin: str) -> Optional[str]:
+        """
+        Returns the path to the most recently downloaded historical data file for the specified coin.
+
+        Args:
+            coin (str): The cryptocurrency slug (e.g., 'bitcoin', 'ethereum').
+
+        Returns:
+            Optional[str]: The full path to the most recent file, or None if no files are found.
+
+        Note:
+            This method assumes files are stored in 'base_dir / coin'. If a custom 'download_dir' was
+            used in 'download_file', this method will not find those files unless the custom directory
+            matches 'base_dir / coin'.
+        """
+        dir_path = self.base_dir / coin
+        if not dir_path.exists() or not dir_path.is_dir():
+            return None
+        
+        # List files that match the pattern: starts with digits followed by a hyphen
+        files = [f for f in dir_path.iterdir() if f.is_file() and re.match(r'^\d+-', f.name)]
+        if not files:
+            return None
+        
+        # Find the file with the maximum timestamp
+        latest_file = max(files, key=lambda f: int(f.name.split('-')[0]))
+        return str(latest_file)
 
 # Example usage
 if __name__ == "__main__":

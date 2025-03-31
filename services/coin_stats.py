@@ -1,5 +1,6 @@
 import csv
 import string
+import pandas as pd
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Optional, Union
@@ -236,3 +237,57 @@ class CoinStatsService:
         else:
             result["error"] = "Failed to fetch stats"
         return result
+    
+    def get_latest_stats(self, coin: str) -> Optional[Dict[str, Union[str, float]]]:
+        """
+        Retrieve the most recently captured statistics for the specified cryptocurrency from the download directory.
+
+        Args:
+            coin (str): The cryptocurrency slug (e.g., 'bitcoin', 'ethereum').
+
+        Returns:
+            Optional[Dict[str, Union[str, float]]]: A dictionary containing the most recent statistics,
+            including price, timestamp, and other metrics, or None if no data is found.
+        """
+        # Construct the file path
+        file_path = self.base_dir / coin / "stats" / f"{coin}_stats.csv"
+        
+        # Check if the file exists
+        if not file_path.exists():
+            return None
+        
+        # Read the CSV file, treating "N/A" as NaN
+        df = pd.read_csv(file_path, na_values=["N/A"])
+        
+        # Check if the DataFrame is empty
+        if df.empty:
+            return None
+        
+        # Get the most recent row (last row)
+        last_row = df.iloc[-1]
+        
+        # Define mapping from CSV headers to dictionary keys
+        header_to_key = {
+            "Timestamp": "timestamp",
+            "Price (USD)": "price",
+            "Price Change 24h (%)": "price_change_24h_percent",
+            "Low 24h (USD)": "low_24h",
+            "High 24h (USD)": "high_24h",
+            "Volume 24h (USD)": "volume_24h",
+            "Market Cap (USD)": "market_cap",
+            "Fully Diluted Valuation (USD)": "fully_diluted_valuation",
+            "Circulating Supply": "circulating_supply",
+            "Total Supply": "total_supply",
+            "Max Supply": "max_supply"
+        }
+        
+        # Create the stats dictionary with mapped keys
+        stats = {header_to_key[col]: last_row[col] for col in df.columns if col in header_to_key}
+        
+        # Add the coin name to the dictionary
+        stats["coin"] = coin
+        
+        # Replace NaN values with "N/A" for consistency with fetch_coin_stats
+        stats = {k: (v if not pd.isna(v) else "N/A") for k, v in stats.items()}
+        
+        return stats
