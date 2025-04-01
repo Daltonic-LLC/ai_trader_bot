@@ -1,4 +1,3 @@
-# news_sentiment_service.py
 import json
 import random
 import time
@@ -25,9 +24,44 @@ class NewsSentimentService:
         nltk.download("vader_lexicon", quiet=True)
         self.sid = SentimentIntensityAnalyzer()
 
-    def get_news_and_sentiment(self, coin: str, num_posts: int = 20, save_dir: Optional[str] = None) -> Tuple[List[Dict], float]:
+    #### New Helper Methods ####
+
+    def calculate_sentiment_score(self, posts: List[Dict]) -> float:
         """
-        Gather community posts and calculate sentiment score from CoinMarketCap's community page.
+        Calculate the average sentiment score from a list of posts.
+
+        Args:
+            posts (List[Dict]): List of post dictionaries with 'sentiment' key.
+
+        Returns:
+            float: Average sentiment score.
+        """
+        if not posts:
+            return 0.0
+        total_sentiment = sum(post.get("sentiment", 0.0) for post in posts)
+        return total_sentiment / len(posts)
+
+    def process_posts(self, posts: List[Dict]) -> List[Dict]:
+        """
+        Analyze sentiment for each post and update the post dictionary.
+
+        Args:
+            posts (List[Dict]): List of post dictionaries.
+
+        Returns:
+            List[Dict]: Updated list with sentiment scores.
+        """
+        for post in posts:
+            text = " ".join(post.get("text", []))
+            sentiment = self.sid.polarity_scores(text)['compound'] if text else 0.0
+            post["sentiment"] = sentiment
+        return posts
+
+    #### Renamed and Updated Method ####
+
+    def fetch_news_and_sentiment(self, coin: str, num_posts: int = 20, save_dir: Optional[str] = None) -> Tuple[List[Dict], float]:
+        """
+        Fetch community posts and calculate sentiment score from CoinMarketCap's community page.
 
         Args:
             coin (str): The cryptocurrency slug (e.g., 'bitcoin', 'xrp').
@@ -139,15 +173,9 @@ class NewsSentimentService:
             finally:
                 browser.close()
 
-            # Calculate sentiment and save posts
-            total_sentiment = 0.0
-            for post in posts:
-                text = " ".join(post.get("text", []))
-                sentiment = self.sid.polarity_scores(text)['compound'] if text else 0.0
-                post["sentiment"] = sentiment
-                total_sentiment += sentiment
-
-            sentiment_score = total_sentiment / len(posts) if posts else 0.0
+            # Process posts to calculate sentiment
+            posts = self.process_posts(posts)
+            sentiment_score = self.calculate_sentiment_score(posts)
 
             # Save to file
             news_dir = Path(save_dir) if save_dir else self.base_dir / coin / "news"
@@ -191,7 +219,42 @@ class NewsSentimentService:
         except Exception:
             return None
 
+    #### New Method for Saved Data ####
+
+    def get_saved_news_and_sentiment(self, coin: str) -> Tuple[List[Dict], float]:
+        """
+        Load saved news posts and calculate sentiment score for a cryptocurrency from stored data.
+
+        Args:
+            coin (str): The cryptocurrency slug (e.g., 'bitcoin', 'xrp').
+
+        Returns:
+            Tuple[List[Dict], float]: List of post dictionaries and compound sentiment score.
+        """
+        news_dir = self.base_dir / coin / "news"
+        news_file = news_dir / f"{coin}_news.json"
+        if not news_file.exists():
+            print(f"No saved news data found for {coin} at {news_file}")
+            return [], 0.0
+        try:
+            with open(news_file, 'r', encoding='utf-8') as f:
+                posts = json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON from {news_file}: {e}")
+            return [], 0.0
+        except Exception as e:
+            print(f"Error reading {news_file}: {e}")
+            return [], 0.0
+        if not posts:
+            print(f"No posts found in saved data for {coin}")
+            return [], 0.0
+        sentiment_score = self.calculate_sentiment_score(posts)
+        return posts, sentiment_score
+
 if __name__ == "__main__":
     service = NewsSentimentService()
-    posts, sentiment = service.get_news_and_sentiment("xrp")
+    posts, sentiment = service.fetch_news_and_sentiment("xrp")
     print(f"Gathered {len(posts)} posts with average sentiment {sentiment:.2f}")
+    # Optional: Test the new method
+    saved_posts, saved_sentiment = service.get_saved_news_and_sentiment("xrp")
+    print(f"Loaded {len(saved_posts)} saved posts with average sentiment {saved_sentiment:.2f}")

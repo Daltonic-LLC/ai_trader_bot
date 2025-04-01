@@ -6,8 +6,9 @@ import praw
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import nltk
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Dict, Tuple
 from config import config
+import json
 
 class RedditSentimentService:
     """
@@ -26,7 +27,7 @@ class RedditSentimentService:
         
         # Authenticate with Reddit using credentials from config
         self.reddit = praw.Reddit(
-            client_id=config.redit_client_id,  # Typo in original: 'redit' instead of 'reddit'
+            client_id=config.redit_client_id,
             client_secret=config.redit_client_secret,
             user_agent=config.redit_user_agent,
         )
@@ -76,7 +77,7 @@ class RedditSentimentService:
             post_data = []
             sentiments = []
             for post in posts:
-                text = post.title  # Could extend to post.selftext if desired
+                text = post.title
                 sentiment = self.sid.polarity_scores(text)
                 compound_score = sentiment["compound"]
                 sentiments.append(compound_score)
@@ -98,7 +99,6 @@ class RedditSentimentService:
                     output_path = Path(output_file)
                     output_path.parent.mkdir(exist_ok=True, parents=True)
                 
-                import json
                 with open(output_path, 'w', encoding='utf-8') as f:
                     json.dump(post_data, f, indent=2)
                 print(f"Sentiment data saved to {output_path}")
@@ -110,12 +110,48 @@ class RedditSentimentService:
         except Exception as e:
             raise Exception(f"Error analyzing sentiment for '{search_term}': {str(e)}")
 
+    def load_saved_sentiment(self, search_term: str) -> Tuple[List[Dict], float]:
+        """
+        Load saved Reddit posts and calculate the average sentiment score for a given search term.
+
+        Args:
+            search_term (str): The keyword used for the saved data (e.g., 'XRP').
+
+        Returns:
+            Tuple[List[Dict], float]: List of post dictionaries and the average sentiment score.
+
+        Raises:
+            FileNotFoundError: If no saved data is found for the search term.
+            ValueError: If the saved JSON data is invalid.
+            Exception: If an error occurs while loading the data.
+        """
+        file_path = self.base_dir / f"{search_term}_sentiment.json"
+        if not file_path.exists():
+            raise FileNotFoundError(f"No saved data found for {search_term} at {file_path}")
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                post_data = json.load(f)
+            if not post_data:
+                return [], 0.0
+            sentiments = [post.get('sentiment', 0.0) for post in post_data]
+            average_sentiment = sum(sentiments) / len(sentiments) if sentiments else 0.0
+            return post_data, average_sentiment
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in {file_path}: {e}")
+        except Exception as e:
+            raise Exception(f"Error loading sentiment data for '{search_term}': {e}")
+
 # Example usage
 if __name__ == "__main__":
     coin = "xpr"
     service = RedditSentimentService()
     try:
-        sentiment = service.analyze_sentiment(search_term=coin)
+        # First, analyze and save sentiment
+        sentiment = service.analyze_sentiment(search_term=coin, save_data=True)
         print(f"Average sentiment for {coin.upper()}: {sentiment:.4f}")
+        
+        # Then, load the saved sentiment
+        posts, loaded_sentiment = service.load_saved_sentiment(search_term=coin)
+        print(f"Loaded {len(posts)} posts with average sentiment: {loaded_sentiment:.4f}")
     except Exception as e:
         print(f"Error: {e}")
