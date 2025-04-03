@@ -23,10 +23,6 @@ class EnvironmentConfig:
             "chat_endpoint": environ.get(
                 "CHAT_ENDPOINT", "http://ollama_service:11434"
             ),
-            "vision_model": environ.get("VISION_MODEL", "granite3.2-vision:2b"),
-            "vision_endpoint": environ.get(
-                "EMBEDDING_ENDPOINT", "http://ollama_service:11434"
-            ),
             "environment": environ.get("ENVIRONMENT", "local").lower(),
         }
 
@@ -49,14 +45,6 @@ class EnvironmentConfig:
     @property
     def chat_model(self) -> str:
         return self.config["chat_model"]
-
-    @property
-    def vision_model(self) -> str:
-        return self.config["vision_model"]
-
-    @property
-    def vision_endpoint(self) -> str:
-        return self.config["vision_endpoint"]
 
     def get_all(self) -> Dict[str, str]:
         """Return all configuration values"""

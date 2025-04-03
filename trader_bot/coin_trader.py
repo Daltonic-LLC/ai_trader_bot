@@ -5,6 +5,7 @@ from .news_handler import NewsHandler
 from services.coin_stats import CoinStatsService
 from services.coin_news import NewsSentimentService
 from services.coin_records import FileDownloadService
+from config import config
 
 class CoinTrader:
     """Orchestrates the trading process for a specific coin."""
@@ -15,8 +16,8 @@ class CoinTrader:
         self.stats_service = CoinStatsService()
         self.news_service = NewsSentimentService()
         self.llm_handler = LLMHandler(
-            base_url="https://11434-daltonic-aitraderbot-f9rpnbt00si.ws-eu118.gitpod.io",
-            model="phi4-mini:3.8b",
+            base_url=config.chat_endpoint,
+            model=config.chat_model,
             temperature=0.1,
             timeout=60
         )
