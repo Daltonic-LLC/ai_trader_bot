@@ -1,0 +1,20 @@
+version: '3.7'
+
+networks:
+  public_network:
+  private_network:
+
+volumes:
+  ollama_data:
+
+services:
+  ollama_service:
+    image: ollama/ollama:latest
+    container_name: ollama_service
+    restart: unless-stopped
+    networks:
+      - private_network
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
