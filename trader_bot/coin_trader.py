@@ -4,7 +4,7 @@ from .model_handler import ModelHandler
 from .news_handler import NewsHandler
 from services.coin_stats import CoinStatsService
 from services.coin_news import NewsSentimentService
-from services.coin_records import FileDownloadService
+from services.coin_history import CoinHistory
 from config import config
 
 class CoinTrader:
@@ -12,7 +12,7 @@ class CoinTrader:
     def __init__(self, coin, override):
         self.coin = coin
         self.override = override
-        self.file_service = FileDownloadService()
+        self.history_service = CoinHistory()
         self.stats_service = CoinStatsService()
         self.news_service = NewsSentimentService()
         self.llm_handler = LLMHandler(
@@ -21,7 +21,7 @@ class CoinTrader:
             temperature=0.1,
             timeout=60
         )
-        self.data_handler = DataHandler(self.file_service, self.coin, self.override)
+        self.data_handler = DataHandler(self.history_service, self.coin, self.override)
         self.model_handler = ModelHandler()
         self.news_handler = NewsHandler(self.news_service, self.coin, self.override, self.llm_handler)
 
@@ -53,3 +53,5 @@ class CoinTrader:
         news_sentiment, news_summary = self.news_handler.process_news()
         recommendation = self.llm_handler.decide(self.coin, current_price, predicted_close, news_sentiment, news_summary)
         return self.generate_report(current_price, predicted_close, news_sentiment, news_summary, recommendation)
+    
+    

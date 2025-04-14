@@ -3,14 +3,15 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 from typing import Optional
 import re
+from datetime import datetime
 
-class FileDownloadService:
+class CoinHistory:
     """
     A service for downloading historical data CSV files for cryptocurrencies from CoinMarketCap.
     """
     def __init__(self, timeout: int = 60000, base_dir: str = "data/historical"):
         """
-        Initialize the FileDownloadService.
+        Initialize the CoinHistory.
 
         Args:
             timeout (int): Timeout in milliseconds for browser operations. Default is 60 seconds.
@@ -20,11 +21,9 @@ class FileDownloadService:
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(exist_ok=True, parents=True)
 
-    def download_file(
+    def download_history(
         self,
         coin: str,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
         download_dir: Optional[str] = None,
     ) -> str:
         """
@@ -33,8 +32,6 @@ class FileDownloadService:
 
         Args:
             coin (str): The cryptocurrency slug (e.g., 'bitcoin', 'ethereum').
-            start_date (Optional[str]): The start date in 'YYYYMMDD' format (e.g., '20130428').
-            end_date (Optional[str]): The end date in 'YYYYMMDD' format (e.g., '20191020').
             download_dir (Optional[str]): Custom directory to save the downloaded file. 
                                           If None, uses 'base_dir / coin'.
 
@@ -51,16 +48,8 @@ class FileDownloadService:
             download_path = Path(download_dir)
         download_path.mkdir(exist_ok=True, parents=True)
 
-        # Construct the URL
-        base_url = f"https://coinmarketcap.com/currencies/{coin}/historical-data/"
-        if start_date and end_date:
-            url = f"{base_url}?start={start_date}&end={end_date}"
-        elif start_date:
-            url = f"{base_url}?start={start_date}"
-        elif end_date:
-            url = f"{base_url}?end={end_date}"
-        else:
-            url = base_url
+        # Construct the URL (no start/end date parameters)
+        url = f"https://coinmarketcap.com/currencies/{coin}/historical-data/"
 
         # Launch Playwright
         with sync_playwright() as p:
@@ -97,10 +86,10 @@ class FileDownloadService:
                     download_button.click()
                 download = download_info.value
 
-                # Save the file with timestamp prepended to suggested filename
-                suggested_filename = download.suggested_filename
-                timestamp = int(time.time() * 1000)
-                file_path = download_path / f"{timestamp}-{suggested_filename}"
+                # Save the file with timestamp in YYYYMMDD_HHMMSS format
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"{coin}_{timestamp}.csv"
+                file_path = download_path / filename
                 download.save_as(file_path)
 
             except PlaywrightTimeoutError as e:
@@ -112,7 +101,7 @@ class FileDownloadService:
 
         return str(file_path)
     
-    def get_latest_file(self, coin: str) -> Optional[str]:
+    def get_latest_history(self, coin: str) -> Optional[str]:
         """
         Returns the path to the most recently downloaded historical data file for the specified coin.
 
@@ -124,25 +113,27 @@ class FileDownloadService:
 
         Note:
             This method assumes files are stored in 'base_dir / coin'. If a custom 'download_dir' was
-            used in 'download_file', this method will not find those files unless the custom directory
+            used in 'download_history', this method will not find those files unless the custom directory
             matches 'base_dir / coin'.
         """
         dir_path = self.base_dir / coin
         if not dir_path.exists() or not dir_path.is_dir():
             return None
         
-        # List files that match the pattern: starts with digits followed by a hyphen
-        files = [f for f in dir_path.iterdir() if f.is_file() and re.match(r'^\d+-', f.name)]
+        # List files that match the pattern: coin_YYYYMMDD_HHMMSS.csv
+        pattern = re.compile(rf"^{coin}_(\d{{8}}_\d{{6}})\.csv$")
+        files = [f for f in dir_path.iterdir() if f.is_file() and pattern.match(f.name)]
         if not files:
             return None
         
         # Find the file with the maximum timestamp
-        latest_file = max(files, key=lambda f: int(f.name.split('-')[0]))
+        latest_file = max(files, key=lambda f: datetime.strptime(
+            pattern.match(f.name).group(1), "%Y%m%d_%H%M%S"))
         return str(latest_file)
 
 # Example usage
 if __name__ == "__main__":
-    coin = "xrp"
-    service = FileDownloadService()
-    file_path = service.download_file(coin=coin, start_date="20130428", end_date="20191020")
+    coin = "bnb"
+    service = CoinHistory()
+    file_path = service.download_history(coin=coin)
     print(f"{coin.upper()} historical data downloaded to: {file_path}")

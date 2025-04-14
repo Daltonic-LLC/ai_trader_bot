@@ -3,15 +3,15 @@ import ta
 
 class DataHandler:
     """Handles loading and preparation of historical data."""
-    def __init__(self, file_service, coin, override):
-        self.file_service = file_service
+    def __init__(self, history_service, coin, override):
+        self.history_service = history_service
         self.coin = coin
         self.override = override
 
     def load_historical_data(self):
         """Loads historical data for the specified coin."""
-        historical_file = (self.file_service.download_file(self.coin) if self.override 
-                           else self.file_service.get_latest_file(self.coin))
+        historical_file = (self.history_service.download_history(self.coin) if self.override 
+                           else self.history_service.get_latest_history(self.coin))
         df = pd.read_csv(historical_file, sep=';')
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         return df.sort_values('timestamp', ascending=True).reset_index(drop=True)
