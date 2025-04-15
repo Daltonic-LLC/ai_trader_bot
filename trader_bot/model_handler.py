@@ -19,4 +19,6 @@ class ModelHandler:
     def predict_close(self, model, df_features, feature_cols):
         """Predicts the next closing price using the trained model."""
         latest_features = df_features.iloc[-1][feature_cols]
-        return model.predict([latest_features])[0]
+        # Convert to a DataFrame to preserve feature names
+        latest_features_df = pd.DataFrame([latest_features], columns=feature_cols)
+        return model.predict(latest_features_df)[0]

@@ -31,14 +31,16 @@ class CoinTrader:
                       else self.stats_service.get_latest_stats(self.coin))
         return stats_file.get("price", 0)
 
-    def generate_report(self, current_price, predicted_close, news_sentiment, news_summary, recommendation):
+    def generate_report(self, current_price, predicted_close, news_sentiment, news_text, recommendation):
         """Generates a trading report."""
+        # Truncate news_text for the report to keep it concise
+        news_text_truncated = " ".join(news_text.split()[:50]) + ("..." if len(news_text.split()) > 50 else "")
         report = f"""
         Daily Report for {self.coin.upper()}:
         - Current Price: ${current_price}
         - Predicted Close: ${predicted_close:.2f}
         - News Sentiment: {news_sentiment:.2f}
-        - News Summary: {news_summary}
+        - News Text: {news_text_truncated}
         - Recommendation: {recommendation}
         """
         return report
@@ -50,8 +52,6 @@ class CoinTrader:
         model, feature_cols = self.model_handler.train_model(df_features)
         predicted_close = self.model_handler.predict_close(model, df_features, feature_cols)
         current_price = self.get_current_price()
-        news_sentiment, news_summary = self.news_handler.process_news()
-        recommendation = self.llm_handler.decide(self.coin, current_price, predicted_close, news_sentiment, news_summary)
-        return self.generate_report(current_price, predicted_close, news_sentiment, news_summary, recommendation)
-    
-    
+        news_sentiment, news_text = self.news_handler.process_news()
+        recommendation = self.llm_handler.decide(self.coin, current_price, predicted_close, news_sentiment, news_text)
+        return self.generate_report(current_price, predicted_close, news_sentiment, news_text, recommendation)
