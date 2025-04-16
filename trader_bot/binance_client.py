@@ -1,85 +1,154 @@
 from binance.client import Client
 import math
+import itertools
+from typing import Optional, Tuple, List, Dict
 
 class BinanceClient:
-    """Handles trading operations on Binance Testnet."""
-    
-    def __init__(self, api_key: str, api_secret: str):
-        """Initializes the Binance Testnet client."""
+    """Handles trading on Binance Testnet with versatile triangular arbitrage."""
+
+    def __init__(self, api_key: str, api_secret: str, top_coins: list, base_currency: str = "USDT"):
         self.client = Client(api_key, api_secret, testnet=True)
+        self.trading_fee = 0.001  # 0.1% fee per trade
+        self.top_coins = top_coins
+        self.base_currency = base_currency
+        self.all_tickers = self.get_all_tickers()
+
+    def get_all_tickers(self) -> dict:
+        """Fetches current prices for all trading pairs."""
+        try:
+            tickers = self.client.get_all_tickers()
+            return {ticker['symbol']: float(ticker['price']) for ticker in tickers}
+        except Exception as e:
+            print(f"Error fetching tickers: {e}")
+            return {}
 
     def get_symbol_filters(self, symbol: str) -> dict:
-        """Fetches the trading filters for a given symbol from Binance Testnet."""
+        """Fetches trading filters for a symbol."""
         try:
             exchange_info = self.client.get_exchange_info()
             symbol_info = next(s for s in exchange_info['symbols'] if s['symbol'] == symbol)
-            filters = {f['filterType']: f for f in symbol_info['filters']}
-            return filters
+            return {f['filterType']: f for f in symbol_info['filters']}
         except Exception as e:
-            print(f"AI Agent: Failed to fetch symbol filters for {symbol}: {str(e)}")
+            print(f"Error fetching filters for {symbol}: {e}")
             return {}
 
     def adjust_quantity(self, symbol: str, quantity: float, price: float) -> float:
-        """Adjusts the quantity to meet NOTIONAL and LOT_SIZE filters."""
+        """Adjusts quantity based on NOTIONAL and LOT_SIZE filters."""
         filters = self.get_symbol_filters(symbol)
         if not filters:
-            return quantity  # Fallback to original quantity if filters can't be fetched
-
-        # Get MIN_NOTIONAL filter
-        min_notional_filter = filters.get('MIN_NOTIONAL', {})
-        min_notional = float(min_notional_filter.get('minNotional', 10.0))  # Default to $10 if not found
-
-        # Calculate minimum quantity based on notional value
+            return quantity
+        min_notional = float(filters.get('MIN_NOTIONAL', {}).get('minNotional', 10.0))
         min_quantity = min_notional / price
-        adjusted_quantity = max(quantity, min_quantity)  # Use the larger of the desired or minimum quantity
-
-        # Get LOT_SIZE filter to adjust for step size
-        lot_size_filter = filters.get('LOT_SIZE', {})
-        step_size = float(lot_size_filter.get('stepSize', 0.000001))  # Default step size if not found
-        min_qty = float(lot_size_filter.get('minQty', 0.0))
-
-        # Ensure quantity meets minimum and aligns with step size
+        adjusted_quantity = max(quantity, min_quantity)
+        step_size = float(filters.get('LOT_SIZE', {}).get('stepSize', 0.000001))
         if step_size > 0:
-            adjusted_quantity = max(min_quantity, min_qty)
             adjusted_quantity = math.ceil(adjusted_quantity / step_size) * step_size
+        return round(adjusted_quantity, 8)
 
-        # Round to avoid precision issues (Binance typically accepts up to 8 decimal places)
-        adjusted_quantity = round(adjusted_quantity, 8)
+    def calculate_arbitrage_profit(self, triangle: tuple, direction: str) -> float:
+        """Calculates profit for a triangular arbitrage loop."""
+        base, coin1, coin2 = triangle
+        if direction == "clockwise":  # USDT -> coin1 -> coin2 -> USDT
+            pair1 = f"{coin1}{base}"  # e.g., BTCUSDT
+            pair2 = f"{coin1}{coin2}"  # e.g., BTCETH
+            pair3 = f"{coin2}{base}"  # e.g., ETHUSDT
+        else:  # USDT -> coin2 -> coin1 -> USDT
+            pair1 = f"{coin2}{base}"
+            pair2 = f"{coin2}{coin1}"
+            pair3 = f"{coin1}{base}"
 
-        return adjusted_quantity
+        if not all(pair in self.all_tickers for pair in [pair1, pair2, pair3]):
+            return 0.0
 
-    def buy(self, coin: str, quantity: float, current_price: float) -> tuple[str, bool]:
-        """Executes a buy order on Binance Testnet and returns the decision with success status."""
+        price1 = self.all_tickers[pair1]
+        price2 = self.all_tickers[pair2]
+        price3 = self.all_tickers[pair3]
+
+        start_amount = 1.0  # Start with 1 USDT
+        if direction == "clockwise":
+            amount_coin1 = start_amount / price1
+            amount_coin2 = amount_coin1 * price2
+            final_amount = amount_coin2 * price3
+        else:
+            amount_coin2 = start_amount / price1
+            amount_coin1 = amount_coin2 * price2
+            final_amount = amount_coin1 * price3
+
+        final_amount_after_fees = final_amount * (1 - self.trading_fee * 3)  # 3 trades
+        profit = final_amount_after_fees - start_amount
+        return profit if profit > 0 else 0.0
+
+    def find_best_arbitrage_opportunity(self) -> Tuple[Optional[tuple], str, float, List[Dict]]:
+        """Finds the most profitable arbitrage opportunity and returns all checked opportunities."""
+        opportunities = []
+        best_profit = 0.0
+        best_triangle = None
+        best_direction = None
+
+        # Check all pairs of top coins
+        for coin1, coin2 in itertools.combinations(self.top_coins, 2):
+            triangle = (self.base_currency, coin1, coin2)
+            for direction in ["clockwise", "counterclockwise"]:
+                profit = self.calculate_arbitrage_profit(triangle, direction)
+                is_profitable = profit > 0
+                opportunities.append({
+                    'triangle': triangle,
+                    'direction': direction,
+                    'profit': profit,
+                    'is_profitable': is_profitable
+                })
+                if profit > best_profit:
+                    best_profit = profit
+                    best_triangle = triangle
+                    best_direction = direction
+
+        if best_triangle:
+            print(f"Best opportunity: {best_triangle} ({best_direction}), Profit: {best_profit:.2%}")
+        else:
+            print("No profitable arbitrage opportunity found.")
+        return best_triangle, best_direction, best_profit, opportunities
+
+    def execute_arbitrage(self, triangle: tuple, direction: str, amount: float) -> float:
+        """Executes the arbitrage trade in either clockwise or counterclockwise direction."""
+        base, coin1, coin2 = triangle
         try:
-            symbol = f"{coin.upper()}USDT"
-            # Adjust quantity based on NOTIONAL and LOT_SIZE filters
-            adjusted_quantity = self.adjust_quantity(symbol, quantity, current_price)
-            order = self.client.create_order(
-                symbol=symbol,
-                side=Client.SIDE_BUY,
-                type=Client.ORDER_TYPE_MARKET,
-                quantity=adjusted_quantity
-            )
-            print(f"AI Agent: Bought {adjusted_quantity} {coin.upper()} on Binance Testnet: {order}")
-            return "BUY", True
+            if direction == "clockwise":
+                pair1 = f"{coin1}{base}"
+                pair2 = f"{coin1}{coin2}"
+                pair3 = f"{coin2}{base}"
+                # Buy coin1 with USDT
+                price1 = self.all_tickers[pair1]
+                qty1 = self.adjust_quantity(pair1, amount / price1, price1)
+                order1 = self.client.create_order(symbol=pair1, side=Client.SIDE_BUY, type=Client.ORDER_TYPE_MARKET, quantity=qty1)
+                # Sell coin1 for coin2
+                price2 = self.all_tickers[pair2]
+                qty2 = self.adjust_quantity(pair2, qty1, price2)
+                order2 = self.client.create_order(symbol=pair2, side=Client.SIDE_SELL, type=Client.ORDER_TYPE_MARKET, quantity=qty1)
+                # Sell coin2 for USDT
+                price3 = self.all_tickers[pair3]
+                qty3 = self.adjust_quantity(pair3, qty2 * price2, price3)
+                order3 = self.client.create_order(symbol=pair3, side=Client.SIDE_SELL, type=Client.ORDER_TYPE_MARKET, quantity=qty2)
+                final_usdt = qty3 * price3  # Simplified final amount
+                print(f"Executed: {order1}, {order2}, {order3}")
+            else:  # counterclockwise: USDT -> coin2 -> coin1 -> USDT
+                pair1 = f"{coin2}{base}"  # e.g., HBARUSDT
+                pair2 = f"{coin2}{coin1}"  # e.g., HBARBTC
+                pair3 = f"{coin1}{base}"  # e.g., BTCUSDT
+                # Buy coin2 with USDT
+                price1 = self.all_tickers[pair1]
+                qty1 = self.adjust_quantity(pair1, amount / price1, price1)
+                order1 = self.client.create_order(symbol=pair1, side=Client.SIDE_BUY, type=Client.ORDER_TYPE_MARKET, quantity=qty1)
+                # Sell coin2 for coin1
+                price2 = self.all_tickers[pair2]
+                qty2 = self.adjust_quantity(pair2, qty1, price2)
+                order2 = self.client.create_order(symbol=pair2, side=Client.SIDE_SELL, type=Client.ORDER_TYPE_MARKET, quantity=qty1)
+                # Sell coin1 for USDT
+                price3 = self.all_tickers[pair3]
+                qty3 = self.adjust_quantity(pair3, qty2 * price2, price3)
+                order3 = self.client.create_order(symbol=pair3, side=Client.SIDE_SELL, type=Client.ORDER_TYPE_MARKET, quantity=qty2)
+                final_usdt = qty3 * price3  # Simplified final amount
+                print(f"Executed: {order1}, {order2}, {order3}")
+            return final_usdt
         except Exception as e:
-            print(f"AI Agent: Failed to buy {coin.upper()} on Binance Testnet: {str(e)}")
-            return "HOLD", False
-
-    def sell(self, coin: str, quantity: float, current_price: float) -> tuple[str, bool]:
-        """Executes a sell order on Binance Testnet and returns the decision with success status."""
-        try:
-            symbol = f"{coin.upper()}USDT"
-            # Adjust quantity based on NOTIONAL and LOT_SIZE filters
-            adjusted_quantity = self.adjust_quantity(symbol, quantity, current_price)
-            order = self.client.create_order(
-                symbol=symbol,
-                side=Client.SIDE_SELL,
-                type=Client.ORDER_TYPE_MARKET,
-                quantity=adjusted_quantity
-            )
-            print(f"AI Agent: Sold {adjusted_quantity} {coin.upper()} on Binance Testnet: {order}")
-            return "SELL", True
-        except Exception as e:
-            print(f"AI Agent: Failed to sell {coin.upper()} on Binance Testnet: {str(e)}")
-            return "HOLD", False
+            print(f"Error executing arbitrage trade: {e}")
+            return amount

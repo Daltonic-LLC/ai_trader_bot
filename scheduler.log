@@ -279,3 +279,17 @@ Call log:
 2025-04-16 09:03:01,192 - INFO - Scheduler started, watching and executing various coin jobs
 2025-04-16 09:03:37,941 - INFO - Scheduler has been shut down
 2025-04-16 09:03:37,942 - INFO - Scheduler shut down
+2025-04-16 11:44:50,796 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 11:44:50,796 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 11:44:50,796 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 11:44:50,797 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 11:44:50,797 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 11:44:50,799 - INFO - Added job "daily_top_coin_list" to job store "default"
+2025-04-16 11:44:50,799 - INFO - Added job "daily_coin_history" to job store "default"
+2025-04-16 11:44:50,799 - INFO - Added job "daily_news_sentiment" to job store "default"
+2025-04-16 11:44:50,799 - INFO - Added job "daily_coin_prices" to job store "default"
+2025-04-16 11:44:50,799 - INFO - Added job "daily_data_cleaner" to job store "default"
+2025-04-16 11:44:50,799 - INFO - Scheduler started
+2025-04-16 11:44:50,800 - INFO - Scheduler started, watching and executing various coin jobs
+2025-04-16 11:45:02,974 - INFO - Scheduler has been shut down
+2025-04-16 11:45:02,975 - INFO - Scheduler shut down
