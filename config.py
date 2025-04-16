@@ -19,6 +19,8 @@ class EnvironmentConfig:
             "redit_client_id": environ.get("REDDIT_CLIENT_ID", ""),
             "redit_client_secret": environ.get("REDDIT_CLIENT_SECRET", ""),
             "redit_user_agent": environ.get("REDDIT_USER_AGENT", ""),
+            "binance_api_key": environ.get("BINANCE_API_KEY", ""),
+            "binance_api_secret": environ.get("BINANCE_SECRET_KEY", ""),
             "chat_model": environ.get("CHAT_MODEL", "llama3.1:8b"),
             "chat_endpoint": environ.get(
                 "CHAT_ENDPOINT", "http://ollama_service:11434"
@@ -37,6 +39,14 @@ class EnvironmentConfig:
     @property
     def redit_user_agent(self) -> str:
         return self.config["redit_user_agent"]
+    
+    @property
+    def binance_api_key(self) -> str:
+        return self.config["binance_api_key"]
+    
+    @property
+    def binance_api_secret(self) -> str:
+        return self.config["binance_api_secret"]
 
     @property
     def chat_endpoint(self) -> str:

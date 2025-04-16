@@ -8,7 +8,6 @@ from services.coin_history import CoinHistory
 from config import config
 
 class CoinTrader:
-    """Orchestrates the trading process for a specific coin."""
     def __init__(self, coin, override):
         self.coin = coin
         self.override = override
@@ -19,7 +18,9 @@ class CoinTrader:
             base_url=config.chat_endpoint,
             model=config.chat_model,
             temperature=0.1,
-            timeout=60
+            timeout=60,
+            binance_api_key=config.binance_api_key,
+            binance_api_secret=config.binance_api_secret
         )
         self.data_handler = DataHandler(self.history_service, self.coin, self.override)
         self.model_handler = ModelHandler()
@@ -52,6 +53,6 @@ class CoinTrader:
         model, feature_cols = self.model_handler.train_model(df_features)
         predicted_close = self.model_handler.predict_close(model, df_features, feature_cols)
         current_price = self.get_current_price()
-        news_sentiment, news_text = self.news_handler.process_news()
-        recommendation = self.llm_handler.decide(self.coin, current_price, predicted_close, news_sentiment, news_text)
-        return self.generate_report(current_price, predicted_close, news_sentiment, news_text, recommendation)
+        news_sentiment, news_summary = self.news_handler.process_news()
+        recommendation = self.llm_handler.decide(self.coin, current_price, predicted_close, news_sentiment, news_summary)
+        return self.generate_report(current_price, predicted_close, news_sentiment, news_summary, recommendation)

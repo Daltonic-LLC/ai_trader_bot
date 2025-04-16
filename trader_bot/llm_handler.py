@@ -2,30 +2,18 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.chat_models import ChatOllama
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+from .binance_client import BinanceClient  # Import the BinanceClient class
 
 class LLMHandler:
-    """Handles interactions with the language model for summarization and decision-making, executing trading actions directly."""
+    """Handles interactions with the language model for decision-making, delegating trade execution to BinanceClient."""
     
-    def __init__(self, base_url, model, temperature, timeout):
+    def __init__(self, base_url, model, temperature, timeout, binance_api_key, binance_api_secret):
         self.chat_model = ChatOllama(base_url=base_url, model=model, temperature=temperature, timeout=timeout)
-
-    def buy(self, coin: str) -> str:
-        """Simulates buying the coin and returns the decision."""
-        print(f"AI Agent: Buying {coin.upper()}")
-        return "BUY"
-
-    def sell(self, coin: str) -> str:
-        """Simulates selling the coin and returns the decision."""
-        print(f"AI Agent: Selling {coin.upper()}")
-        return "SELL"
-
-    def hold(self, coin: str) -> str:
-        """Simulates holding the coin and returns the decision."""
-        print(f"AI Agent: Holding {coin.upper()}")
-        return "HOLD"
+        # Initialize BinanceClient for trade execution
+        self.binance_client = BinanceClient(binance_api_key, binance_api_secret)
 
     def summarize(self, text):
-        """Summarizes the given text using the LLM (no longer used for decision-making)."""
+        """Summarizes the given text using the LLM."""
         prompt_template = ChatPromptTemplate.from_template(
             """Summarize the following text in a single sentence of no more than 50 words.
 
@@ -41,9 +29,14 @@ class LLMHandler:
             | StrOutputParser()
         )
         return llm_chain.invoke(text)
+    
+    def hold(self, coin: str) -> str:
+        """Simulates holding the coin (no action on exchange) and returns the decision."""
+        print(f"AI Agent: Holding {coin.upper()}")
+        return "HOLD"
 
     def decide(self, coin, current_price, predicted_close, news_sentiment, news_text):
-        """Makes a trading decision (Buy, Sell, Hold) and executes the action directly."""
+        """Makes a trading decision (Buy, Sell, Hold) and executes the action via BinanceTrader."""
         sentiment_label = "positive" if news_sentiment > 0 else "negative" if news_sentiment < 0 else "neutral"
         prompt_template = ChatPromptTemplate.from_template(
             """Given the following information about {coin}:
@@ -66,12 +59,13 @@ class LLMHandler:
         decision = llm_chain.invoke(input_data).strip().upper()
 
         # Validate the decision and execute the corresponding action
+        quantity = 1.0  # Initial quantity, will be adjusted by BinanceTrader
         if decision == "BUY":
-            return self.buy(coin)
+            decision, success = self.binance_client.buy(coin, quantity, current_price)
+            return decision if success else self.hold(coin)
         elif decision == "SELL":
-            return self.sell(coin)
-        elif decision == "HOLD":
-            return self.hold(coin)
+            decision, success = self.binance_client.sell(coin, quantity, current_price)
+            return decision if success else self.hold(coin)
         else:
-            # Fallback to hold if the decision is invalid
+            # Fallback to hold if the decision is invalid or HOLD
             return self.hold(coin)
