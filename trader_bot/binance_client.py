@@ -2,6 +2,7 @@ from binance.client import Client
 import math
 import itertools
 from typing import Optional, Tuple, List, Dict
+import time
 
 class BinanceClient:
     """Handles trading on Binance Testnet with versatile triangular arbitrage."""
@@ -11,7 +12,10 @@ class BinanceClient:
         self.trading_fee = 0.001  # 0.1% fee per trade
         self.top_coins = top_coins
         self.base_currency = base_currency
-        self.all_tickers = self.get_all_tickers()
+        self.all_tickers = {}
+        self.last_ticker_update = 0
+        self.ticker_cache_duration = 10  # Refresh tickers every 10 seconds
+        self.symbol_filters_cache = {}  # Cache for symbol filters
 
     def get_all_tickers(self) -> dict:
         """Fetches current prices for all trading pairs."""
@@ -22,15 +26,24 @@ class BinanceClient:
             print(f"Error fetching tickers: {e}")
             return {}
 
+    def refresh_tickers_if_needed(self):
+        """Refreshes tickers if the cache duration has elapsed."""
+        current_time = time.time()
+        if current_time - self.last_ticker_update > self.ticker_cache_duration:
+            self.all_tickers = self.get_all_tickers()
+            self.last_ticker_update = current_time
+
     def get_symbol_filters(self, symbol: str) -> dict:
-        """Fetches trading filters for a symbol."""
-        try:
-            exchange_info = self.client.get_exchange_info()
-            symbol_info = next(s for s in exchange_info['symbols'] if s['symbol'] == symbol)
-            return {f['filterType']: f for f in symbol_info['filters']}
-        except Exception as e:
-            print(f"Error fetching filters for {symbol}: {e}")
-            return {}
+        """Fetches trading filters for a symbol, using a cache to avoid repeated API calls."""
+        if symbol not in self.symbol_filters_cache:
+            try:
+                exchange_info = self.client.get_exchange_info()
+                symbol_info = next(s for s in exchange_info['symbols'] if s['symbol'] == symbol)
+                self.symbol_filters_cache[symbol] = {f['filterType']: f for f in symbol_info['filters']}
+            except Exception as e:
+                print(f"Error fetching filters for {symbol}: {e}")
+                return {}
+        return self.symbol_filters_cache[symbol]
 
     def adjust_quantity(self, symbol: str, quantity: float, price: float) -> float:
         """Adjusts quantity based on NOTIONAL and LOT_SIZE filters."""
@@ -78,16 +91,19 @@ class BinanceClient:
         profit = final_amount_after_fees - start_amount
         return profit if profit > 0 else 0.0
 
-    def find_best_arbitrage_opportunity(self) -> Tuple[Optional[tuple], str, float, List[Dict]]:
-        """Finds the most profitable arbitrage opportunity and returns all checked opportunities."""
+    def find_best_arbitrage_opportunity(self, specific_coin: str) -> Tuple[Optional[tuple], str, float, List[Dict]]:
+        """Finds the most profitable arbitrage opportunity for triangles involving a specific coin."""
+        self.refresh_tickers_if_needed()  # Ensure fresh ticker data
         opportunities = []
         best_profit = 0.0
         best_triangle = None
         best_direction = None
 
-        # Check all pairs of top coins
-        for coin1, coin2 in itertools.combinations(self.top_coins, 2):
-            triangle = (self.base_currency, coin1, coin2)
+        # Only check triangles involving the specific coin
+        for coin2 in self.top_coins:
+            if coin2 == specific_coin:
+                continue
+            triangle = (self.base_currency, specific_coin, coin2)
             for direction in ["clockwise", "counterclockwise"]:
                 profit = self.calculate_arbitrage_profit(triangle, direction)
                 is_profitable = profit > 0
@@ -110,6 +126,7 @@ class BinanceClient:
 
     def execute_arbitrage(self, triangle: tuple, direction: str, amount: float) -> float:
         """Executes the arbitrage trade in either clockwise or counterclockwise direction."""
+        self.refresh_tickers_if_needed()  # Ensure fresh prices before execution
         base, coin1, coin2 = triangle
         try:
             if direction == "clockwise":
@@ -128,12 +145,12 @@ class BinanceClient:
                 price3 = self.all_tickers[pair3]
                 qty3 = self.adjust_quantity(pair3, qty2 * price2, price3)
                 order3 = self.client.create_order(symbol=pair3, side=Client.SIDE_SELL, type=Client.ORDER_TYPE_MARKET, quantity=qty2)
-                final_usdt = qty3 * price3  # Simplified final amount
+                final_usdt = qty3 * price3
                 print(f"Executed: {order1}, {order2}, {order3}")
-            else:  # counterclockwise: USDT -> coin2 -> coin1 -> USDT
-                pair1 = f"{coin2}{base}"  # e.g., HBARUSDT
-                pair2 = f"{coin2}{coin1}"  # e.g., HBARBTC
-                pair3 = f"{coin1}{base}"  # e.g., BTCUSDT
+            else:  # counterclockwise
+                pair1 = f"{coin2}{base}"
+                pair2 = f"{coin2}{coin1}"
+                pair3 = f"{coin1}{base}"
                 # Buy coin2 with USDT
                 price1 = self.all_tickers[pair1]
                 qty1 = self.adjust_quantity(pair1, amount / price1, price1)
@@ -146,7 +163,7 @@ class BinanceClient:
                 price3 = self.all_tickers[pair3]
                 qty3 = self.adjust_quantity(pair3, qty2 * price2, price3)
                 order3 = self.client.create_order(symbol=pair3, side=Client.SIDE_SELL, type=Client.ORDER_TYPE_MARKET, quantity=qty2)
-                final_usdt = qty3 * price3  # Simplified final amount
+                final_usdt = qty3 * price3
                 print(f"Executed: {order1}, {order2}, {order3}")
             return final_usdt
         except Exception as e:

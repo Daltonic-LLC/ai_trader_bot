@@ -6,7 +6,7 @@ from langchain_core.output_parsers import StrOutputParser
 class LLMHandler:
     """Handles interactions with the language model for decision-making, including arbitrage via BinanceClient."""
     
-    def __init__(self, base_url, model, temperature, timeout, binance_api_key, binance_api_secret):
+    def __init__(self, base_url, model, temperature, timeout):
         self.chat_model = ChatOllama(base_url=base_url, model=model, temperature=temperature, timeout=timeout)
 
     def summarize(self, text):

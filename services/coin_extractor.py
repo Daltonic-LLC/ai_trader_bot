@@ -1,164 +1,125 @@
-import time
 import json
+import time
 from pathlib import Path
-from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 from typing import List, Dict, Optional
-
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 class TopCoinsExtractor:
-    """
-    A service for extracting the top N coins from a CoinMarketCap-like page and saving/loading the data.
-    """
-
-    def __init__(
-        self,
-        url: str = "https://coinmarketcap.com/all/views/all/",
-        num_coins: int = 20,
-        timeout: int = 60000,
-        data_dir: str = "data/currencies",
-    ):
-        """
-        Initialize the TopCoinsExtractor.
-
-        Args:
-            url (str): The URL of the CoinMarketCap page to extract from. Default is "https://coinmarketcap.com/all/views/all/".
-            num_coins (int): The number of top coins to extract. Default is 20.
-            timeout (int): Timeout in milliseconds for browser operations. Default is 60 seconds.
-            data_dir (str): Directory to save JSON files. Default is "coin_data".
-        """
+    def __init__(self, url: str = "https://coinmarketcap.com/all/views/all/", num_coins: int = 50, timeout: int = 60000):
+        """Initialize the scraper with URL, target coin count, and timeout."""
         self.url = url
         self.num_coins = num_coins
         self.timeout = timeout
-        self.data_dir = Path(data_dir)
-        self.data_dir.mkdir(
-            exist_ok=True, parents=True
-        )  # Create the directory if it doesn’t exist
+        self.data_dir = Path("data/currencies")
+        self.data_dir.mkdir(exist_ok=True, parents=True)
 
-    def extract_top_coins(self) -> List[Dict[str, str]]:
-        """
-        Extracts the top N coins from the specified CoinMarketCap page.
+    def extract_row_data(self, row):
+        """Extract data from a single table row."""
+        try:
+            cells = row.query_selector_all('td')
+            if len(cells) < 10:  # Ensure enough columns are present
+                return None
 
-        Returns:
-            List[Dict[str, str]]: A list of dictionaries, each containing data for one coin.
+            name_link = cells[1].query_selector('a')
+            if not name_link:
+                return None
 
-        Raises:
-            Exception: If extraction fails due to timeout or other errors.
-        """
+            data = {
+                'rank': cells[0].inner_text().strip(),
+                'name': name_link.inner_text().strip(),
+                'slug': name_link.get_attribute('href').split('/')[-2] if name_link.get_attribute('href') else 'N/A',
+                'symbol': cells[2].inner_text().strip(),
+                'market_cap': cells[3].inner_text().strip(),
+                'price': cells[4].inner_text().strip(),
+                'circulating_supply': cells[5].inner_text().strip(),
+                'volume_24h': cells[6].inner_text().strip(),
+                'percent_1h': cells[7].inner_text().strip(),
+                'percent_24h': cells[8].inner_text().strip(),
+                'percent_7d': cells[9].inner_text().strip(),
+            }
+            return data
+        except Exception as e:
+            print(f"Error extracting row: {e}")
+            return None
+
+    def fetch_coin_data(self):
+        """Fetch data by gently scrolling and loading the entire table."""
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
+
+            # Navigate to the page
+            print(f"Navigating to {self.url}...")
             try:
-                print(f"Navigating to {self.url}...")
-                page.goto(self.url, wait_until="networkidle", timeout=self.timeout)
-
-                # Load all required coins
-                self._load_all_coins(page)
-
-                # Extract data from the table using JavaScript evaluation
-                coins_data = self._extract_data(page)
-
-            except PlaywrightTimeoutError as e:
-                raise Exception(f"Timeout error while extracting top coins: {str(e)}")
-            except Exception as e:
-                raise Exception(f"Failed to extract top coins: {str(e)}")
-            finally:
+                page.goto(self.url, wait_until='networkidle', timeout=self.timeout)
+                print("Page loaded, waiting for table...")
+                page.wait_for_selector('.cmc-table tbody tr', state='visible', timeout=self.timeout)
+            except PlaywrightTimeoutError:
+                print("Timeout waiting for table. Exiting.")
                 browser.close()
+                return []
 
-        # Return only the requested number of coins
-        return coins_data[: self.num_coins]
+            # Gentle scrolling to load the entire table
+            max_scroll_attempts = 50  # Maximum number of scroll attempts
+            attempt = 0
+            last_row_count = 0
+            no_new_rows_limit = 5     # Stop after 5 attempts with no new rows
+            no_new_rows_count = 0
 
-    def _load_all_coins(self, page):
-        """
-        Loads all coins by clicking "Load More" or scrolling until at least num_coins are loaded.
-        """
-        attempts = 0
-        max_attempts = 10  # Prevent infinite loops
+            while attempt < max_scroll_attempts:
+                # Scroll down gently (500 pixels)
+                page.evaluate("window.scrollBy(0, 500)")
+                time.sleep(1)  # Wait for lazy-loaded content to appear
 
-        while attempts < max_attempts:
-            page.wait_for_selector("tbody tr.cmc-table-row", timeout=self.timeout)
-            rows = page.locator("tbody tr.cmc-table-row")
-            row_count = rows.count()
-            print(f"Current row count: {row_count}")
-            if row_count >= self.num_coins:
-                print(f"Loaded {row_count} coins, sufficient for requirement.")
-                break
+                # Count the current number of rows
+                rows = page.query_selector_all('.cmc-table tbody tr')
+                current_row_count = len(rows)
+                print(f"Scroll attempt {attempt + 1}: {current_row_count} rows loaded")
 
-            load_more_button = page.get_by_role("button", name="Load More")
-            if load_more_button.is_visible():
-                print("Clicking 'Load More' button...")
-                load_more_button.click()
-                page.wait_for_timeout(1000)
-            else:
-                print("Scrolling to load more coins...")
-                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                page.wait_for_timeout(1000)
+                # Check if new rows were loaded
+                if current_row_count > last_row_count:
+                    last_row_count = current_row_count
+                    no_new_rows_count = 0  # Reset if new rows appear
+                else:
+                    no_new_rows_count += 1
+                    print(f"No new rows detected ({no_new_rows_count}/{no_new_rows_limit})")
 
-            attempts += 1
+                # Stop if no new rows load for several attempts
+                if no_new_rows_count >= no_new_rows_limit:
+                    print("Entire table loaded (no new rows after several scrolls).")
+                    break
 
-        final_row_count = page.locator("tbody tr.cmc-table-row").count()
-        if final_row_count < self.num_coins:
-            print(
-                f"Warning: Only {final_row_count} coins loaded after {max_attempts} attempts."
-            )
+                attempt += 1
 
-    def _extract_data(self, page) -> List[Dict[str, str]]:
-        """
-        Extracts data from the loaded table rows, including the cryptocurrency slug.
+            # Extract data for the top 50 coins from the fully loaded table
+            print(f"Extracting data for the top {self.num_coins} coins...")
+            rows = page.query_selector_all('.cmc-table tbody tr')[:self.num_coins]
+            coin_data = []
+            for row in rows:
+                data = self.extract_row_data(row)
+                if data:
+                    coin_data.append(data)
 
-        Args:
-            page: The page object from a web scraping library (e.g., Playwright).
-
-        Returns:
-            List[Dict[str, str]]: A list of dictionaries containing coin data, including the slug.
-        """
-        coins_data = page.evaluate("""
-            () => {
-                const rows = document.querySelectorAll("tbody tr.cmc-table-row");
-                return Array.from(rows).map(row => {
-                    const cells = row.querySelectorAll("td");
-                    if (cells.length < 10) return null;
-                    const nameLink = cells[1].querySelector("a:last-child");
-                    return {
-                        rank: cells[0].innerText || "N/A",
-                        name: nameLink?.innerText || "N/A",
-                        slug: nameLink?.getAttribute("href")?.split('/').filter(Boolean).pop() || "N/A",
-                        symbol: cells[2].innerText || "N/A",
-                        market_cap: cells[3].querySelector("p span")?.innerText || "N/A",
-                        price: cells[4].querySelector("div span")?.innerText || "N/A",
-                        circulating_supply: cells[5].innerText || "N/A",
-                        volume_24h: cells[6].querySelector("p span")?.innerText || "N/A",
-                        percent_1h: cells[7].innerText || "N/A",
-                        percent_24h: cells[8].innerText || "N/A",
-                        percent_7d: cells[9].innerText || "N/A",
-                    };
-                }).filter(row => row !== null);
-            }
-        """)
-        return coins_data
-
-    def save_to_json(self, coins_data: List[Dict[str, str]]) -> str:
-        """
-        Saves the extracted coin data to a JSON file with a timestamp in the specified folder.
-
-        Args:
-            coins_data (List[Dict[str, str]]): The list of coin data to save.
-
-        Returns:
-            str: The file path where the data was saved.
-        """
+            browser.close()
+            print(f"Extracted data for {len(coin_data)} coins.")
+            return coin_data
+        
+    def save_to_json(self, coins_data):
+        """Save extracted coin data to a JSON file."""
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         filename = f"top_coins_{timestamp}.json"
         filepath = self.data_dir / filename
         with open(filepath, "w") as f:
-            json.dump(coins_data, f, indent=4)  # Pretty-print with indentation
+            json.dump(coins_data, f, indent=4)
+        print(f"Saved top coins to: {filepath}")
         return str(filepath)
-
+    
     def get_most_recent_file(self) -> Optional[str]:
         """
-        Returns the path to the most recent "top_coins_*.json" file in the data directory.
+        Get the most recent JSON file saved in the data directory.
 
         Returns:
-            Optional[str]: The path to the most recent file, or None if no files are found.
+            Optional[str]: Path to the most recent file, or None if no files exist.
         """
         files = sorted(self.data_dir.glob("top_coins_*.json"))
         if not files:
@@ -167,10 +128,10 @@ class TopCoinsExtractor:
 
     def load_most_recent_data(self) -> Optional[List[Dict[str, str]]]:
         """
-        Loads the coin data from the most recent JSON file.
+        Load coin data from the most recent JSON file.
 
         Returns:
-            Optional[List[Dict[str, str]]]: The list of coin data, or None if no files are found.
+            Optional[List[Dict[str, str]]]: Loaded coin data, or None if no file exists.
         """
         recent_file = self.get_most_recent_file()
         if recent_file is None:
@@ -178,15 +139,8 @@ class TopCoinsExtractor:
         with open(recent_file, "r") as f:
             return json.load(f)
 
-
 # Example usage
 if __name__ == "__main__":
-    # Initialize the extractor with a custom data directory (optional)
-    extractor = TopCoinsExtractor()
-
-    # Extract top coins
-    top_coins = extractor.extract_top_coins()
-
-    # Save the data to a JSON file
-    saved_file = extractor.save_to_json(top_coins)
-    print(f"Saved top coins to: {saved_file}")
+    scraper = TopCoinsExtractor(num_coins=50)
+    coins = scraper.fetch_coin_data()
+    scraper.save_to_json(coins)

@@ -27,3 +27,9 @@ class DataHandler:
             df_numerical[f'close_t-{i}'] = df_numerical['close'].shift(i)
             df_numerical[f'volume_t-{i}'] = df_numerical['volume'].shift(i)
         return df_numerical
+    
+    def calculate_volatility(self, df, window=30):
+        """Calculates the standard deviation of daily returns over the given window."""
+        df['daily_return'] = df['close'].pct_change()
+        volatility = df['daily_return'].rolling(window).std().iloc[-1]
+        return volatility if not pd.isna(volatility) else 0.01
