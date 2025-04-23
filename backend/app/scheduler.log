@@ -1,0 +1,323 @@
+2025-04-14 10:58:48,937 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 10:58:48,938 - INFO - Added job "daily_extract" to job store "default"
+2025-04-14 10:58:48,938 - INFO - Scheduler started
+2025-04-14 10:58:48,938 - INFO - Scheduler started, waiting to execute daily extraction
+2025-04-14 11:01:46,339 - INFO - Scheduler has been shut down
+2025-04-14 11:01:46,339 - INFO - Scheduler shut down
+2025-04-14 11:02:01,856 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 11:02:01,857 - INFO - Added job "daily_extract" to job store "default"
+2025-04-14 11:02:01,857 - INFO - Scheduler started
+2025-04-14 11:02:01,857 - INFO - Scheduler started, waiting to execute daily extraction
+2025-04-14 11:03:33,919 - INFO - Scheduler has been shut down
+2025-04-14 11:03:33,920 - INFO - Scheduler shut down
+2025-04-14 11:03:38,727 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 11:03:38,728 - INFO - Added job "daily_extract" to job store "default"
+2025-04-14 11:03:38,728 - INFO - Scheduler started
+2025-04-14 11:03:38,728 - INFO - Scheduler started, waiting to execute daily extraction
+2025-04-14 11:04:37,038 - INFO - Scheduler has been shut down
+2025-04-14 11:04:37,038 - INFO - Scheduler shut down
+2025-04-14 11:06:17,798 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 11:06:17,799 - INFO - Added job "daily_extract" to job store "default"
+2025-04-14 11:06:17,799 - INFO - Scheduler started
+2025-04-14 11:06:17,800 - INFO - Scheduler started, running extraction every minute
+2025-04-14 11:07:17,799 - INFO - Running job "daily_extract (trigger: interval[0:01:00], next run at: 2025-04-14 11:07:17 UTC)" (scheduled at 2025-04-14 11:07:17.798665+00:00)
+2025-04-14 11:07:17,799 - INFO - Starting extraction
+2025-04-14 11:07:20,961 - INFO - Saved top coins to: data/currencies/top_coins_20250414_110720.json
+2025-04-14 11:07:20,962 - INFO - Job "daily_extract (trigger: interval[0:01:00], next run at: 2025-04-14 11:08:17 UTC)" executed successfully
+2025-04-14 11:08:17,799 - INFO - Running job "daily_extract (trigger: interval[0:01:00], next run at: 2025-04-14 11:09:17 UTC)" (scheduled at 2025-04-14 11:08:17.798665+00:00)
+2025-04-14 11:08:17,799 - INFO - Starting extraction
+2025-04-14 11:08:22,273 - INFO - Saved top coins to: data/currencies/top_coins_20250414_110822.json
+2025-04-14 11:08:22,274 - INFO - Job "daily_extract (trigger: interval[0:01:00], next run at: 2025-04-14 11:09:17 UTC)" executed successfully
+2025-04-14 11:08:29,424 - INFO - Scheduler has been shut down
+2025-04-14 11:08:29,425 - INFO - Scheduler shut down
+2025-04-14 11:27:29,366 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 11:31:18,230 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 11:31:18,230 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 11:31:18,231 - INFO - Added job "daily_top_coin_list" to job store "default"
+2025-04-14 11:31:18,231 - INFO - Added job "daily_coin_history" to job store "default"
+2025-04-14 11:31:18,231 - INFO - Scheduler started
+2025-04-14 11:31:18,232 - INFO - Scheduler started, running top coins at midnight and history at 00:10
+2025-04-14 11:34:40,340 - INFO - Scheduler has been shut down
+2025-04-14 11:34:40,340 - INFO - Scheduler shut down
+2025-04-14 11:34:55,765 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 11:35:03,278 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 11:35:03,278 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 11:35:03,279 - INFO - Added job "daily_top_coin_list" to job store "default"
+2025-04-14 11:35:03,279 - INFO - Added job "daily_coin_history" to job store "default"
+2025-04-14 11:35:03,279 - INFO - Scheduler started
+2025-04-14 11:35:03,280 - INFO - Scheduler started, running top coins at midnight and history at 00:10
+2025-04-14 11:36:03,279 - INFO - Running job "daily_coin_history (trigger: interval[0:01:00], next run at: 2025-04-14 11:36:03 UTC)" (scheduled at 2025-04-14 11:36:03.278708+00:00)
+2025-04-14 11:36:03,279 - INFO - Starting daily coin history extraction
+2025-04-14 11:36:03,280 - INFO - Extracting history for Bitcoin (bitcoin)
+2025-04-14 11:37:03,279 - WARNING - Execution of job "daily_coin_history (trigger: interval[0:01:00], next run at: 2025-04-14 11:37:03 UTC)" skipped: maximum number of running instances reached (1)
+2025-04-14 11:38:03,278 - WARNING - Execution of job "daily_coin_history (trigger: interval[0:01:00], next run at: 2025-04-14 11:38:03 UTC)" skipped: maximum number of running instances reached (1)
+2025-04-14 11:38:32,417 - INFO - BITCOIN historical data downloaded to: data/historical/bitcoin/1744630712252-Bitcoin_5_14_2010-7_13_2010_historical_data_coinmarketcap.csv
+2025-04-14 11:38:32,417 - INFO - Extracting history for Ethereum (ethereum)
+2025-04-14 11:39:03,278 - WARNING - Execution of job "daily_coin_history (trigger: interval[0:01:00], next run at: 2025-04-14 11:39:03 UTC)" skipped: maximum number of running instances reached (1)
+2025-04-14 11:40:01,501 - INFO - ETHEREUM historical data downloaded to: data/historical/ethereum/1744630801371-Ethereum_6_12_2015-8_11_2015_historical_data_coinmarketcap.csv
+2025-04-14 11:40:01,501 - INFO - Extracting history for Tether USDt (tether)
+2025-04-14 11:40:03,279 - WARNING - Execution of job "daily_coin_history (trigger: interval[0:01:00], next run at: 2025-04-14 11:40:03 UTC)" skipped: maximum number of running instances reached (1)
+2025-04-14 11:51:05,793 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 11:51:05,794 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 11:51:05,794 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 11:51:05,795 - INFO - Added job "daily_top_coin_list" to job store "default"
+2025-04-14 11:51:05,795 - INFO - Added job "daily_coin_history" to job store "default"
+2025-04-14 11:51:05,795 - INFO - Added job "daily_news_sentiment" to job store "default"
+2025-04-14 11:51:05,795 - INFO - Scheduler started
+2025-04-14 11:51:05,796 - INFO - Scheduler started, running top coins at midnight and history at 00:10
+2025-04-14 11:52:05,795 - INFO - Running job "daily_news_sentiment (trigger: interval[0:01:00], next run at: 2025-04-14 11:52:05 UTC)" (scheduled at 2025-04-14 11:52:05.794555+00:00)
+2025-04-14 11:52:05,795 - INFO - Starting daily news sentiment extraction
+2025-04-14 11:52:05,796 - ERROR - Error during news sentiment job: name 'NewsSentimentService' is not defined
+2025-04-14 11:52:05,796 - INFO - Job "daily_news_sentiment (trigger: interval[0:01:00], next run at: 2025-04-14 11:53:05 UTC)" executed successfully
+2025-04-14 11:52:10,628 - INFO - Scheduler has been shut down
+2025-04-14 11:52:10,629 - INFO - Scheduler shut down
+2025-04-14 11:52:44,599 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 11:52:44,599 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 11:52:44,600 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 11:52:44,600 - INFO - Added job "daily_top_coin_list" to job store "default"
+2025-04-14 11:52:44,600 - INFO - Added job "daily_coin_history" to job store "default"
+2025-04-14 11:52:44,600 - INFO - Added job "daily_news_sentiment" to job store "default"
+2025-04-14 11:52:44,600 - INFO - Scheduler started
+2025-04-14 11:52:44,601 - INFO - Scheduler started, running top coins at midnight and history at 00:10
+2025-04-14 11:53:44,600 - INFO - Running job "daily_news_sentiment (trigger: interval[0:01:00], next run at: 2025-04-14 11:53:44 UTC)" (scheduled at 2025-04-14 11:53:44.599963+00:00)
+2025-04-14 11:53:44,601 - INFO - Starting daily news sentiment extraction
+2025-04-14 11:53:44,641 - INFO - Fetching news sentiment for Bitcoin (bitcoin)
+2025-04-14 11:54:44,600 - WARNING - Execution of job "daily_news_sentiment (trigger: interval[0:01:00], next run at: 2025-04-14 11:54:44 UTC)" skipped: maximum number of running instances reached (1)
+2025-04-14 11:55:04,672 - INFO - Gathered 13 posts for BITCOIN with average sentiment 0.33
+2025-04-14 11:55:04,672 - INFO - Fetching news sentiment for Ethereum (ethereum)
+2025-04-14 11:55:44,600 - WARNING - Execution of job "daily_news_sentiment (trigger: interval[0:01:00], next run at: 2025-04-14 11:55:44 UTC)" skipped: maximum number of running instances reached (1)
+2025-04-14 11:56:44,600 - WARNING - Execution of job "daily_news_sentiment (trigger: interval[0:01:00], next run at: 2025-04-14 11:56:44 UTC)" skipped: maximum number of running instances reached (1)
+2025-04-14 11:56:57,202 - INFO - Gathered 17 posts for ETHEREUM with average sentiment -0.00
+2025-04-14 11:56:57,202 - INFO - Fetching news sentiment for Tether USDt (tether)
+2025-04-14 11:57:44,600 - WARNING - Execution of job "daily_news_sentiment (trigger: interval[0:01:00], next run at: 2025-04-14 11:57:44 UTC)" skipped: maximum number of running instances reached (1)
+2025-04-14 11:58:44,600 - WARNING - Execution of job "daily_news_sentiment (trigger: interval[0:01:00], next run at: 2025-04-14 11:58:44 UTC)" skipped: maximum number of running instances reached (1)
+2025-04-14 11:58:50,054 - INFO - Gathered 13 posts for TETHER USDT with average sentiment 0.14
+2025-04-14 11:58:50,055 - INFO - Fetching news sentiment for XRP (xrp)
+2025-04-14 11:58:52,623 - ERROR - Error processing news sentiment for xrp: Page.goto: Target page, context or browser has been closed
+Call log:
+  - navigating to "https://coinmarketcap.com/community/coins/xrp/top/", waiting until "networkidle"
+
+2025-04-14 11:58:52,624 - INFO - Fetching news sentiment for BNB (bnb)
+2025-04-14 12:10:22,401 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 12:10:22,401 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 12:10:22,401 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 12:10:22,401 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 12:10:22,402 - INFO - Added job "daily_top_coin_list" to job store "default"
+2025-04-14 12:10:22,403 - INFO - Added job "daily_coin_history" to job store "default"
+2025-04-14 12:10:22,403 - INFO - Added job "daily_news_sentiment" to job store "default"
+2025-04-14 12:10:22,403 - INFO - Added job "daily_coin_prices" to job store "default"
+2025-04-14 12:10:22,403 - INFO - Scheduler started
+2025-04-14 12:10:22,404 - INFO - Scheduler started, running top coins at midnight and history at 00:10
+2025-04-14 12:11:22,402 - INFO - Running job "daily_coin_prices (trigger: interval[0:01:00], next run at: 2025-04-14 12:11:22 UTC)" (scheduled at 2025-04-14 12:11:22.401764+00:00)
+2025-04-14 12:11:22,402 - INFO - Starting coin prices update
+2025-04-14 12:11:22,403 - INFO - Fetching stats for Bitcoin (bitcoin)
+2025-04-14 12:11:28,840 - INFO - Updated BITCOIN price: $84872.1 saved to data/realtime/bitcoin/stats/bitcoin_stats.csv
+2025-04-14 12:11:28,840 - INFO - Fetching stats for Ethereum (ethereum)
+2025-04-14 12:11:33,611 - INFO - Updated ETHEREUM price: $1670.0 saved to data/realtime/ethereum/stats/ethereum_stats.csv
+2025-04-14 12:11:33,611 - INFO - Fetching stats for Tether USDt (tether)
+2025-04-14 12:11:38,568 - INFO - Updated TETHER USDT price: $0.9998 saved to data/realtime/tether/stats/tether_stats.csv
+2025-04-14 12:11:38,568 - INFO - Fetching stats for XRP (xrp)
+2025-04-14 12:11:43,563 - INFO - Updated XRP price: $2.15 saved to data/realtime/xrp/stats/xrp_stats.csv
+2025-04-14 12:11:43,563 - INFO - Fetching stats for BNB (bnb)
+2025-04-14 12:11:48,482 - INFO - Updated BNB price: $591.93 saved to data/realtime/bnb/stats/bnb_stats.csv
+2025-04-14 12:11:48,482 - INFO - Fetching stats for Solana (solana)
+2025-04-14 12:11:53,279 - INFO - Updated SOLANA price: $133.1 saved to data/realtime/solana/stats/solana_stats.csv
+2025-04-14 12:11:53,279 - INFO - Fetching stats for USDC (usd-coin)
+2025-04-14 12:11:57,902 - INFO - Updated USDC price: $1.0 saved to data/realtime/usd-coin/stats/usd-coin_stats.csv
+2025-04-14 12:11:57,902 - INFO - Fetching stats for Dogecoin (dogecoin)
+2025-04-14 12:12:02,936 - INFO - Updated DOGECOIN price: $0.1656 saved to data/realtime/dogecoin/stats/dogecoin_stats.csv
+2025-04-14 12:12:02,936 - INFO - Fetching stats for TRON (tron)
+2025-04-14 12:12:08,013 - INFO - Updated TRON price: $0.2561 saved to data/realtime/tron/stats/tron_stats.csv
+2025-04-14 12:12:08,013 - INFO - Fetching stats for Cardano (cardano)
+2025-04-14 12:12:12,666 - INFO - Updated CARDANO price: $0.6488 saved to data/realtime/cardano/stats/cardano_stats.csv
+2025-04-14 12:12:12,666 - INFO - Fetching stats for UNUS SED LEO (unus-sed-leo)
+2025-04-14 12:12:17,638 - INFO - Updated UNUS SED LEO price: $9.39 saved to data/realtime/unus-sed-leo/stats/unus-sed-leo_stats.csv
+2025-04-14 12:12:17,638 - INFO - Fetching stats for Chainlink (chainlink)
+2025-04-14 12:12:22,402 - WARNING - Execution of job "daily_coin_prices (trigger: interval[0:01:00], next run at: 2025-04-14 12:12:22 UTC)" skipped: maximum number of running instances reached (1)
+2025-04-14 12:12:22,701 - INFO - Updated CHAINLINK price: $13.14 saved to data/realtime/chainlink/stats/chainlink_stats.csv
+2025-04-14 12:12:22,701 - INFO - Fetching stats for Avalanche (avalanche)
+2025-04-14 12:12:27,921 - INFO - Updated AVALANCHE price: $20.44 saved to data/realtime/avalanche/stats/avalanche_stats.csv
+2025-04-14 12:12:27,921 - INFO - Fetching stats for Stellar (stellar)
+2025-04-14 12:12:33,895 - INFO - Updated STELLAR price: $0.2468 saved to data/realtime/stellar/stats/stellar_stats.csv
+2025-04-14 12:12:33,895 - INFO - Fetching stats for Sui (sui)
+2025-04-14 12:12:40,274 - INFO - Updated SUI price: $2.32 saved to data/realtime/sui/stats/sui_stats.csv
+2025-04-14 12:12:40,274 - INFO - Fetching stats for Shiba Inu (shiba-inu)
+2025-04-14 12:12:45,764 - INFO - Updated SHIBA INU price: $1.234e-05 saved to data/realtime/shiba-inu/stats/shiba-inu_stats.csv
+2025-04-14 12:12:45,764 - INFO - Fetching stats for Hedera (hedera)
+2025-04-14 12:12:51,077 - INFO - Updated HEDERA price: $0.17 saved to data/realtime/hedera/stats/hedera_stats.csv
+2025-04-14 12:12:51,077 - INFO - Fetching stats for Toncoin (toncoin)
+2025-04-14 12:12:55,713 - INFO - Updated TONCOIN price: $2.86 saved to data/realtime/toncoin/stats/toncoin_stats.csv
+2025-04-14 12:12:55,713 - INFO - Fetching stats for Bitcoin Cash (bitcoin-cash)
+2025-04-14 12:13:00,319 - INFO - Updated BITCOIN CASH price: $340.21 saved to data/realtime/bitcoin-cash/stats/bitcoin-cash_stats.csv
+2025-04-14 12:13:00,320 - INFO - Fetching stats for Litecoin (litecoin)
+2025-04-14 12:13:04,855 - INFO - Updated LITECOIN price: $78.53 saved to data/realtime/litecoin/stats/litecoin_stats.csv
+2025-04-14 12:13:04,855 - INFO - Completed coin prices update
+2025-04-14 12:13:04,855 - INFO - Job "daily_coin_prices (trigger: interval[0:01:00], next run at: 2025-04-14 12:13:22 UTC)" executed successfully
+2025-04-14 12:13:22,402 - INFO - Running job "daily_coin_prices (trigger: interval[0:01:00], next run at: 2025-04-14 12:14:22 UTC)" (scheduled at 2025-04-14 12:13:22.401764+00:00)
+2025-04-14 12:13:22,402 - INFO - Starting coin prices update
+2025-04-14 12:13:22,403 - INFO - Fetching stats for Bitcoin (bitcoin)
+2025-04-14 12:13:27,150 - INFO - Updated BITCOIN price: $84873.17 saved to data/realtime/bitcoin/stats/bitcoin_stats.csv
+2025-04-14 12:13:27,151 - INFO - Fetching stats for Ethereum (ethereum)
+2025-04-14 12:13:34,963 - INFO - Updated ETHEREUM price: $1666.86 saved to data/realtime/ethereum/stats/ethereum_stats.csv
+2025-04-14 12:13:34,963 - INFO - Fetching stats for Tether USDt (tether)
+2025-04-14 12:13:39,619 - INFO - Updated TETHER USDT price: $0.9996 saved to data/realtime/tether/stats/tether_stats.csv
+2025-04-14 12:13:39,619 - INFO - Fetching stats for XRP (xrp)
+2025-04-14 12:13:44,709 - INFO - Updated XRP price: $2.15 saved to data/realtime/xrp/stats/xrp_stats.csv
+2025-04-14 12:13:44,709 - INFO - Fetching stats for BNB (bnb)
+2025-04-14 12:13:49,513 - INFO - Updated BNB price: $591.8 saved to data/realtime/bnb/stats/bnb_stats.csv
+2025-04-14 12:13:49,513 - INFO - Fetching stats for Solana (solana)
+2025-04-14 12:13:54,379 - INFO - Updated SOLANA price: $132.95 saved to data/realtime/solana/stats/solana_stats.csv
+2025-04-14 12:13:54,379 - INFO - Fetching stats for USDC (usd-coin)
+2025-04-14 12:13:58,980 - INFO - Updated USDC price: $0.9999 saved to data/realtime/usd-coin/stats/usd-coin_stats.csv
+2025-04-14 12:13:58,980 - INFO - Fetching stats for Dogecoin (dogecoin)
+2025-04-14 12:14:03,784 - INFO - Updated DOGECOIN price: $0.1658 saved to data/realtime/dogecoin/stats/dogecoin_stats.csv
+2025-04-14 12:14:03,784 - INFO - Fetching stats for TRON (tron)
+2025-04-14 12:14:08,360 - INFO - Updated TRON price: $0.2559 saved to data/realtime/tron/stats/tron_stats.csv
+2025-04-14 12:14:08,360 - INFO - Fetching stats for Cardano (cardano)
+2025-04-14 12:14:13,216 - INFO - Updated CARDANO price: $0.6504 saved to data/realtime/cardano/stats/cardano_stats.csv
+2025-04-14 12:14:13,216 - INFO - Fetching stats for UNUS SED LEO (unus-sed-leo)
+2025-04-14 12:14:18,961 - INFO - Updated UNUS SED LEO price: $9.38 saved to data/realtime/unus-sed-leo/stats/unus-sed-leo_stats.csv
+2025-04-14 12:14:18,962 - INFO - Fetching stats for Chainlink (chainlink)
+2025-04-14 12:14:22,402 - WARNING - Execution of job "daily_coin_prices (trigger: interval[0:01:00], next run at: 2025-04-14 12:14:22 UTC)" skipped: maximum number of running instances reached (1)
+2025-04-14 12:14:23,906 - INFO - Updated CHAINLINK price: $13.14 saved to data/realtime/chainlink/stats/chainlink_stats.csv
+2025-04-14 12:14:23,907 - INFO - Fetching stats for Avalanche (avalanche)
+2025-04-14 12:14:28,536 - INFO - Updated AVALANCHE price: $20.44 saved to data/realtime/avalanche/stats/avalanche_stats.csv
+2025-04-14 12:14:28,537 - INFO - Fetching stats for Stellar (stellar)
+2025-04-14 12:14:34,153 - INFO - Updated STELLAR price: $0.2468 saved to data/realtime/stellar/stats/stellar_stats.csv
+2025-04-14 12:14:34,153 - INFO - Fetching stats for Sui (sui)
+2025-04-14 12:14:39,141 - INFO - Updated SUI price: $2.32 saved to data/realtime/sui/stats/sui_stats.csv
+2025-04-14 12:14:39,141 - INFO - Fetching stats for Shiba Inu (shiba-inu)
+2025-04-14 12:14:44,120 - INFO - Updated SHIBA INU price: $1.235e-05 saved to data/realtime/shiba-inu/stats/shiba-inu_stats.csv
+2025-04-14 12:14:44,121 - INFO - Fetching stats for Hedera (hedera)
+2025-04-14 12:14:49,152 - INFO - Updated HEDERA price: $0.1699 saved to data/realtime/hedera/stats/hedera_stats.csv
+2025-04-14 12:14:49,152 - INFO - Fetching stats for Toncoin (toncoin)
+2025-04-14 12:14:53,751 - INFO - Updated TONCOIN price: $2.86 saved to data/realtime/toncoin/stats/toncoin_stats.csv
+2025-04-14 12:14:53,751 - INFO - Fetching stats for Bitcoin Cash (bitcoin-cash)
+2025-04-14 12:14:58,383 - INFO - Updated BITCOIN CASH price: $340.11 saved to data/realtime/bitcoin-cash/stats/bitcoin-cash_stats.csv
+2025-04-14 12:14:58,383 - INFO - Fetching stats for Litecoin (litecoin)
+2025-04-14 12:15:04,749 - INFO - Updated LITECOIN price: $78.51 saved to data/realtime/litecoin/stats/litecoin_stats.csv
+2025-04-14 12:15:04,749 - INFO - Completed coin prices update
+2025-04-14 12:15:04,749 - INFO - Job "daily_coin_prices (trigger: interval[0:01:00], next run at: 2025-04-14 12:15:22 UTC)" executed successfully
+2025-04-14 12:15:22,402 - INFO - Running job "daily_coin_prices (trigger: interval[0:01:00], next run at: 2025-04-14 12:16:22 UTC)" (scheduled at 2025-04-14 12:15:22.401764+00:00)
+2025-04-14 12:15:22,402 - INFO - Starting coin prices update
+2025-04-14 12:15:22,402 - INFO - Fetching stats for Bitcoin (bitcoin)
+2025-04-14 12:15:26,878 - INFO - Updated BITCOIN price: $84878.47 saved to data/realtime/bitcoin/stats/bitcoin_stats.csv
+2025-04-14 12:15:26,878 - INFO - Fetching stats for Ethereum (ethereum)
+2025-04-14 12:15:32,364 - INFO - Updated ETHEREUM price: $1669.42 saved to data/realtime/ethereum/stats/ethereum_stats.csv
+2025-04-14 12:15:32,364 - INFO - Fetching stats for Tether USDt (tether)
+2025-04-14 12:15:36,785 - INFO - Updated TETHER USDT price: $0.9999 saved to data/realtime/tether/stats/tether_stats.csv
+2025-04-14 12:15:36,785 - INFO - Fetching stats for XRP (xrp)
+2025-04-14 12:15:40,109 - ERROR - Error fetching stats for xrp: Browser.close: Connection closed while reading from the driver
+2025-04-14 12:15:40,109 - INFO - Fetching stats for BNB (bnb)
+2025-04-14 12:56:19,344 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 12:56:19,345 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 12:56:19,345 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 12:56:19,345 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 12:56:19,345 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 12:56:19,346 - INFO - Added job "daily_top_coin_list" to job store "default"
+2025-04-14 12:56:19,346 - INFO - Added job "daily_coin_history" to job store "default"
+2025-04-14 12:56:19,346 - INFO - Added job "daily_news_sentiment" to job store "default"
+2025-04-14 12:56:19,346 - INFO - Added job "daily_coin_prices" to job store "default"
+2025-04-14 12:56:19,346 - INFO - Added job "daily_data_cleaner" to job store "default"
+2025-04-14 12:56:19,346 - INFO - Scheduler started
+2025-04-14 12:56:19,347 - INFO - Scheduler started, running top coins at midnight and history at 00:10
+2025-04-14 12:56:25,585 - INFO - Scheduler has been shut down
+2025-04-14 12:56:25,585 - INFO - Scheduler shut down
+2025-04-14 12:57:10,623 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 12:57:10,624 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 12:57:10,624 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 12:57:10,624 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 12:57:10,624 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-14 12:57:10,625 - INFO - Added job "daily_top_coin_list" to job store "default"
+2025-04-14 12:57:10,626 - INFO - Added job "daily_coin_history" to job store "default"
+2025-04-14 12:57:10,626 - INFO - Added job "daily_news_sentiment" to job store "default"
+2025-04-14 12:57:10,626 - INFO - Added job "daily_coin_prices" to job store "default"
+2025-04-14 12:57:10,626 - INFO - Added job "daily_data_cleaner" to job store "default"
+2025-04-14 12:57:10,626 - INFO - Scheduler started
+2025-04-14 12:57:10,626 - INFO - Scheduler started, running various coin jobs
+2025-04-14 12:57:17,235 - INFO - Scheduler has been shut down
+2025-04-14 12:57:17,236 - INFO - Scheduler shut down
+2025-04-15 11:49:59,188 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-15 11:49:59,188 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-15 11:49:59,189 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-15 11:49:59,189 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-15 11:49:59,189 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-15 11:49:59,191 - INFO - Added job "daily_top_coin_list" to job store "default"
+2025-04-15 11:49:59,192 - INFO - Added job "daily_coin_history" to job store "default"
+2025-04-15 11:49:59,192 - INFO - Added job "daily_news_sentiment" to job store "default"
+2025-04-15 11:49:59,192 - INFO - Added job "daily_coin_prices" to job store "default"
+2025-04-15 11:49:59,192 - INFO - Added job "daily_data_cleaner" to job store "default"
+2025-04-15 11:49:59,192 - INFO - Scheduler started
+2025-04-15 11:49:59,192 - INFO - Scheduler started, watching and executing various coin jobs
+2025-04-15 11:50:18,383 - INFO - Scheduler has been shut down
+2025-04-15 11:50:18,384 - INFO - Scheduler shut down
+2025-04-15 13:47:08,457 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-15 13:47:08,458 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-15 13:47:08,458 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-15 13:47:08,458 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-15 13:47:08,458 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-15 13:47:08,461 - INFO - Added job "daily_top_coin_list" to job store "default"
+2025-04-15 13:47:08,461 - INFO - Added job "daily_coin_history" to job store "default"
+2025-04-15 13:47:08,461 - INFO - Added job "daily_news_sentiment" to job store "default"
+2025-04-15 13:47:08,461 - INFO - Added job "daily_coin_prices" to job store "default"
+2025-04-15 13:47:08,461 - INFO - Added job "daily_data_cleaner" to job store "default"
+2025-04-15 13:47:08,461 - INFO - Scheduler started
+2025-04-15 13:47:08,462 - INFO - Scheduler started, watching and executing various coin jobs
+2025-04-15 13:48:27,068 - INFO - Scheduler has been shut down
+2025-04-15 13:48:27,069 - INFO - Scheduler shut down
+2025-04-16 09:03:01,188 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 09:03:01,189 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 09:03:01,189 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 09:03:01,189 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 09:03:01,189 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 09:03:01,191 - INFO - Added job "daily_top_coin_list" to job store "default"
+2025-04-16 09:03:01,191 - INFO - Added job "daily_coin_history" to job store "default"
+2025-04-16 09:03:01,191 - INFO - Added job "daily_news_sentiment" to job store "default"
+2025-04-16 09:03:01,191 - INFO - Added job "daily_coin_prices" to job store "default"
+2025-04-16 09:03:01,192 - INFO - Added job "daily_data_cleaner" to job store "default"
+2025-04-16 09:03:01,192 - INFO - Scheduler started
+2025-04-16 09:03:01,192 - INFO - Scheduler started, watching and executing various coin jobs
+2025-04-16 09:03:37,941 - INFO - Scheduler has been shut down
+2025-04-16 09:03:37,942 - INFO - Scheduler shut down
+2025-04-16 11:44:50,796 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 11:44:50,796 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 11:44:50,796 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 11:44:50,797 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 11:44:50,797 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-16 11:44:50,799 - INFO - Added job "daily_top_coin_list" to job store "default"
+2025-04-16 11:44:50,799 - INFO - Added job "daily_coin_history" to job store "default"
+2025-04-16 11:44:50,799 - INFO - Added job "daily_news_sentiment" to job store "default"
+2025-04-16 11:44:50,799 - INFO - Added job "daily_coin_prices" to job store "default"
+2025-04-16 11:44:50,799 - INFO - Added job "daily_data_cleaner" to job store "default"
+2025-04-16 11:44:50,799 - INFO - Scheduler started
+2025-04-16 11:44:50,800 - INFO - Scheduler started, watching and executing various coin jobs
+2025-04-16 11:45:02,974 - INFO - Scheduler has been shut down
+2025-04-16 11:45:02,975 - INFO - Scheduler shut down
+2025-04-22 10:22:46,648 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-22 10:22:46,648 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-22 10:22:46,648 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-22 10:22:46,648 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-22 10:22:46,648 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-22 10:22:46,650 - INFO - Added job "daily_top_coin_list" to job store "default"
+2025-04-22 10:22:46,651 - INFO - Added job "daily_coin_history" to job store "default"
+2025-04-22 10:22:46,651 - INFO - Added job "daily_news_sentiment" to job store "default"
+2025-04-22 10:22:46,651 - INFO - Added job "daily_coin_prices" to job store "default"
+2025-04-22 10:22:46,651 - INFO - Added job "daily_data_cleaner" to job store "default"
+2025-04-22 10:22:46,651 - INFO - Scheduler started
+2025-04-22 10:22:46,651 - INFO - Scheduler started, watching and executing various coin jobs
+2025-04-22 10:46:27,472 - INFO - Scheduler has been shut down
+2025-04-22 10:46:27,473 - INFO - Scheduler shut down
+2025-04-23 09:05:27,218 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-23 09:05:27,218 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-23 09:05:27,218 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-23 09:05:27,218 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-23 09:05:27,219 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-23 09:05:27,221 - INFO - Added job "daily_top_coin_list" to job store "default"
+2025-04-23 09:05:27,221 - INFO - Added job "daily_coin_history" to job store "default"
+2025-04-23 09:05:27,221 - INFO - Added job "daily_news_sentiment" to job store "default"
+2025-04-23 09:05:27,221 - INFO - Added job "daily_coin_prices" to job store "default"
+2025-04-23 09:05:27,221 - INFO - Added job "daily_data_cleaner" to job store "default"
+2025-04-23 09:05:27,221 - INFO - Scheduler started
+2025-04-23 09:05:27,222 - INFO - Scheduler started, watching and executing various coin jobs
+2025-04-23 09:05:54,826 - INFO - Scheduler has been shut down
+2025-04-23 09:05:54,827 - INFO - Scheduler shut down

@@ -1,0 +1,24 @@
+requests==2.32.3
+python-dotenv==1.0.1
+crawl4ai==0.4.247 # To be removed
+playwright==1.50.0
+praw==7.8.1
+pandas==2.2.3
+scikit_learn==1.6.1
+ta==0.11.0
+langchain==0.3.22
+langchain-core==0.3.50
+langchain_community==0.3.20
+langchain_openai==0.3.12
+langchain-ollama==0.3.0
+langchain_text_splitters==0.3.7
+apscheduler==3.11.0
+python-binance==1.0.28
+fastapi== 0.115.6
+fastapi_cors==0.0.6
+uvicorn==0.34.0
+watchdog==6.0.0
+google-auth==2.38.0
+pydantic==2.10.6
+python-jose==3.3.0
+pymongo==4.10.1
