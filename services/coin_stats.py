@@ -159,7 +159,7 @@ class CoinStatsService:
                                 data[key] = self.parse_value(value_text)
                                 break
 
-                print(f"Successfully fetched stats for {coin}: {data}")
+                print(f"Successfully fetched stats for {coin}")
                 return data
 
             except PlaywrightTimeoutError:
