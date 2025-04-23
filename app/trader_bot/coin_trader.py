@@ -1,10 +1,10 @@
-from .llm_handler import LLMHandler
-from .data_handler import DataHandler
-from .model_handler import ModelHandler
-from .news_handler import NewsHandler
-from services.coin_stats import CoinStatsService
-from services.coin_news import NewsSentimentService
-from services.coin_history import CoinHistory
+from app.trader_bot.llm_handler import LLMHandler
+from app.trader_bot.data_handler import DataHandler
+from app.trader_bot.model_handler import ModelHandler
+from app.trader_bot.news_handler import NewsHandler
+from app.services.coin_stats import CoinStatsService
+from app.services.coin_news import NewsSentimentService
+from app.services.coin_history import CoinHistory
 from config import config
 
 class CoinTrader:

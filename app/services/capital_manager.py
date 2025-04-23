@@ -29,7 +29,7 @@ class CapitalManager:
             print(f"Created directory: {directory}")
 
     def load_state(self):
-        """Load capital, positions, cost basis, and trade records from the file, initializing new coin if needed."""
+        """Load capital, positions, cost basis, and trade records from the file."""
         if os.path.exists(self.file_path):
             try:
                 with open(self.file_path, 'r') as f:
@@ -61,31 +61,19 @@ class CapitalManager:
                                 'total_profit': trade.get('profit', 0.0)
                             }
             except (json.JSONDecodeError, IOError) as e:
-                print(f"Error loading {self.file_path}: {e}. Initializing.")
-                self.capital[self.coin] = self.initial_capital
-                self.trade_records[self.coin] = {
-                    'timestamp': datetime.now().isoformat(),
-                    'quantity': 0.0,
-                    'price': 0.0,
-                    'total_profit': 0.0
-                }
+                print(f"Error loading {self.file_path}: {e}. Initializing empty state.")
+                self.capital = {}
+                self.positions = {}
+                self.total_cost = {}
+                self.trade_records = {}
         else:
-            print(f"No file at {self.file_path}. Initializing.")
-            self.capital[self.coin] = self.initial_capital
-            self.trade_records[self.coin] = {
-                'timestamp': datetime.now().isoformat(),
-                'quantity': 0.0,
-                'price': 0.0,
-                'total_profit': 0.0
-            }
-        if self.coin not in self.capital:
-            self.capital[self.coin] = self.initial_capital
-            self.trade_records[self.coin] = {
-                'timestamp': datetime.now().isoformat(),
-                'quantity': 0.0,
-                'price': 0.0,
-                'total_profit': 0.0
-            }
+            print(f"No file at {self.file_path}. Initializing empty state.")
+            self.capital = {}
+            self.positions = {}
+            self.total_cost = {}
+            self.trade_records = {}
+        # Do not automatically initialize the coin here
+        # Let deposit() or simulate_buy() handle coin initialization
         self.save_state()
 
     def save_state(self):
@@ -108,8 +96,14 @@ class CapitalManager:
         """Simulate a buy trade, updating the coin's record."""
         coin = coin.lower()
         if coin not in self.capital:
-            print(f"No capital for {coin}. Deposit funds first.")
-            return False
+            # Initialize the coin with zero capital if not present
+            self.capital[coin] = 0.0
+            self.trade_records[coin] = {
+                'timestamp': datetime.now().isoformat(),
+                'quantity': 0.0,
+                'price': 0.0,
+                'total_profit': 0.0
+            }
         cost = quantity * price * (1 + trading_fee)
         if cost > self.capital[coin]:
             print(f"Insufficient capital for BUY {coin}: Need ${cost:.2f}, have ${self.capital[coin]:.2f}")
@@ -189,3 +183,15 @@ class CapitalManager:
     def get_capital(self, coin):
         """Return the current capital for a specific coin."""
         return self.capital.get(coin.lower(), 0.0)
+
+    def get_available_coins(self):
+        """
+        Retrieve a list of unique coins available in capital, positions, or trade records.
+
+        :return: A sorted list of unique coin names.
+        """
+        available_coins = set()
+        available_coins.update(self.capital.keys())
+        available_coins.update(self.positions.keys())
+        available_coins.update(self.trade_records.keys())
+        return sorted(list(available_coins))
