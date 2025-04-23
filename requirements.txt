@@ -14,3 +14,11 @@ langchain-ollama==0.3.0
 langchain_text_splitters==0.3.7
 apscheduler==3.11.0
 python-binance==1.0.28
+fastapi== 0.115.6
+fastapi_cors==0.0.6
+uvicorn==0.34.0
+watchdog==6.0.0
+google-auth==2.38.0
+pydantic==2.10.6
+python-jose==3.3.0
+pymongo==4.10.1

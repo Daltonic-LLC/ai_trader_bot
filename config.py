@@ -16,9 +16,6 @@ class EnvironmentConfig:
     def _initialize_config(self):
         """Initialize configuration based on environment"""
         self.config = {
-            "redit_client_id": environ.get("REDDIT_CLIENT_ID", ""),
-            "redit_client_secret": environ.get("REDDIT_CLIENT_SECRET", ""),
-            "redit_user_agent": environ.get("REDDIT_USER_AGENT", ""),
             "binance_api_key": environ.get("BINANCE_API_KEY", ""),
             "binance_api_secret": environ.get("BINANCE_SECRET_KEY", ""),
             "chat_model": environ.get("CHAT_MODEL", "llama3.1:8b"),
@@ -26,19 +23,12 @@ class EnvironmentConfig:
                 "CHAT_ENDPOINT", "http://ollama_service:11434"
             ),
             "environment": environ.get("ENVIRONMENT", "local").lower(),
+            "mongodb_uri": environ.get("MONGODB_URI", ""),
+            "mongodb_username": environ.get("MONGODB_USERNAME", ""),
+            "mongodb_password": environ.get("MONGODB_PASSWORD", ""),
+            "google_client_id": environ.get("GOOGLE_CLIENT_ID", ""),
+            "jwt_secret_key": environ.get("SECRET_KEY", None),
         }
-
-    @property
-    def redit_client_id(self) -> str:
-        return self.config["redit_client_id"]
-
-    @property
-    def redit_client_secret(self) -> str:
-        return self.config["redit_client_secret"]
-
-    @property
-    def redit_user_agent(self) -> str:
-        return self.config["redit_user_agent"]
     
     @property
     def binance_api_key(self) -> str:
@@ -55,6 +45,43 @@ class EnvironmentConfig:
     @property
     def chat_model(self) -> str:
         return self.config["chat_model"]
+    
+    @property
+    def mongodb_uri(self) -> str:
+        url = self.config["mongodb_uri"]
+        if not url:
+            raise ValueError("MONGODB_URI environment variable is not set")
+        return url
+
+    @property
+    def mongodb_username(self) -> str:
+        username = self.config["mongodb_username"]
+        if not username:
+            raise ValueError("MONGODB_USERNAME environment variable is not set")
+        return username
+
+    @property
+    def mongodb_password(self) -> str:
+        password = self.config["mongodb_password"]
+        if not password:
+            raise ValueError("MONGODB_PASSWORD environment variable is not set")
+        return password
+    
+    @property
+    def google_client_id(self) -> str:
+        return self.config["google_client_id"]
+    
+    @property
+    def jwt_secret_key(self) -> str:
+        return self.config["jwt_secret_key"]
+
+    @property
+    def jwt_algorithm(self) -> str:
+        return "HS256"
+
+    @property
+    def access_token_expire_minutes(self) -> int:
+        return 720
 
     def get_all(self) -> Dict[str, str]:
         """Return all configuration values"""
