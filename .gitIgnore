@@ -1,4 +1,6 @@
 .env
+backend/.env
+frontend/.env
 ai_dev
 __pycache__
 .vscode
