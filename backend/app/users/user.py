@@ -62,13 +62,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         if not user:
             raise credentials_exception
 
-        # Check if user is the Super Admin
-        if user["email"] == config.admin_email:
-            role = "super"
-        else:
-            role = user.get("role", "User")
-
-        user["role"] = role
         return user
     except JWTError:
         raise credentials_exception
@@ -141,18 +134,12 @@ async def google_login(token_request: GoogleTokenRequest):
 
         print("Generated access token:", token.access_token)
 
-        # Check if user is the Super Admin
-        if user["email"] == config.admin_email:
-            role = "super"
-        else:
-            role = user.get("role", "User")
-
         return UserResponse(
             id=user["id"],
             email=user["email"],
             name=user["name"],
             profile_picture=user.get("profile_picture"),
-            role=role,
+            role=user["role"],
             created_at=user.get("created_at"),
             token=token,
         )
@@ -180,18 +167,12 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
     # Convert ObjectId to string for JSON serialization
     current_user["id"] = str(current_user.pop("_id", ""))  # Rename `_id` to `id`
 
-    # Check if user is the Super Admin
-    if current_user["email"] == config.admin_email:
-        role = "super"
-    else:
-        role = current_user.get("role", "User")
-
     return UserResponse(
         id=current_user["id"],
         email=current_user["email"],
         name=current_user["name"],
         profile_picture=current_user.get("profile_picture"),
-        role=role,  # Ensuring role is included
+        role=current_user["role"],  # Ensuring role is included
         created_at=current_user.get("created_at"),
     )
 

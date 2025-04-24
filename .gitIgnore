@@ -4,6 +4,6 @@ __pycache__
 .vscode
 .idea
 .git
-data/
-data/*
-data/**/*
+backend/data/
+backend/data/*
+backend/data/**/*
