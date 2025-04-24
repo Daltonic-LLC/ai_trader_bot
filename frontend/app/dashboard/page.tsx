@@ -1,59 +1,54 @@
+'use client';
+
+import ActionButtons from '@/components/ActionButtons';
+import CoinDetailsCard from '@/components/CoinDetailsCard';
+import CoinSelector from '@/components/CoinSelector';
 import Header from '@/components/Header';
-import TradingInstanceCard from '@/components/TradingInstanceCard';
-import React from 'react';
+import { Coin } from '@/utils/interfaces';
+import React, { useEffect, useState } from 'react';
 
-// Define interface for trading instance
-interface TradingInstance {
-  id: number;
-  coin: string;
-  capital: number;
-  position: number;
-  lastRecommendation: 'BUY' | 'SELL' | 'HOLD';
-}
+const DashboardPage: React.FC = () => {
+  const [coins, setCoins] = useState<Coin[]>([]);
+  const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
 
-// Static sample data
-const sampleInstances: TradingInstance[] = [
-  {
-    id: 1,
-    coin: 'btc',
-    capital: 1000.0,
-    position: 0.05,
-    lastRecommendation: 'BUY',
-  },
-  {
-    id: 2,
-    coin: 'eth',
-    capital: 500.0,
-    position: 0.0,
-    lastRecommendation: 'SELL',
-  },
-  {
-    id: 3,
-    coin: 'ltc',
-    capital: 200.0,
-    position: 1.2,
-    lastRecommendation: 'HOLD',
-  },
-];
+  const fetchCoins = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/coin/top_coins?limit=15`
+      );
+      const data = await response.json();
+      setCoins(data.data);
+      setSelectedCoin(data.data[0]);
+    } catch (error) {
+      console.error('Error fetching coins:', error);
+    }
+  };
 
-const Page: React.FC = () => {
+  useEffect(() => {
+    fetchCoins();
+  }, []);
+
   return (
     <div className="min-h-screen bg-crypto-dark pt-20 px-6">
       <Header />
-      <div className="mb-6">
-        <button className="bg-gradient-to-r from-crypto-blue to-crypto-green text-white
-        px-6 py-3 rounded-lg font-semibold hover:from-crypto-blue/80 hover:to-crypto-green/80
-        transition-all shadow-md hover:shadow-lg">
-          Create New Trading Instance
-        </button>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sampleInstances.map((instance) => (
-          <TradingInstanceCard key={instance.id} instance={instance} />
-        ))}
+      <div className="flex flex-col lg:flex-row justify-center lg:space-x-6 sm:w-2/3 mx-auto mt-10">
+        {/* Left Section: Selector */}
+        <div className="lg:w-1/3">
+          <CoinSelector
+            coins={coins}
+            selectedCoin={selectedCoin}
+            onCoinChange={setSelectedCoin}
+          />
+          <ActionButtons />
+        </div>
+
+        {/* Right Section: Coin Details */}
+        <div className="flex-1 mt-6 lg:mt-0">
+          <CoinDetailsCard coin={selectedCoin} />
+        </div>
       </div>
     </div>
   );
 };
 
-export default Page;
+export default DashboardPage;

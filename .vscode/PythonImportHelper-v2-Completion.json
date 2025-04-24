@@ -1,0 +1,1505 @@
+[
+    {
+        "label": "APIRouter",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "Query",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "APIRouter",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "Depends",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "HTTPException",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "status",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "FastAPI",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "TopCoinsExtractor",
+        "importPath": "app.services.coin_extractor",
+        "description": "app.services.coin_extractor",
+        "isExtraImport": true,
+        "detail": "app.services.coin_extractor",
+        "documentation": {}
+    },
+    {
+        "label": "TopCoinsExtractor",
+        "importPath": "app.services.coin_extractor",
+        "description": "app.services.coin_extractor",
+        "isExtraImport": true,
+        "detail": "app.services.coin_extractor",
+        "documentation": {}
+    },
+    {
+        "label": "CapitalManager",
+        "importPath": "app.services.capital_manager",
+        "description": "app.services.capital_manager",
+        "isExtraImport": true,
+        "detail": "app.services.capital_manager",
+        "documentation": {}
+    },
+    {
+        "label": "CapitalManager",
+        "importPath": "app.services.capital_manager",
+        "description": "app.services.capital_manager",
+        "isExtraImport": true,
+        "detail": "app.services.capital_manager",
+        "documentation": {}
+    },
+    {
+        "label": "logging",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "logging",
+        "description": "logging",
+        "detail": "logging",
+        "documentation": {}
+    },
+    {
+        "label": "BaseModel",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "Field",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "BaseModel",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "Field",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "environ",
+        "importPath": "os",
+        "description": "os",
+        "isExtraImport": true,
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "time",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "time",
+        "description": "time",
+        "detail": "time",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "sync_playwright",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "TimeoutError",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "sync_playwright",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "TimeoutError",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "sync_playwright",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "TimeoutError",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "sync_playwright",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "TimeoutError",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "sync_playwright",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "TimeoutError",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Union",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "re",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "re",
+        "description": "re",
+        "detail": "re",
+        "documentation": {}
+    },
+    {
+        "label": "random",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "random",
+        "description": "random",
+        "detail": "random",
+        "documentation": {}
+    },
+    {
+        "label": "nltk",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "nltk",
+        "description": "nltk",
+        "detail": "nltk",
+        "documentation": {}
+    },
+    {
+        "label": "SentimentIntensityAnalyzer",
+        "importPath": "nltk.sentiment.vader",
+        "description": "nltk.sentiment.vader",
+        "isExtraImport": true,
+        "detail": "nltk.sentiment.vader",
+        "documentation": {}
+    },
+    {
+        "label": "BackgroundScheduler",
+        "importPath": "apscheduler.schedulers.background",
+        "description": "apscheduler.schedulers.background",
+        "isExtraImport": true,
+        "detail": "apscheduler.schedulers.background",
+        "documentation": {}
+    },
+    {
+        "label": "IntervalTrigger",
+        "importPath": "apscheduler.triggers.interval",
+        "description": "apscheduler.triggers.interval",
+        "isExtraImport": true,
+        "detail": "apscheduler.triggers.interval",
+        "documentation": {}
+    },
+    {
+        "label": "CronTrigger",
+        "importPath": "apscheduler.triggers.cron",
+        "description": "apscheduler.triggers.cron",
+        "isExtraImport": true,
+        "detail": "apscheduler.triggers.cron",
+        "documentation": {}
+    },
+    {
+        "label": "CoinHistory",
+        "importPath": "app.services.coin_history",
+        "description": "app.services.coin_history",
+        "isExtraImport": true,
+        "detail": "app.services.coin_history",
+        "documentation": {}
+    },
+    {
+        "label": "CoinHistory",
+        "importPath": "app.services.coin_history",
+        "description": "app.services.coin_history",
+        "isExtraImport": true,
+        "detail": "app.services.coin_history",
+        "documentation": {}
+    },
+    {
+        "label": "NewsSentimentService",
+        "importPath": "app.services.coin_news",
+        "description": "app.services.coin_news",
+        "isExtraImport": true,
+        "detail": "app.services.coin_news",
+        "documentation": {}
+    },
+    {
+        "label": "NewsSentimentService",
+        "importPath": "app.services.coin_news",
+        "description": "app.services.coin_news",
+        "isExtraImport": true,
+        "detail": "app.services.coin_news",
+        "documentation": {}
+    },
+    {
+        "label": "CoinStatsService",
+        "importPath": "app.services.coin_stats",
+        "description": "app.services.coin_stats",
+        "isExtraImport": true,
+        "detail": "app.services.coin_stats",
+        "documentation": {}
+    },
+    {
+        "label": "CoinStatsService",
+        "importPath": "app.services.coin_stats",
+        "description": "app.services.coin_stats",
+        "isExtraImport": true,
+        "detail": "app.services.coin_stats",
+        "documentation": {}
+    },
+    {
+        "label": "DataCleaner",
+        "importPath": "app.services.file_manager",
+        "description": "app.services.file_manager",
+        "isExtraImport": true,
+        "detail": "app.services.file_manager",
+        "documentation": {}
+    },
+    {
+        "label": "csv",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "csv",
+        "description": "csv",
+        "detail": "csv",
+        "documentation": {}
+    },
+    {
+        "label": "string",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "string",
+        "description": "string",
+        "detail": "string",
+        "documentation": {}
+    },
+    {
+        "label": "pandas",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pandas",
+        "description": "pandas",
+        "detail": "pandas",
+        "documentation": {}
+    },
+    {
+        "label": "defaultdict",
+        "importPath": "collections",
+        "description": "collections",
+        "isExtraImport": true,
+        "detail": "collections",
+        "documentation": {}
+    },
+    {
+        "label": "Client",
+        "importPath": "binance.client",
+        "description": "binance.client",
+        "isExtraImport": true,
+        "detail": "binance.client",
+        "documentation": {}
+    },
+    {
+        "label": "math",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "math",
+        "description": "math",
+        "detail": "math",
+        "documentation": {}
+    },
+    {
+        "label": "itertools",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "itertools",
+        "description": "itertools",
+        "detail": "itertools",
+        "documentation": {}
+    },
+    {
+        "label": "LLMHandler",
+        "importPath": "app.trader_bot.llm_handler",
+        "description": "app.trader_bot.llm_handler",
+        "isExtraImport": true,
+        "detail": "app.trader_bot.llm_handler",
+        "documentation": {}
+    },
+    {
+        "label": "DataHandler",
+        "importPath": "app.trader_bot.data_handler",
+        "description": "app.trader_bot.data_handler",
+        "isExtraImport": true,
+        "detail": "app.trader_bot.data_handler",
+        "documentation": {}
+    },
+    {
+        "label": "ModelHandler",
+        "importPath": "app.trader_bot.model_handler",
+        "description": "app.trader_bot.model_handler",
+        "isExtraImport": true,
+        "detail": "app.trader_bot.model_handler",
+        "documentation": {}
+    },
+    {
+        "label": "NewsHandler",
+        "importPath": "app.trader_bot.news_handler",
+        "description": "app.trader_bot.news_handler",
+        "isExtraImport": true,
+        "detail": "app.trader_bot.news_handler",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "ta",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "ta",
+        "description": "ta",
+        "detail": "ta",
+        "documentation": {}
+    },
+    {
+        "label": "ChatPromptTemplate",
+        "importPath": "langchain_core.prompts",
+        "description": "langchain_core.prompts",
+        "isExtraImport": true,
+        "detail": "langchain_core.prompts",
+        "documentation": {}
+    },
+    {
+        "label": "ChatOllama",
+        "importPath": "langchain_ollama",
+        "description": "langchain_ollama",
+        "isExtraImport": true,
+        "detail": "langchain_ollama",
+        "documentation": {}
+    },
+    {
+        "label": "RunnablePassthrough",
+        "importPath": "langchain_core.runnables",
+        "description": "langchain_core.runnables",
+        "isExtraImport": true,
+        "detail": "langchain_core.runnables",
+        "documentation": {}
+    },
+    {
+        "label": "StrOutputParser",
+        "importPath": "langchain_core.output_parsers",
+        "description": "langchain_core.output_parsers",
+        "isExtraImport": true,
+        "detail": "langchain_core.output_parsers",
+        "documentation": {}
+    },
+    {
+        "label": "numpy",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "numpy",
+        "description": "numpy",
+        "detail": "numpy",
+        "documentation": {}
+    },
+    {
+        "label": "RandomForestRegressor",
+        "importPath": "sklearn.ensemble",
+        "description": "sklearn.ensemble",
+        "isExtraImport": true,
+        "detail": "sklearn.ensemble",
+        "documentation": {}
+    },
+    {
+        "label": "Enum",
+        "importPath": "enum",
+        "description": "enum",
+        "isExtraImport": true,
+        "detail": "enum",
+        "documentation": {}
+    },
+    {
+        "label": "MongoClient",
+        "importPath": "pymongo",
+        "description": "pymongo",
+        "isExtraImport": true,
+        "detail": "pymongo",
+        "documentation": {}
+    },
+    {
+        "label": "ObjectId",
+        "importPath": "bson",
+        "description": "bson",
+        "isExtraImport": true,
+        "detail": "bson",
+        "documentation": {}
+    },
+    {
+        "label": "quote_plus",
+        "importPath": "urllib.parse",
+        "description": "urllib.parse",
+        "isExtraImport": true,
+        "detail": "urllib.parse",
+        "documentation": {}
+    },
+    {
+        "label": "SocialProvider",
+        "importPath": "app.users.models",
+        "description": "app.users.models",
+        "isExtraImport": true,
+        "detail": "app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "UserRole",
+        "importPath": "app.users.models",
+        "description": "app.users.models",
+        "isExtraImport": true,
+        "detail": "app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "GoogleTokenRequest",
+        "importPath": "app.users.models",
+        "description": "app.users.models",
+        "isExtraImport": true,
+        "detail": "app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "Token",
+        "importPath": "app.users.models",
+        "description": "app.users.models",
+        "isExtraImport": true,
+        "detail": "app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "UserResponse",
+        "importPath": "app.users.models",
+        "description": "app.users.models",
+        "isExtraImport": true,
+        "detail": "app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "OAuth2AuthorizationCodeBearer",
+        "importPath": "fastapi.security",
+        "description": "fastapi.security",
+        "isExtraImport": true,
+        "detail": "fastapi.security",
+        "documentation": {}
+    },
+    {
+        "label": "id_token",
+        "importPath": "google.oauth2",
+        "description": "google.oauth2",
+        "isExtraImport": true,
+        "detail": "google.oauth2",
+        "documentation": {}
+    },
+    {
+        "label": "requests",
+        "importPath": "google.auth.transport",
+        "description": "google.auth.transport",
+        "isExtraImport": true,
+        "detail": "google.auth.transport",
+        "documentation": {}
+    },
+    {
+        "label": "jwt",
+        "importPath": "jose",
+        "description": "jose",
+        "isExtraImport": true,
+        "detail": "jose",
+        "documentation": {}
+    },
+    {
+        "label": "JWTError",
+        "importPath": "jose",
+        "description": "jose",
+        "isExtraImport": true,
+        "detail": "jose",
+        "documentation": {}
+    },
+    {
+        "label": "MongoUserService",
+        "importPath": "app.users.mongodb_service",
+        "description": "app.users.mongodb_service",
+        "isExtraImport": true,
+        "detail": "app.users.mongodb_service",
+        "documentation": {}
+    },
+    {
+        "label": "UserRole",
+        "importPath": "app.users.mongodb_service",
+        "description": "app.users.mongodb_service",
+        "isExtraImport": true,
+        "detail": "app.users.mongodb_service",
+        "documentation": {}
+    },
+    {
+        "label": "SocialProvider",
+        "importPath": "app.users.mongodb_service",
+        "description": "app.users.mongodb_service",
+        "isExtraImport": true,
+        "detail": "app.users.mongodb_service",
+        "documentation": {}
+    },
+    {
+        "label": "auth_router",
+        "importPath": "app.users.user",
+        "description": "app.users.user",
+        "isExtraImport": true,
+        "detail": "app.users.user",
+        "documentation": {}
+    },
+    {
+        "label": "coin_router",
+        "importPath": "app.coin.coin",
+        "description": "app.coin.coin",
+        "isExtraImport": true,
+        "detail": "app.coin.coin",
+        "documentation": {}
+    },
+    {
+        "label": "CORSMiddleware",
+        "importPath": "fastapi.middleware.cors",
+        "description": "fastapi.middleware.cors",
+        "isExtraImport": true,
+        "detail": "fastapi.middleware.cors",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "asyncio",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "asyncio",
+        "description": "asyncio",
+        "detail": "asyncio",
+        "documentation": {}
+    },
+    {
+        "label": "uvicorn",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "uvicorn",
+        "description": "uvicorn",
+        "detail": "uvicorn",
+        "documentation": {}
+    },
+    {
+        "label": "multiprocessing",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "multiprocessing",
+        "description": "multiprocessing",
+        "detail": "multiprocessing",
+        "documentation": {}
+    },
+    {
+        "label": "CoinScheduler",
+        "importPath": "app.services.coin_scheduler",
+        "description": "app.services.coin_scheduler",
+        "isExtraImport": true,
+        "detail": "app.services.coin_scheduler",
+        "documentation": {}
+    },
+    {
+        "label": "CoinScheduler",
+        "importPath": "app.services.coin_scheduler",
+        "description": "app.services.coin_scheduler",
+        "isExtraImport": true,
+        "detail": "app.services.coin_scheduler",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "Observer",
+        "importPath": "watchdog.observers",
+        "description": "watchdog.observers",
+        "isExtraImport": true,
+        "detail": "watchdog.observers",
+        "documentation": {}
+    },
+    {
+        "label": "FileSystemEventHandler",
+        "importPath": "watchdog.events",
+        "description": "watchdog.events",
+        "isExtraImport": true,
+        "detail": "watchdog.events",
+        "documentation": {}
+    },
+    {
+        "label": "CoinTrader",
+        "importPath": "app.trader_bot.coin_trader",
+        "description": "app.trader_bot.coin_trader",
+        "isExtraImport": true,
+        "detail": "app.trader_bot.coin_trader",
+        "documentation": {}
+    },
+    {
+        "label": "coin_router",
+        "kind": 5,
+        "importPath": "backend.app.coin.coin",
+        "description": "backend.app.coin.coin",
+        "peekOfCode": "coin_router = APIRouter()\n@coin_router.get(\"/top_coins\")\nasync def list_top_coin(\n    limit: int = Query(default=10, ge=1, description=\"Number of top coins to return\")\n):\n    try:\n        # Initialize the TopCoinsExtractor\n        extractor = TopCoinsExtractor()\n        # Load the most recent top coins data\n        top_coins = extractor.load_most_recent_data()",
+        "detail": "backend.app.coin.coin",
+        "documentation": {}
+    },
+    {
+        "label": "CrawlRequest",
+        "kind": 6,
+        "importPath": "backend.app.coin.models",
+        "description": "backend.app.coin.models",
+        "peekOfCode": "class CrawlRequest(BaseModel):\n    title: str = Field(..., description=\"Site Title\", example=\"Ollama Models Released\")\n    url: str = Field(\n        ..., description=\"URL to scrape\", example=\"https://ollama.com/search\"\n    )",
+        "detail": "backend.app.coin.models",
+        "documentation": {}
+    },
+    {
+        "label": "CapitalManager",
+        "kind": 6,
+        "importPath": "backend.app.services.capital_manager",
+        "description": "backend.app.services.capital_manager",
+        "peekOfCode": "class CapitalManager:\n    def __init__(self, coin, initial_capital=1000.0, file_path=\"data/activities/trade_history.json\"):\n        \"\"\"\n        Initialize the CapitalManager with capital for a single coin, updating records based on trades.\n        :param coin: The coin symbol (e.g., 'bnb') to initialize with capital if not already set.\n        :param initial_capital: The initial capital for the coin if not already in state (default: 1000.0).\n        :param file_path: Path to the JSON file for saving state.\n        \"\"\"\n        self.capital = {}  # {coin: current_capital}\n        self.positions = {}  # {coin: quantity}",
+        "detail": "backend.app.services.capital_manager",
+        "documentation": {}
+    },
+    {
+        "label": "CaptureService",
+        "kind": 6,
+        "importPath": "backend.app.services.coin_capture",
+        "description": "backend.app.services.coin_capture",
+        "peekOfCode": "class CaptureService:\n    \"\"\"\n    A service for capturing screenshots of web pages with configurable parameters.\n    \"\"\"\n    def __init__(self, timeout: int = 60000, base_dir: str = \"data\"):\n        \"\"\"\n        Initialize the CaptureService.\n        Args:\n            timeout (int): Timeout in milliseconds for browser operations. Default is 60 seconds.\n            base_dir (str): Base directory for storing screenshots. Default is 'data'.",
+        "detail": "backend.app.services.coin_capture",
+        "documentation": {}
+    },
+    {
+        "label": "TopCoinsExtractor",
+        "kind": 6,
+        "importPath": "backend.app.services.coin_extractor",
+        "description": "backend.app.services.coin_extractor",
+        "peekOfCode": "class TopCoinsExtractor:\n    def __init__(self, url: str = \"https://coinmarketcap.com/all/views/all/\", num_coins: int = 50, timeout: int = 60000):\n        \"\"\"Initialize the scraper with URL, target coin count, and timeout.\"\"\"\n        self.url = url\n        self.num_coins = num_coins\n        self.timeout = timeout\n        self.data_dir = Path(\"data/currencies\")\n        self.data_dir.mkdir(exist_ok=True, parents=True)\n    def extract_row_data(self, row):\n        \"\"\"Extract data from a single table row.\"\"\"",
+        "detail": "backend.app.services.coin_extractor",
+        "documentation": {}
+    },
+    {
+        "label": "CoinHistory",
+        "kind": 6,
+        "importPath": "backend.app.services.coin_history",
+        "description": "backend.app.services.coin_history",
+        "peekOfCode": "class CoinHistory:\n    \"\"\"\n    A service for downloading historical data CSV files for cryptocurrencies from CoinMarketCap.\n    \"\"\"\n    def __init__(self, timeout: int = 60000, base_dir: str = \"data/historical\"):\n        \"\"\"\n        Initialize the CoinHistory.\n        Args:\n            timeout (int): Timeout in milliseconds for browser operations. Default is 60 seconds.\n            base_dir (str): Base directory for storing downloaded files. Default is 'data/historical'.",
+        "detail": "backend.app.services.coin_history",
+        "documentation": {}
+    },
+    {
+        "label": "NewsSentimentService",
+        "kind": 6,
+        "importPath": "backend.app.services.coin_news",
+        "description": "backend.app.services.coin_news",
+        "peekOfCode": "class NewsSentimentService:\n    \"\"\"\n    A service for fetching community posts and calculating sentiment scores for cryptocurrencies from CoinMarketCap.\n    \"\"\"\n    def __init__(self, timeout: int = 60000):\n        \"\"\"\n        Initialize the NewsSentimentService.\n        Args:\n            timeout (int): Timeout in milliseconds for browser operations. Default is 60 seconds.\n        \"\"\"",
+        "detail": "backend.app.services.coin_news",
+        "documentation": {}
+    },
+    {
+        "label": "CoinScheduler",
+        "kind": 6,
+        "importPath": "backend.app.services.coin_scheduler",
+        "description": "backend.app.services.coin_scheduler",
+        "peekOfCode": "class CoinScheduler:\n    def __init__(self, log_file='scheduler.log'):\n        \"\"\"Initialize the CoinScheduler with a background scheduler and logging.\"\"\"\n        # Set up logging\n        self._setup_logging(log_file)\n        logging.info(\"Initializing CoinScheduler\")\n        # Initialize the background scheduler\n        self.scheduler = BackgroundScheduler()\n        # Initialize services\n        self.extractor = TopCoinsExtractor()",
+        "detail": "backend.app.services.coin_scheduler",
+        "documentation": {}
+    },
+    {
+        "label": "CoinStatsService",
+        "kind": 6,
+        "importPath": "backend.app.services.coin_stats",
+        "description": "backend.app.services.coin_stats",
+        "peekOfCode": "class CoinStatsService:\n    \"\"\"\n    A service for fetching and storing cryptocurrency statistics, such as price, market cap, and supply metrics.\n    \"\"\"\n    def __init__(self, timeout: int = 60000):\n        \"\"\"\n        Initialize the CoinStatsService.\n        Args:\n            timeout (int): Timeout in milliseconds for browser operations. Default is 60 seconds.\n        \"\"\"",
+        "detail": "backend.app.services.coin_stats",
+        "documentation": {}
+    },
+    {
+        "label": "DataCleaner",
+        "kind": 6,
+        "importPath": "backend.app.services.file_manager",
+        "description": "backend.app.services.file_manager",
+        "peekOfCode": "class DataCleaner:\n    def __init__(self, data_dir: str = \"data\"):\n        \"\"\"\n        Initialize the DataCleaner with the directory to clean.\n        Args:\n            data_dir (str): The root directory to scan for timestamped files. Defaults to 'data'.\n        \"\"\"\n        self.data_dir = Path(data_dir)\n        # Regex pattern to match timestamps in the format '_YYYYMMDD_HHMMSS' before the extension\n        self.timestamp_pattern = r\"_(\\d{8}_\\d{6})\\.(\\w+)$\"",
+        "detail": "backend.app.services.file_manager",
+        "documentation": {}
+    },
+    {
+        "label": "BinanceClient",
+        "kind": 6,
+        "importPath": "backend.app.trader_bot.binance_client",
+        "description": "backend.app.trader_bot.binance_client",
+        "peekOfCode": "class BinanceClient:\n    \"\"\"Handles trading on Binance Testnet with versatile triangular arbitrage.\"\"\"\n    def __init__(self, api_key: str, api_secret: str, top_coins: list, base_currency: str = \"USDT\"):\n        self.client = Client(api_key, api_secret, testnet=True)\n        self.trading_fee = 0.001  # 0.1% fee per trade\n        self.top_coins = top_coins\n        self.base_currency = base_currency\n        self.all_tickers = {}\n        self.last_ticker_update = 0\n        self.ticker_cache_duration = 10  # Refresh tickers every 10 seconds",
+        "detail": "backend.app.trader_bot.binance_client",
+        "documentation": {}
+    },
+    {
+        "label": "CoinTrader",
+        "kind": 6,
+        "importPath": "backend.app.trader_bot.coin_trader",
+        "description": "backend.app.trader_bot.coin_trader",
+        "peekOfCode": "class CoinTrader:\n    def __init__(self, coin, override, capital_manager):\n        self.coin = coin.lower()  # Normalize to lowercase\n        self.override = override\n        self.capital_manager = capital_manager  # Instance of CapitalManager\n        self.history_service = CoinHistory()\n        self.stats_service = CoinStatsService()\n        self.news_service = NewsSentimentService()\n        self.llm_handler = LLMHandler(\n            base_url=config.chat_endpoint,",
+        "detail": "backend.app.trader_bot.coin_trader",
+        "documentation": {}
+    },
+    {
+        "label": "DataHandler",
+        "kind": 6,
+        "importPath": "backend.app.trader_bot.data_handler",
+        "description": "backend.app.trader_bot.data_handler",
+        "peekOfCode": "class DataHandler:\n    \"\"\"Handles loading and preparation of historical data.\"\"\"\n    def __init__(self, history_service, coin, override):\n        self.history_service = history_service\n        self.coin = coin\n        self.override = override\n    def load_historical_data(self):\n        \"\"\"Loads historical data for the specified coin.\"\"\"\n        historical_file = (self.history_service.download_history(self.coin) if self.override \n                           else self.history_service.get_latest_history(self.coin))",
+        "detail": "backend.app.trader_bot.data_handler",
+        "documentation": {}
+    },
+    {
+        "label": "LLMHandler",
+        "kind": 6,
+        "importPath": "backend.app.trader_bot.llm_handler",
+        "description": "backend.app.trader_bot.llm_handler",
+        "peekOfCode": "class LLMHandler:\n    def __init__(self, base_url, model, temperature, timeout):\n        self.chat_model = ChatOllama(base_url=base_url, model=model, temperature=temperature, timeout=timeout)\n    def decide(self, report):\n        \"\"\"Decides trading recommendation based on the provided report text.\"\"\"\n        # Define the prompt\n        prompt_template = ChatPromptTemplate.from_template(\n            \"\"\"Given the following daily report:\n            {report}\n            Based on this information, provide a single-word trading recommendation: Buy, Sell, or Hold.\"\"\"",
+        "detail": "backend.app.trader_bot.llm_handler",
+        "documentation": {}
+    },
+    {
+        "label": "ModelHandler",
+        "kind": 6,
+        "importPath": "backend.app.trader_bot.model_handler",
+        "description": "backend.app.trader_bot.model_handler",
+        "peekOfCode": "class ModelHandler:\n    \"\"\"Manages model training and price prediction.\"\"\"\n    def train_model(self, df_features):\n        \"\"\"Trains a RandomForestRegressor on the provided features.\"\"\"\n        # Remove rows with missing values\n        df_features = df_features.dropna()\n        # Define feature columns (exclude target 'close')\n        feature_cols = [col for col in df_features.columns if col != 'close']\n        X = df_features[feature_cols]\n        y = df_features['close']",
+        "detail": "backend.app.trader_bot.model_handler",
+        "documentation": {}
+    },
+    {
+        "label": "NewsHandler",
+        "kind": 6,
+        "importPath": "backend.app.trader_bot.news_handler",
+        "description": "backend.app.trader_bot.news_handler",
+        "peekOfCode": "class NewsHandler:\n    \"\"\"Handles news fetching, sentiment analysis, and summarization.\"\"\"\n    def __init__(self, news_service, coin, override, llm_handler):\n        self.news_service = news_service\n        self.coin = coin\n        self.override = override\n        self.llm_handler = llm_handler\n    def process_news(self):\n        \"\"\"Fetches news, calculates sentiment, and summarizes it.\"\"\"\n        news_posts, news_sentiment = (self.news_service.fetch_news_and_sentiment(self.coin) if self.override ",
+        "detail": "backend.app.trader_bot.news_handler",
+        "documentation": {}
+    },
+    {
+        "label": "GoogleTokenRequest",
+        "kind": 6,
+        "importPath": "backend.app.users.models",
+        "description": "backend.app.users.models",
+        "peekOfCode": "class GoogleTokenRequest(BaseModel):\n    token: str\nclass Token(BaseModel):\n    access_token: str\n    token_type: str\n    expires_in: int\nclass UserResponse(BaseModel):\n    id: str = Field(..., alias=\"_id\")  # Convert MongoDB `_id` to id\n    name: str\n    email: str",
+        "detail": "backend.app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "Token",
+        "kind": 6,
+        "importPath": "backend.app.users.models",
+        "description": "backend.app.users.models",
+        "peekOfCode": "class Token(BaseModel):\n    access_token: str\n    token_type: str\n    expires_in: int\nclass UserResponse(BaseModel):\n    id: str = Field(..., alias=\"_id\")  # Convert MongoDB `_id` to id\n    name: str\n    email: str\n    profile_picture: Optional[str] = None\n    role: Optional[str] = None",
+        "detail": "backend.app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "UserResponse",
+        "kind": 6,
+        "importPath": "backend.app.users.models",
+        "description": "backend.app.users.models",
+        "peekOfCode": "class UserResponse(BaseModel):\n    id: str = Field(..., alias=\"_id\")  # Convert MongoDB `_id` to id\n    name: str\n    email: str\n    profile_picture: Optional[str] = None\n    role: Optional[str] = None\n    created_at: Optional[datetime] = None\n    token: Optional[Token] = None  # Ensure token is included\n    class Config:\n        populate_by_name = True",
+        "detail": "backend.app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "UserRole",
+        "kind": 6,
+        "importPath": "backend.app.users.models",
+        "description": "backend.app.users.models",
+        "peekOfCode": "class UserRole(Enum):\n    USER = \"user\"\n    ADMIN = \"admin\"\nclass SocialProvider(Enum):\n    GOOGLE = \"google\"",
+        "detail": "backend.app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "SocialProvider",
+        "kind": 6,
+        "importPath": "backend.app.users.models",
+        "description": "backend.app.users.models",
+        "peekOfCode": "class SocialProvider(Enum):\n    GOOGLE = \"google\"",
+        "detail": "backend.app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "MongoUserService",
+        "kind": 6,
+        "importPath": "backend.app.users.mongodb_service",
+        "description": "backend.app.users.mongodb_service",
+        "peekOfCode": "class MongoUserService:\n    def __init__(self):\n        \"\"\"Initialize MongoDB connection and set up collections.\"\"\"\n        try:\n            # Get base URI and credentials from config\n            base_uri = config.mongodb_uri\n            username = config.mongodb_username\n            password = config.mongodb_password\n            # Construct the MongoDB URI\n            if username and password:",
+        "detail": "backend.app.users.mongodb_service",
+        "documentation": {}
+    },
+    {
+        "label": "create_access_token",
+        "kind": 2,
+        "importPath": "backend.app.users.user",
+        "description": "backend.app.users.user",
+        "peekOfCode": "def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):\n    \"\"\"Create JWT access token\"\"\"\n    to_encode = data.copy()\n    if expires_delta:\n        expire = datetime.utcnow() + expires_delta\n    else:\n        expire = datetime.utcnow() + timedelta(minutes=15)\n    to_encode.update({\"exp\": expire})\n    encoded_jwt = jwt.encode(\n        to_encode, config.jwt_secret_key, algorithm=config.jwt_algorithm",
+        "detail": "backend.app.users.user",
+        "documentation": {}
+    },
+    {
+        "label": "user_service",
+        "kind": 5,
+        "importPath": "backend.app.users.user",
+        "description": "backend.app.users.user",
+        "peekOfCode": "user_service = MongoUserService()\nauth_router = APIRouter()\n# OAuth2 configuration\noauth2_scheme = OAuth2AuthorizationCodeBearer(\n    authorizationUrl=\"https://accounts.google.com/o/oauth2/v2/auth\",\n    tokenUrl=\"https://oauth2.googleapis.com/token\",\n)\ndef create_access_token(data: dict, expires_delta: Optional[timedelta] = None):\n    \"\"\"Create JWT access token\"\"\"\n    to_encode = data.copy()",
+        "detail": "backend.app.users.user",
+        "documentation": {}
+    },
+    {
+        "label": "auth_router",
+        "kind": 5,
+        "importPath": "backend.app.users.user",
+        "description": "backend.app.users.user",
+        "peekOfCode": "auth_router = APIRouter()\n# OAuth2 configuration\noauth2_scheme = OAuth2AuthorizationCodeBearer(\n    authorizationUrl=\"https://accounts.google.com/o/oauth2/v2/auth\",\n    tokenUrl=\"https://oauth2.googleapis.com/token\",\n)\ndef create_access_token(data: dict, expires_delta: Optional[timedelta] = None):\n    \"\"\"Create JWT access token\"\"\"\n    to_encode = data.copy()\n    if expires_delta:",
+        "detail": "backend.app.users.user",
+        "documentation": {}
+    },
+    {
+        "label": "oauth2_scheme",
+        "kind": 5,
+        "importPath": "backend.app.users.user",
+        "description": "backend.app.users.user",
+        "peekOfCode": "oauth2_scheme = OAuth2AuthorizationCodeBearer(\n    authorizationUrl=\"https://accounts.google.com/o/oauth2/v2/auth\",\n    tokenUrl=\"https://oauth2.googleapis.com/token\",\n)\ndef create_access_token(data: dict, expires_delta: Optional[timedelta] = None):\n    \"\"\"Create JWT access token\"\"\"\n    to_encode = data.copy()\n    if expires_delta:\n        expire = datetime.utcnow() + expires_delta\n    else:",
+        "detail": "backend.app.users.user",
+        "documentation": {}
+    },
+    {
+        "label": "app",
+        "kind": 5,
+        "importPath": "backend.app.main",
+        "description": "backend.app.main",
+        "peekOfCode": "app = FastAPI()\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"*\"],  # Update this to your frontend URL\n    allow_credentials=True,\n    allow_methods=[\n        \"GET\",\n        \"POST\",\n        \"PUT\",\n        \"DELETE\",",
+        "detail": "backend.app.main",
+        "documentation": {}
+    },
+    {
+        "label": "EnvironmentConfig",
+        "kind": 6,
+        "importPath": "backend.config",
+        "description": "backend.config",
+        "peekOfCode": "class EnvironmentConfig:\n    \"\"\"Configuration manager for environment-specific settings\"\"\"\n    def __init__(self):\n        # Initialize configurations\n        self._initialize_config()\n    def _initialize_config(self):\n        \"\"\"Initialize configuration based on environment\"\"\"\n        self.config = {\n            \"binance_api_key\": environ.get(\"BINANCE_API_KEY\", \"\"),\n            \"binance_api_secret\": environ.get(\"BINANCE_SECRET_KEY\", \"\"),",
+        "detail": "backend.config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "kind": 5,
+        "importPath": "backend.config",
+        "description": "backend.config",
+        "peekOfCode": "config = EnvironmentConfig()\n# Export the instance and the class\n__all__ = [\"config\", \"EnvironmentConfig\"]",
+        "detail": "backend.config",
+        "documentation": {}
+    },
+    {
+        "label": "__all__",
+        "kind": 5,
+        "importPath": "backend.config",
+        "description": "backend.config",
+        "peekOfCode": "__all__ = [\"config\", \"EnvironmentConfig\"]",
+        "detail": "backend.config",
+        "documentation": {}
+    },
+    {
+        "label": "FastAPIServer",
+        "kind": 6,
+        "importPath": "backend.run",
+        "description": "backend.run",
+        "peekOfCode": "class FastAPIServer:\n    def __init__(self):\n        self.config = uvicorn.Config(\n            \"app.main:app\",\n            host=\"0.0.0.0\",\n            port=8000,\n            reload=False,\n            loop=\"asyncio\",\n        )\n        self.server = uvicorn.Server(self.config)",
+        "detail": "backend.run",
+        "documentation": {}
+    },
+    {
+        "label": "run_fastapi",
+        "kind": 2,
+        "importPath": "backend.run",
+        "description": "backend.run",
+        "peekOfCode": "def run_fastapi():\n    \"\"\"Run FastAPI server in a separate process.\"\"\"\n    server = FastAPIServer()\n    asyncio.run(server.start())\ndef run_coin_scheduler():\n    \"\"\"Run CoinScheduler in a separate process.\"\"\"\n    scheduler = CoinScheduler(log_file='scheduler.log')\n    try:\n        scheduler.start()\n        # Keep the process running",
+        "detail": "backend.run",
+        "documentation": {}
+    },
+    {
+        "label": "run_coin_scheduler",
+        "kind": 2,
+        "importPath": "backend.run",
+        "description": "backend.run",
+        "peekOfCode": "def run_coin_scheduler():\n    \"\"\"Run CoinScheduler in a separate process.\"\"\"\n    scheduler = CoinScheduler(log_file='scheduler.log')\n    try:\n        scheduler.start()\n        # Keep the process running\n        while True:\n            time.sleep(60)  # Sleep to reduce CPU usage\n    except (KeyboardInterrupt, SystemExit):\n        scheduler.shutdown()",
+        "detail": "backend.run",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "backend.run",
+        "description": "backend.run",
+        "peekOfCode": "def main():\n    \"\"\"Run FastAPI and CoinScheduler processes.\"\"\"\n    logger.info(\"Starting FastAPI and CoinScheduler services...\")\n    # Create processes for FastAPI and CoinScheduler\n    fastapi_process = multiprocessing.Process(target=run_fastapi)\n    scheduler_process = multiprocessing.Process(target=run_coin_scheduler)\n    # Start the processes\n    fastapi_process.start()\n    scheduler_process.start()\n    try:",
+        "detail": "backend.run",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "backend.run",
+        "description": "backend.run",
+        "peekOfCode": "logger = logging.getLogger(\"server\")\nclass FastAPIServer:\n    def __init__(self):\n        self.config = uvicorn.Config(\n            \"app.main:app\",\n            host=\"0.0.0.0\",\n            port=8000,\n            reload=False,\n            loop=\"asyncio\",\n        )",
+        "detail": "backend.run",
+        "documentation": {}
+    },
+    {
+        "label": "FastAPIServer",
+        "kind": 6,
+        "importPath": "backend.run_dev",
+        "description": "backend.run_dev",
+        "peekOfCode": "class FastAPIServer:\n    def __init__(self):\n        self.config = uvicorn.Config(\n            \"app.main:app\",\n            host=\"0.0.0.0\",\n            port=8000,\n            reload=True,  # Enable auto-reload for development\n            loop=\"asyncio\",\n        )\n        self.server = uvicorn.Server(self.config)",
+        "detail": "backend.run_dev",
+        "documentation": {}
+    },
+    {
+        "label": "CodeChangeHandler",
+        "kind": 6,
+        "importPath": "backend.run_dev",
+        "description": "backend.run_dev",
+        "peekOfCode": "class CodeChangeHandler(FileSystemEventHandler):\n    \"\"\"Handler to restart FastAPI process on .py file changes.\"\"\"\n    def __init__(self, fastapi_process_getter):\n        self.fastapi_process_getter = fastapi_process_getter\n        self.last_modified = time.time()\n    def on_modified(self, event):\n        if event.is_directory or not event.src_path.endswith('.py'):\n            return\n        current_time = time.time()\n        if current_time - self.last_modified < 1:  # Debounce: ignore changes within 1 second",
+        "detail": "backend.run_dev",
+        "documentation": {}
+    },
+    {
+        "label": "run_fastapi",
+        "kind": 2,
+        "importPath": "backend.run_dev",
+        "description": "backend.run_dev",
+        "peekOfCode": "def run_fastapi():\n    \"\"\"Run FastAPI server in a separate process.\"\"\"\n    server = FastAPIServer()\n    asyncio.run(server.start())\ndef run_coin_scheduler():\n    \"\"\"Run CoinScheduler in a separate process.\"\"\"\n    scheduler = CoinScheduler(log_file='scheduler.log')\n    try:\n        scheduler.start()\n        # Keep the process running",
+        "detail": "backend.run_dev",
+        "documentation": {}
+    },
+    {
+        "label": "run_coin_scheduler",
+        "kind": 2,
+        "importPath": "backend.run_dev",
+        "description": "backend.run_dev",
+        "peekOfCode": "def run_coin_scheduler():\n    \"\"\"Run CoinScheduler in a separate process.\"\"\"\n    scheduler = CoinScheduler(log_file='scheduler.log')\n    try:\n        scheduler.start()\n        # Keep the process running\n        while True:\n            time.sleep(60)  # Sleep to reduce CPU usage\n    except (KeyboardInterrupt, SystemExit):\n        scheduler.shutdown()",
+        "detail": "backend.run_dev",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "backend.run_dev",
+        "description": "backend.run_dev",
+        "peekOfCode": "def main():\n    \"\"\"Run FastAPI with auto-reload and CoinScheduler.\"\"\"\n    logger.info(\"Starting FastAPI (with auto-reload) and CoinScheduler services...\")\n    # Create processes for FastAPI and CoinScheduler\n    fastapi_process = multiprocessing.Process(target=run_fastapi)\n    scheduler_process = multiprocessing.Process(target=run_coin_scheduler)\n    # Store FastAPI process in a mutable container for the handler\n    class ProcessContainer:\n        def __init__(self, process):\n            self.current_process = process",
+        "detail": "backend.run_dev",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "backend.run_dev",
+        "description": "backend.run_dev",
+        "peekOfCode": "logger = logging.getLogger(\"server\")\nclass FastAPIServer:\n    def __init__(self):\n        self.config = uvicorn.Config(\n            \"app.main:app\",\n            host=\"0.0.0.0\",\n            port=8000,\n            reload=True,  # Enable auto-reload for development\n            loop=\"asyncio\",\n        )",
+        "detail": "backend.run_dev",
+        "documentation": {}
+    },
+    {
+        "label": "_Known",
+        "kind": 6,
+        "importPath": "frontend.node_modules.flatted.python.flatted",
+        "description": "frontend.node_modules.flatted.python.flatted",
+        "peekOfCode": "class _Known:\n    def __init__(self):\n        self.key = []\n        self.value = []\nclass _String:\n    def __init__(self, value):\n        self.value = value\ndef _array_keys(value):\n    keys = []\n    i = 0",
+        "detail": "frontend.node_modules.flatted.python.flatted",
+        "documentation": {}
+    },
+    {
+        "label": "_String",
+        "kind": 6,
+        "importPath": "frontend.node_modules.flatted.python.flatted",
+        "description": "frontend.node_modules.flatted.python.flatted",
+        "peekOfCode": "class _String:\n    def __init__(self, value):\n        self.value = value\ndef _array_keys(value):\n    keys = []\n    i = 0\n    for _ in value:\n        keys.append(i)\n        i += 1\n    return keys",
+        "detail": "frontend.node_modules.flatted.python.flatted",
+        "documentation": {}
+    },
+    {
+        "label": "parse",
+        "kind": 2,
+        "importPath": "frontend.node_modules.flatted.python.flatted",
+        "description": "frontend.node_modules.flatted.python.flatted",
+        "peekOfCode": "def parse(value, *args, **kwargs):\n    json = _json.loads(value, *args, **kwargs)\n    wrapped = []\n    for value in json:\n        wrapped.append(_wrap(value))\n    input = []\n    for value in wrapped:\n        if isinstance(value, _String):\n            input.append(value.value)\n        else:",
+        "detail": "frontend.node_modules.flatted.python.flatted",
+        "documentation": {}
+    },
+    {
+        "label": "stringify",
+        "kind": 2,
+        "importPath": "frontend.node_modules.flatted.python.flatted",
+        "description": "frontend.node_modules.flatted.python.flatted",
+        "peekOfCode": "def stringify(value, *args, **kwargs):\n    known = _Known()\n    input = []\n    output = []\n    i = int(_index(known, input, value))\n    while i < len(input):\n        output.append(_transform(known, input, input[i]))\n        i += 1\n    return _json.dumps(output, *args, **kwargs)",
+        "detail": "frontend.node_modules.flatted.python.flatted",
+        "documentation": {}
+    }
+]
