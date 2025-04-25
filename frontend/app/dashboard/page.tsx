@@ -1,15 +1,21 @@
+// DashboardPage.tsx
 'use client';
 
 import ActionButtons from '@/components/ActionButtons';
 import CoinDetailsCard from '@/components/CoinDetailsCard';
 import CoinSelector from '@/components/CoinSelector';
+import DepositModal from '@/components/DepositeModal';
 import Header from '@/components/Header';
+import WithdrawModal from '@/components/WithdrawModal';
+import { useGlobalContext } from '@/contexts/GlobalContext';
 import { Coin } from '@/utils/interfaces';
 import React, { useEffect, useState } from 'react';
 
 const DashboardPage: React.FC = () => {
   const [coins, setCoins] = useState<Coin[]>([]);
   const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
+  const { isDepositOpen, setIsDepositOpen, isWithdrawOpen, setIsWithdrawOpen } =
+    useGlobalContext();
 
   const fetchCoins = async () => {
     try {
@@ -39,7 +45,7 @@ const DashboardPage: React.FC = () => {
             selectedCoin={selectedCoin}
             onCoinChange={setSelectedCoin}
           />
-          <ActionButtons />
+          <ActionButtons isCoinSelected={selectedCoin !== null} />
         </div>
 
         {/* Right Section: Coin Details */}
@@ -47,6 +53,23 @@ const DashboardPage: React.FC = () => {
           <CoinDetailsCard coin={selectedCoin} />
         </div>
       </div>
+
+      {isDepositOpen && selectedCoin && setIsDepositOpen && (
+        <DepositModal
+          coin={selectedCoin}
+          currentBalance={0}
+          onClose={() => setIsDepositOpen(false)}
+          onDeposit={() => { }}
+        />
+      )}
+      {isWithdrawOpen && selectedCoin && setIsWithdrawOpen && (
+        <WithdrawModal
+          coin={selectedCoin}
+          currentBalance={0}
+          onClose={() => setIsWithdrawOpen(false)}
+          onWithdraw={() => { }}
+        />
+      )}
     </div>
   );
 };

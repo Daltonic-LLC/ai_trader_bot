@@ -21,7 +21,9 @@ const CoinSelector: React.FC<CoinSelectorProps> = ({ coins, selectedCoin, onCoin
             border-crypto-blue/30 hover:border-crypto-blue transition-all">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="w-full flex justify-between items-center text-white font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-crypto-blue/20 to-crypto-green/20 hover:from-crypto-blue/30 hover:to-crypto-green/30 transition-all"
+                    className="w-full flex justify-between items-center text-white font-semibold
+                    py-2 px-4 rounded-lg bg-gradient-to-r from-crypto-blue/20 to-crypto-green/20
+                    hover:from-crypto-blue/30 hover:to-crypto-green/30 transition-all cursor-pointer"
                 >
                     <span>{selectedCoin ? `${selectedCoin.name} (${selectedCoin.symbol})` : 'Select a Coin'}</span>
                     <svg
@@ -40,7 +42,9 @@ const CoinSelector: React.FC<CoinSelectorProps> = ({ coins, selectedCoin, onCoin
                             <button
                                 key={coin.slug}
                                 onClick={() => handleSelect(coin)}
-                                className="w-full text-left px-4 py-3 text-white hover:bg-gradient-to-r hover:from-crypto-blue/50 hover:to-crypto-green/50 hover:border-l-4 hover:border-crypto-blue hover:scale-105 transition-all transform duration-200"
+                                className="w-full text-left px-4 py-3 text-white hover:bg-gradient-to-r
+                                hover:from-crypto-blue/50 hover:to-crypto-green/50 hover:border-l-4 cursor-pointer
+                                hover:border-crypto-blue hover:scale-105 transition-all transform duration-200"
                             >
                                 {coin.name} ({coin.symbol})
                             </button>

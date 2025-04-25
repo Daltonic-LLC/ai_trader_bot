@@ -926,6 +926,22 @@
         "documentation": {}
     },
     {
+        "label": "BalanceOperation",
+        "importPath": "app.users.models",
+        "description": "app.users.models",
+        "isExtraImport": true,
+        "detail": "app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "BalanceResponse",
+        "importPath": "app.users.models",
+        "description": "app.users.models",
+        "isExtraImport": true,
+        "detail": "app.users.models",
+        "documentation": {}
+    },
+    {
         "label": "OAuth2AuthorizationCodeBearer",
         "importPath": "fastapi.security",
         "description": "fastapi.security",
@@ -1273,7 +1289,7 @@
         "kind": 6,
         "importPath": "backend.app.users.models",
         "description": "backend.app.users.models",
-        "peekOfCode": "class UserRole(Enum):\n    USER = \"user\"\n    ADMIN = \"admin\"\nclass SocialProvider(Enum):\n    GOOGLE = \"google\"",
+        "peekOfCode": "class UserRole(Enum):\n    USER = \"user\"\n    ADMIN = \"admin\"\nclass SocialProvider(Enum):\n    GOOGLE = \"google\"\nclass BalanceOperation(BaseModel):\n    coin: str  # e.g., \"BTC\", \"ETH\"\n    amount: float  # Amount to deposit or withdraw\nclass BalanceResponse(BaseModel):\n    coin: str",
         "detail": "backend.app.users.models",
         "documentation": {}
     },
@@ -1282,7 +1298,25 @@
         "kind": 6,
         "importPath": "backend.app.users.models",
         "description": "backend.app.users.models",
-        "peekOfCode": "class SocialProvider(Enum):\n    GOOGLE = \"google\"",
+        "peekOfCode": "class SocialProvider(Enum):\n    GOOGLE = \"google\"\nclass BalanceOperation(BaseModel):\n    coin: str  # e.g., \"BTC\", \"ETH\"\n    amount: float  # Amount to deposit or withdraw\nclass BalanceResponse(BaseModel):\n    coin: str\n    balance: float  # Updated balance after the operation",
+        "detail": "backend.app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "BalanceOperation",
+        "kind": 6,
+        "importPath": "backend.app.users.models",
+        "description": "backend.app.users.models",
+        "peekOfCode": "class BalanceOperation(BaseModel):\n    coin: str  # e.g., \"BTC\", \"ETH\"\n    amount: float  # Amount to deposit or withdraw\nclass BalanceResponse(BaseModel):\n    coin: str\n    balance: float  # Updated balance after the operation",
+        "detail": "backend.app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "BalanceResponse",
+        "kind": 6,
+        "importPath": "backend.app.users.models",
+        "description": "backend.app.users.models",
+        "peekOfCode": "class BalanceResponse(BaseModel):\n    coin: str\n    balance: float  # Updated balance after the operation",
         "detail": "backend.app.users.models",
         "documentation": {}
     },

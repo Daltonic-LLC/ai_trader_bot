@@ -9,7 +9,13 @@ from config import config
 from typing import List
 
 from app.users.mongodb_service import MongoUserService, UserRole, SocialProvider
-from app.users.models import GoogleTokenRequest, Token, UserResponse
+from app.users.models import (
+    GoogleTokenRequest,
+    Token,
+    UserResponse,
+    BalanceOperation,
+    BalanceResponse,
+)
 
 # Initialize services
 user_service = MongoUserService()
@@ -250,3 +256,65 @@ async def list_all_users(current_user: Dict = Depends(get_current_user)):
         )
 
     return user_list
+
+
+@auth_router.post("/balance/deposit", response_model=BalanceResponse)
+async def deposit_balance(
+    operation: BalanceOperation, current_user: Dict = Depends(get_current_user)
+):
+    """Deposit an amount of a specific coin into the user's balance."""
+    user_id = current_user["id"]
+    coin = operation.coin.upper()  # Standardize coin symbols to uppercase
+    amount = operation.amount
+
+    # Validate amount
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount must be positive")
+
+    # Perform deposit
+    try:
+        success = user_service.deposit_balance(user_id, coin, amount)
+        if not success:
+            raise HTTPException(status_code=404, detail="User not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Deposit failed: {str(e)}")
+
+    # Fetch updated balance
+    user = user_service.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    new_balance = user.get("balances", {}).get(coin, 0.0)
+
+    return BalanceResponse(coin=coin, balance=new_balance)
+
+
+@auth_router.post("/balance/withdraw", response_model=BalanceResponse)
+async def withdraw_balance(
+    operation: BalanceOperation, current_user: Dict = Depends(get_current_user)
+):
+    """Withdraw an amount of a specific coin from the user's balance."""
+    user_id = current_user["id"]
+    coin = operation.coin.upper()
+    amount = operation.amount
+
+    # Validate amount
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount must be positive")
+
+    # Perform withdrawal
+    try:
+        success = user_service.withdraw_balance(user_id, coin, amount)
+        if not success:
+            raise HTTPException(
+                status_code=400, detail="Insufficient balance or user not found"
+            )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Withdrawal failed: {str(e)}")
+
+    # Fetch updated balance
+    user = user_service.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    new_balance = user.get("balances", {}).get(coin, 0.0)
+
+    return BalanceResponse(coin=coin, balance=new_balance)

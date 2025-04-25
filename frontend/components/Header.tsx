@@ -24,7 +24,7 @@ const Header: React.FC = () => {
                 ${isScrolled ? 'shadow-lg shadow-crypto-blue/20' : ''}`
             }
         >
-            <div className="text-2xl font-bold text-white">AI Trader</div>
+            <div className="text-2xl font-bold text-white">Cycle Trader</div>
             <div className="flex items-center gap-4">
                 <span className="text-gray-300 text-sm capitalize">{user?.name.split(' ')[0]}</span>
                 <button

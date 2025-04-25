@@ -165,3 +165,43 @@ class MongoUserService:
             self.client.close()
         except:
             pass
+
+    # Add to MongoUserService class in app/users/mongodb_service.py
+
+    def deposit_balance(self, user_id: str, coin: str, amount: float) -> bool:
+        """Increase the user's balance for a specific coin."""
+        try:
+            result = self.users.update_one(
+                {"_id": ObjectId(user_id)},
+                {
+                    "$inc": {f"balances.{coin}": amount},
+                    "$set": {"updated_at": datetime.utcnow()}
+                }
+            )
+            # $inc creates the balances field and coin entry if they don't exist
+            if result.modified_count == 0:
+                logging.warning(f"No user found or balance unchanged for user_id: {user_id}, coin: {coin}")
+            return result.modified_count > 0
+        except Exception as e:
+            logging.error(f"Failed to deposit balance for user_id: {user_id}, coin: {coin}: {str(e)}")
+            raise
+
+    def withdraw_balance(self, user_id: str, coin: str, amount: float) -> bool:
+        """Decrease the user's balance for a specific coin if sufficient funds exist."""
+        try:
+            result = self.users.update_one(
+                {
+                    "_id": ObjectId(user_id),
+                    f"balances.{coin}": {"$gte": amount}  # Ensure sufficient balance
+                },
+                {
+                    "$inc": {f"balances.{coin}": -amount},
+                    "$set": {"updated_at": datetime.utcnow()}
+                }
+            )
+            if result.matched_count == 0:
+                logging.warning(f"Insufficient balance or user not found for user_id: {user_id}, coin: {coin}")
+            return result.matched_count > 0 and result.modified_count > 0
+        except Exception as e:
+            logging.error(f"Failed to withdraw balance for user_id: {user_id}, coin: {coin}: {str(e)}")
+            raise
