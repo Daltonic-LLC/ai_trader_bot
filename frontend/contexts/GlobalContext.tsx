@@ -9,6 +9,8 @@ interface GlobalContextType {
     setIsDepositOpen?: (open: boolean) => void;
     isWithdrawOpen?: boolean;
     setIsWithdrawOpen?: (open: boolean) => void;
+    userBalance?: number;
+    setUserBalance?: (amount: number) => void;
     // Add other optional fields as needed in the future
     // e.g., user?: User; setUser?: (user: User) => void;
 }
@@ -18,6 +20,7 @@ const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     const [isDepositOpen, setIsDepositOpen] = useState<boolean>(false);
     const [isWithdrawOpen, setIsWithdrawOpen] = useState<boolean>(false);
+    const [userBalance, setUserBalance] = useState<number>(0);
 
     // Context value with optional fields
     const value: GlobalContextType = {
@@ -25,6 +28,8 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
         setIsDepositOpen,
         isWithdrawOpen,
         setIsWithdrawOpen,
+        userBalance,
+        setUserBalance,
     };
 
     return <GlobalContext.Provider value={value}>{children}</GlobalContext.Provider>;

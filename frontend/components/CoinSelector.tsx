@@ -4,10 +4,11 @@ import { Coin } from '@/utils/interfaces';
 interface CoinSelectorProps {
     coins: Coin[];
     selectedCoin: Coin | null;
+    balances?: Record<string, number> | null;
     onCoinChange: (coin: Coin | null) => void;
 }
 
-const CoinSelector: React.FC<CoinSelectorProps> = ({ coins, selectedCoin, onCoinChange }) => {
+const CoinSelector: React.FC<CoinSelectorProps> = ({ coins, selectedCoin, onCoinChange, balances }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleSelect = (coin: Coin) => {
@@ -42,11 +43,12 @@ const CoinSelector: React.FC<CoinSelectorProps> = ({ coins, selectedCoin, onCoin
                             <button
                                 key={coin.slug}
                                 onClick={() => handleSelect(coin)}
-                                className="w-full text-left px-4 py-3 text-white hover:bg-gradient-to-r
+                                className="w-full flex justify-between items-center px-4 py-3 text-white hover:bg-gradient-to-r
                                 hover:from-crypto-blue/50 hover:to-crypto-green/50 hover:border-l-4 cursor-pointer
                                 hover:border-crypto-blue hover:scale-105 transition-all transform duration-200"
                             >
-                                {coin.name} ({coin.symbol})
+                                <span>{coin.name}</span>
+                                <span>{balances && balances[coin.symbol] && balances[coin.symbol].toFixed(2) || '0.00'} {coin.symbol}</span>
                             </button>
                         ))}
                     </div>

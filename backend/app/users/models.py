@@ -23,6 +23,7 @@ class UserResponse(BaseModel):
     role: Optional[str] = None
     created_at: Optional[datetime] = None
     token: Optional[Token] = None  # Ensure token is included
+    balances: Optional[dict[str, float]] = None  # Optional balances attribute
 
     class Config:
         populate_by_name = True

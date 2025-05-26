@@ -8,7 +8,7 @@ from jose import jwt, JWTError
 from config import config
 from typing import List
 
-from app.users.mongodb_service import MongoUserService, UserRole, SocialProvider
+from app.services.mongodb_service import MongoUserService, UserRole, SocialProvider
 from app.users.models import (
     GoogleTokenRequest,
     Token,
@@ -68,6 +68,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         if not user:
             raise credentials_exception
 
+        user["id"] = str(user.pop("_id", ""))
         return user
     except JWTError:
         raise credentials_exception
@@ -171,7 +172,7 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
     """Return the authenticated user's details, including role"""
 
     # Convert ObjectId to string for JSON serialization
-    current_user["id"] = str(current_user.pop("_id", ""))  # Rename `_id` to `id`
+    # current_user["id"] = str(current_user.pop("_id", ""))  # Rename `_id` to `id`
 
     return UserResponse(
         id=current_user["id"],
@@ -180,6 +181,7 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
         profile_picture=current_user.get("profile_picture"),
         role=current_user["role"],  # Ensuring role is included
         created_at=current_user.get("created_at"),
+        balances=current_user.get("balances", {}),  # Include balances if available
     )
 
 

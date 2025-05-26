@@ -10,6 +10,7 @@ interface User {
     email: string
     name: string
     role: string
+    balances?: Record<string, number>
 }
 
 interface AuthContextType {
@@ -66,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (response.ok) {
                 const userData = await response.json()
                 setUser(userData)
+                
             } else {
                 Cookies.remove('bot_user')
                 console.log('Failed to retrieve user data.')

@@ -460,6 +460,30 @@
         "documentation": {}
     },
     {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "Tuple",
         "importPath": "typing",
         "description": "typing",
@@ -485,30 +509,6 @@
     },
     {
         "label": "Optional",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "Optional",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "Dict",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "List",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -698,6 +698,126 @@
         "documentation": {}
     },
     {
+        "label": "MongoClient",
+        "importPath": "pymongo",
+        "description": "pymongo",
+        "isExtraImport": true,
+        "detail": "pymongo",
+        "documentation": {}
+    },
+    {
+        "label": "ObjectId",
+        "importPath": "bson",
+        "description": "bson",
+        "isExtraImport": true,
+        "detail": "bson",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "quote_plus",
+        "importPath": "urllib.parse",
+        "description": "urllib.parse",
+        "isExtraImport": true,
+        "detail": "urllib.parse",
+        "documentation": {}
+    },
+    {
+        "label": "SocialProvider",
+        "importPath": "app.users.models",
+        "description": "app.users.models",
+        "isExtraImport": true,
+        "detail": "app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "UserRole",
+        "importPath": "app.users.models",
+        "description": "app.users.models",
+        "isExtraImport": true,
+        "detail": "app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "GoogleTokenRequest",
+        "importPath": "app.users.models",
+        "description": "app.users.models",
+        "isExtraImport": true,
+        "detail": "app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "Token",
+        "importPath": "app.users.models",
+        "description": "app.users.models",
+        "isExtraImport": true,
+        "detail": "app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "UserResponse",
+        "importPath": "app.users.models",
+        "description": "app.users.models",
+        "isExtraImport": true,
+        "detail": "app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "BalanceOperation",
+        "importPath": "app.users.models",
+        "description": "app.users.models",
+        "isExtraImport": true,
+        "detail": "app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "BalanceResponse",
+        "importPath": "app.users.models",
+        "description": "app.users.models",
+        "isExtraImport": true,
+        "detail": "app.users.models",
+        "documentation": {}
+    },
+    {
         "label": "Client",
         "importPath": "binance.client",
         "description": "binance.client",
@@ -753,46 +873,6 @@
         "description": "app.trader_bot.news_handler",
         "isExtraImport": true,
         "detail": "app.trader_bot.news_handler",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
         "documentation": {}
     },
     {
@@ -862,86 +942,6 @@
         "documentation": {}
     },
     {
-        "label": "MongoClient",
-        "importPath": "pymongo",
-        "description": "pymongo",
-        "isExtraImport": true,
-        "detail": "pymongo",
-        "documentation": {}
-    },
-    {
-        "label": "ObjectId",
-        "importPath": "bson",
-        "description": "bson",
-        "isExtraImport": true,
-        "detail": "bson",
-        "documentation": {}
-    },
-    {
-        "label": "quote_plus",
-        "importPath": "urllib.parse",
-        "description": "urllib.parse",
-        "isExtraImport": true,
-        "detail": "urllib.parse",
-        "documentation": {}
-    },
-    {
-        "label": "SocialProvider",
-        "importPath": "app.users.models",
-        "description": "app.users.models",
-        "isExtraImport": true,
-        "detail": "app.users.models",
-        "documentation": {}
-    },
-    {
-        "label": "UserRole",
-        "importPath": "app.users.models",
-        "description": "app.users.models",
-        "isExtraImport": true,
-        "detail": "app.users.models",
-        "documentation": {}
-    },
-    {
-        "label": "GoogleTokenRequest",
-        "importPath": "app.users.models",
-        "description": "app.users.models",
-        "isExtraImport": true,
-        "detail": "app.users.models",
-        "documentation": {}
-    },
-    {
-        "label": "Token",
-        "importPath": "app.users.models",
-        "description": "app.users.models",
-        "isExtraImport": true,
-        "detail": "app.users.models",
-        "documentation": {}
-    },
-    {
-        "label": "UserResponse",
-        "importPath": "app.users.models",
-        "description": "app.users.models",
-        "isExtraImport": true,
-        "detail": "app.users.models",
-        "documentation": {}
-    },
-    {
-        "label": "BalanceOperation",
-        "importPath": "app.users.models",
-        "description": "app.users.models",
-        "isExtraImport": true,
-        "detail": "app.users.models",
-        "documentation": {}
-    },
-    {
-        "label": "BalanceResponse",
-        "importPath": "app.users.models",
-        "description": "app.users.models",
-        "isExtraImport": true,
-        "detail": "app.users.models",
-        "documentation": {}
-    },
-    {
         "label": "OAuth2AuthorizationCodeBearer",
         "importPath": "fastapi.security",
         "description": "fastapi.security",
@@ -983,26 +983,26 @@
     },
     {
         "label": "MongoUserService",
-        "importPath": "app.users.mongodb_service",
-        "description": "app.users.mongodb_service",
+        "importPath": "app.services.mongodb_service",
+        "description": "app.services.mongodb_service",
         "isExtraImport": true,
-        "detail": "app.users.mongodb_service",
+        "detail": "app.services.mongodb_service",
         "documentation": {}
     },
     {
         "label": "UserRole",
-        "importPath": "app.users.mongodb_service",
-        "description": "app.users.mongodb_service",
+        "importPath": "app.services.mongodb_service",
+        "description": "app.services.mongodb_service",
         "isExtraImport": true,
-        "detail": "app.users.mongodb_service",
+        "detail": "app.services.mongodb_service",
         "documentation": {}
     },
     {
         "label": "SocialProvider",
-        "importPath": "app.users.mongodb_service",
-        "description": "app.users.mongodb_service",
+        "importPath": "app.services.mongodb_service",
+        "description": "app.services.mongodb_service",
         "isExtraImport": true,
-        "detail": "app.users.mongodb_service",
+        "detail": "app.services.mongodb_service",
         "documentation": {}
     },
     {
@@ -1204,6 +1204,15 @@
         "documentation": {}
     },
     {
+        "label": "MongoUserService",
+        "kind": 6,
+        "importPath": "backend.app.services.mongodb_service",
+        "description": "backend.app.services.mongodb_service",
+        "peekOfCode": "class MongoUserService:\n    def __init__(self):\n        \"\"\"Initialize MongoDB connection and set up collections.\"\"\"\n        try:\n            # Get base URI and credentials from config\n            base_uri = config.mongodb_uri\n            username = config.mongodb_username\n            password = config.mongodb_password\n            # Construct the MongoDB URI\n            if username and password:",
+        "detail": "backend.app.services.mongodb_service",
+        "documentation": {}
+    },
+    {
         "label": "BinanceClient",
         "kind": 6,
         "importPath": "backend.app.trader_bot.binance_client",
@@ -1280,7 +1289,7 @@
         "kind": 6,
         "importPath": "backend.app.users.models",
         "description": "backend.app.users.models",
-        "peekOfCode": "class UserResponse(BaseModel):\n    id: str = Field(..., alias=\"_id\")  # Convert MongoDB `_id` to id\n    name: str\n    email: str\n    profile_picture: Optional[str] = None\n    role: Optional[str] = None\n    created_at: Optional[datetime] = None\n    token: Optional[Token] = None  # Ensure token is included\n    class Config:\n        populate_by_name = True",
+        "peekOfCode": "class UserResponse(BaseModel):\n    id: str = Field(..., alias=\"_id\")  # Convert MongoDB `_id` to id\n    name: str\n    email: str\n    profile_picture: Optional[str] = None\n    role: Optional[str] = None\n    created_at: Optional[datetime] = None\n    token: Optional[Token] = None  # Ensure token is included\n    balances: Optional[dict[str, float]] = None  # Optional balances attribute\n    class Config:",
         "detail": "backend.app.users.models",
         "documentation": {}
     },
@@ -1318,15 +1327,6 @@
         "description": "backend.app.users.models",
         "peekOfCode": "class BalanceResponse(BaseModel):\n    coin: str\n    balance: float  # Updated balance after the operation",
         "detail": "backend.app.users.models",
-        "documentation": {}
-    },
-    {
-        "label": "MongoUserService",
-        "kind": 6,
-        "importPath": "backend.app.users.mongodb_service",
-        "description": "backend.app.users.mongodb_service",
-        "peekOfCode": "class MongoUserService:\n    def __init__(self):\n        \"\"\"Initialize MongoDB connection and set up collections.\"\"\"\n        try:\n            # Get base URI and credentials from config\n            base_uri = config.mongodb_uri\n            username = config.mongodb_username\n            password = config.mongodb_password\n            # Construct the MongoDB URI\n            if username and password:",
-        "detail": "backend.app.users.mongodb_service",
         "documentation": {}
     },
     {

@@ -8,6 +8,7 @@ import DepositModal from '@/components/DepositeModal';
 import Header from '@/components/Header';
 import WithdrawModal from '@/components/WithdrawModal';
 import { useGlobalContext } from '@/contexts/GlobalContext';
+import { useAuth } from '@/hooks/userAuth';
 import { Coin } from '@/utils/interfaces';
 import React, { useEffect, useState } from 'react';
 
@@ -16,6 +17,8 @@ const DashboardPage: React.FC = () => {
   const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
   const { isDepositOpen, setIsDepositOpen, isWithdrawOpen, setIsWithdrawOpen } =
     useGlobalContext();
+
+  const { user } = useAuth()
 
   const fetchCoins = async () => {
     try {
@@ -44,6 +47,7 @@ const DashboardPage: React.FC = () => {
             coins={coins}
             selectedCoin={selectedCoin}
             onCoinChange={setSelectedCoin}
+            balances={user?.balances || null}
           />
           <ActionButtons isCoinSelected={selectedCoin !== null} />
         </div>
