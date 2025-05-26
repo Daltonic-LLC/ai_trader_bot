@@ -3,9 +3,10 @@ import React from 'react';
 
 interface CoinDetailsCardProps {
     coin: Coin | null;
+    balances?: Record<string, number> | null;
 }
 
-const CoinDetailsCard: React.FC<CoinDetailsCardProps> = ({ coin }) => {
+const CoinDetailsCard: React.FC<CoinDetailsCardProps> = ({ coin, balances }) => {
     if (!coin) {
         return (
             <div className="p-5 bg-crypto-gray rounded-xl shadow-lg border border-crypto-blue/20 text-gray-400 text-center">
@@ -18,7 +19,10 @@ const CoinDetailsCard: React.FC<CoinDetailsCardProps> = ({ coin }) => {
         <div className="p-5 bg-crypto-gray rounded-xl shadow-lg border border-crypto-blue/30 hover:border-crypto-blue transition-all">
             <div className="bg-gradient-to-r from-crypto-blue to-crypto-green text-white p-4 rounded-t-xl">
                 <h2 className="text-xl font-semibold">
-                    {coin.name} ({coin.symbol})
+                    {`${coin.name} (${balances &&
+                        balances[coin.symbol] &&
+                        balances[coin.symbol].toFixed(2) ||
+                        '0.00'})`}
                 </h2>
             </div>
             <div className="mt-4 space-y-3">

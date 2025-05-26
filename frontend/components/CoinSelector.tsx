@@ -26,7 +26,13 @@ const CoinSelector: React.FC<CoinSelectorProps> = ({ coins, selectedCoin, onCoin
                     py-2 px-4 rounded-lg bg-gradient-to-r from-crypto-blue/20 to-crypto-green/20
                     hover:from-crypto-blue/30 hover:to-crypto-green/30 transition-all cursor-pointer"
                 >
-                    <span>{selectedCoin ? `${selectedCoin.name} (${selectedCoin.symbol})` : 'Select a Coin'}</span>
+                    <span>{
+                        selectedCoin ?
+                            `${selectedCoin.name} (${balances &&
+                            balances[selectedCoin.symbol] &&
+                            balances[selectedCoin.symbol].toFixed(2) ||
+                            '0.00'})` :
+                            'Select a Coin'}</span>
                     <svg
                         className={`w-5 h-5 transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
                         fill="none"

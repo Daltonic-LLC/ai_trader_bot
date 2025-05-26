@@ -27,3 +27,20 @@ export const deposit_funds = async (coin: string, amount: number) => {
     throw error
   }
 }
+
+export const fetchCoins = async (limit: number) => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/coin/top_coins?limit=${limit}`
+    )
+
+    if (!response.ok) {
+      throw new Error('Failed to deposit funds')
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching coins:', error)
+    throw error
+  }
+}

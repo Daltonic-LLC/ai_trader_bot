@@ -9,32 +9,40 @@ import Header from '@/components/Header';
 import WithdrawModal from '@/components/WithdrawModal';
 import { useGlobalContext } from '@/contexts/GlobalContext';
 import { useAuth } from '@/hooks/userAuth';
+import { fetchCoins } from '@/utils/api';
 import { Coin } from '@/utils/interfaces';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 const DashboardPage: React.FC = () => {
-  const [coins, setCoins] = useState<Coin[]>([]);
-  const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
-  const { isDepositOpen, setIsDepositOpen, isWithdrawOpen, setIsWithdrawOpen } =
-    useGlobalContext();
+  const {
+    isDepositOpen,
+    setIsDepositOpen,
+    isWithdrawOpen,
+    setIsWithdrawOpen,
+    setCurrencies,
+    setSelectedCoin,
+    currencies: coins,
+    selectedCoin
+  } = useGlobalContext();
 
-  const { user } = useAuth()
+  const { user, checkAuth } = useAuth()
 
-  const fetchCoins = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/coin/top_coins?limit=15`
-      );
-      const data = await response.json();
-      setCoins(data.data);
-      setSelectedCoin(data.data[0]);
-    } catch (error) {
-      console.error('Error fetching coins:', error);
-    }
-  };
 
   useEffect(() => {
-    fetchCoins();
+    fetchCoins(15)
+      .then((data) => {
+        if (data.data.length > 0) {
+          if (setCurrencies) {
+            setCurrencies(data.data! as Coin[]);
+          }
+          if (setSelectedCoin) {
+            setSelectedCoin(data.data[0] as Coin);
+          }
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching coins:', error);
+      });
   }, []);
 
   return (
@@ -44,9 +52,9 @@ const DashboardPage: React.FC = () => {
         {/* Left Section: Selector */}
         <div className="lg:w-1/3">
           <CoinSelector
-            coins={coins}
-            selectedCoin={selectedCoin}
-            onCoinChange={setSelectedCoin}
+            coins={coins || []}
+            selectedCoin={selectedCoin ?? null}
+            onCoinChange={setSelectedCoin ?? (() => { })}
             balances={user?.balances || null}
           />
           <ActionButtons isCoinSelected={selectedCoin !== null} />
@@ -54,16 +62,16 @@ const DashboardPage: React.FC = () => {
 
         {/* Right Section: Coin Details */}
         <div className="flex-1 mt-6 lg:mt-0">
-          <CoinDetailsCard coin={selectedCoin} />
+          <CoinDetailsCard coin={selectedCoin ?? null} balances={user?.balances || null} />
         </div>
       </div>
 
       {isDepositOpen && selectedCoin && setIsDepositOpen && (
         <DepositModal
           coin={selectedCoin}
-          currentBalance={0}
+          currentBalance={user?.balances?.[selectedCoin.symbol] ? parseFloat(user.balances[selectedCoin.symbol].toFixed(2)) : 0}
           onClose={() => setIsDepositOpen(false)}
-          onDeposit={() => { }}
+          onDeposit={() => checkAuth()}
         />
       )}
       {isWithdrawOpen && selectedCoin && setIsWithdrawOpen && (
