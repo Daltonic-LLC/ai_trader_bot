@@ -7,6 +7,6 @@ if __name__ == "__main__":
     capital_manager = CapitalManager(coin=coin)
     
     # Run CoinTrader for BNB
-    trader = CoinTrader(coin=coin, override=False, capital_manager=capital_manager)
+    trader = CoinTrader(coin=coin, override=True, capital_manager=capital_manager)
     report = trader.run()
     print(report)

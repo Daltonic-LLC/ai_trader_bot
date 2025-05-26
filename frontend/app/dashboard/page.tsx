@@ -6,6 +6,7 @@ import CoinDetailsCard from '@/components/CoinDetailsCard';
 import CoinSelector from '@/components/CoinSelector';
 import DepositModal from '@/components/DepositeModal';
 import Header from '@/components/Header';
+import RecentTradeReportCard from '@/components/RecentTradeReport';
 import WithdrawModal from '@/components/WithdrawModal';
 import { useGlobalContext } from '@/contexts/GlobalContext';
 import { useAuth } from '@/hooks/userAuth';
@@ -50,7 +51,7 @@ const DashboardPage: React.FC = () => {
       <Header />
       <div className="flex flex-col lg:flex-row justify-center lg:space-x-6 sm:w-2/3 mx-auto mt-10">
         {/* Left Section: Selector */}
-        <div className="lg:w-1/3">
+        <div className="lg:w-1/4">
           <CoinSelector
             coins={coins || []}
             selectedCoin={selectedCoin ?? null}
@@ -63,6 +64,12 @@ const DashboardPage: React.FC = () => {
         {/* Right Section: Coin Details */}
         <div className="flex-1 mt-6 lg:mt-0">
           <CoinDetailsCard coin={selectedCoin ?? null} balances={user?.balances || null} />
+        </div>
+
+        <div className="lg:w-1/4">
+          <RecentTradeReportCard
+            report={''}
+          />
         </div>
       </div>
 

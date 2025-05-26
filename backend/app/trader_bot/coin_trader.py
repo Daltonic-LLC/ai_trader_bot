@@ -6,12 +6,17 @@ from app.services.coin_stats import CoinStatsService
 from app.services.coin_news import NewsSentimentService
 from app.services.coin_history import CoinHistory
 from config import config
+import os
+import json
+from datetime import datetime
 
 class CoinTrader:
-    def __init__(self, coin, override, capital_manager):
-        self.coin = coin.lower()  # Normalize to lowercase
+    def __init__(self, coin, override, capital_manager, activities_file_path="data/activities/coin_reports.json"):
+        self.coin = coin.lower()  # Ensure coin names are lowercase for consistency
         self.override = override
-        self.capital_manager = capital_manager  # Instance of CapitalManager
+        self.capital_manager = capital_manager
+        self.activities_file_path = activities_file_path
+        self.ensure_directory_exists()
         self.history_service = CoinHistory()
         self.stats_service = CoinStatsService()
         self.news_service = NewsSentimentService()
@@ -26,6 +31,43 @@ class CoinTrader:
         self.news_handler = NewsHandler(self.news_service, self.coin, self.override, self.llm_handler)
         self.trading_fee = 0.001  # Assume 0.1% fee per trade
         self.stop_loss_percentage = 0.05  # 5% stop-loss
+
+    def ensure_directory_exists(self):
+        """Ensure the directory for the activities file exists."""
+        directory = os.path.dirname(self.activities_file_path)
+        if not os.path.exists(directory):
+            os.makedirs(directory, exist_ok=True)
+
+    def load_activities(self):
+        """Load existing activities from the JSON file."""
+        if os.path.exists(self.activities_file_path):
+            try:
+                with open(self.activities_file_path, 'r') as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, IOError) as e:
+                print(f"Error loading {self.activities_file_path}: {e}. Initializing empty state.")
+                return {}
+        else:
+            return {}
+    
+    def save_activities(self, data):
+        """Save the activities data to the JSON file."""
+        try:
+            self.ensure_directory_exists()
+            with open(self.activities_file_path, 'w') as f:
+                json.dump(data, f, indent=4)
+            print(f"Saved activities to {self.activities_file_path}")
+        except IOError as e:
+            print(f"Error saving to {self.activities_file_path}: {e}")
+
+    def save_activity(self, report):
+        """Save the latest report for the coin to the activities file."""
+        data = self.load_activities()
+        data[self.coin] = {
+            "timestamp": datetime.now().isoformat(),
+            "report": report
+        }
+        self.save_activities(data)
 
     def generate_report(self, stats, predicted_close, news_sentiment, news_text, recommendation=None, trade_details=None):
         """Generates a trading report with optional recommendation and trade details."""
@@ -166,4 +208,5 @@ class CoinTrader:
         # Generate and return the final report with recommendation and actual trade details
         news_text_truncated = " ".join(news_text.split()[:50]) + ("..." if len(news_text.split()) > 50 else "")
         final_report = self.generate_report(stats, predicted_close, news_sentiment, news_text_truncated, recommendation, trade_details)
+        self.save_activity(final_report)  # Save the latest report
         return final_report
