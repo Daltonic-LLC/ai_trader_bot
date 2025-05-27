@@ -2,16 +2,18 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.cron import CronTrigger
 import logging
+import json
+import os
+from datetime import datetime
 from app.services.coin_extractor import TopCoinsExtractor
 from app.services.coin_history import CoinHistory
 from app.services.coin_news import NewsSentimentService
 from app.services.coin_stats import CoinStatsService
 from app.services.file_manager import DataCleaner
 
-
 class CoinScheduler:
-    def __init__(self, log_file='scheduler.log'):
-        """Initialize the CoinScheduler with a background scheduler and logging."""
+    def __init__(self, log_file='scheduler.log', execution_log_file='data/scheduler/execution_log.json'):
+        """Initialize the CoinScheduler with a background scheduler, logging, and execution log file."""
         # Set up logging
         self._setup_logging(log_file)
         logging.info("Initializing CoinScheduler")
@@ -26,6 +28,10 @@ class CoinScheduler:
         self.stats_service = CoinStatsService()
         self.cleaner = DataCleaner()
 
+        # Execution log file path
+        self.execution_log_file = execution_log_file
+        self.ensure_directory_exists()
+
     def _setup_logging(self, log_file):
         """Configure logging for the scheduler."""
         logging.basicConfig(
@@ -33,6 +39,47 @@ class CoinScheduler:
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s'
         )
+
+    def ensure_directory_exists(self):
+        """Ensure the directory for the execution log file exists."""
+        directory = os.path.dirname(self.execution_log_file)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory, exist_ok=True)
+            logging.info(f"Created directory: {directory}")
+
+    def load_execution_log(self):
+        """Load the execution log from the JSON file."""
+        if os.path.exists(self.execution_log_file):
+            try:
+                with open(self.execution_log_file, 'r') as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, IOError) as e:
+                logging.error(f"Error loading execution log from {self.execution_log_file}: {e}")
+                return {}
+        return {}
+
+    def save_execution_log(self, log_data):
+        """Save the execution log to the JSON file."""
+        try:
+            self.ensure_directory_exists()
+            with open(self.execution_log_file, 'w') as f:
+                json.dump(log_data, f, indent=4)
+            logging.info(f"Saved execution log to {self.execution_log_file}")
+        except IOError as e:
+            logging.error(f"Error saving execution log to {self.execution_log_file}: {e}")
+
+    def update_execution_log(self, job_id, job_name, last_execution=None):
+        """Update the execution log for a job with last and next execution times."""
+        log_data = self.load_execution_log()
+        job = self.scheduler.get_job(job_id)
+        next_execution = job.next_run_time.isoformat() if job and job.next_run_time else None
+
+        log_data[job_id] = {
+            "job_name": job_name,
+            "last_execution": last_execution.isoformat() if last_execution else log_data.get(job_id, {}).get("last_execution"),
+            "next_execution": next_execution
+        }
+        self.save_execution_log(log_data)
 
     def _daily_top_coin_list(self):
         """Extract top coins and save them to a JSON file."""
@@ -43,6 +90,8 @@ class CoinScheduler:
             message = f"Saved top coins to: {saved_file}"
             logging.info(message)
             print(message)
+            # Update execution log on successful completion
+            self.update_execution_log("top_coins", "Top Coins Extraction", last_execution=datetime.now())
         except Exception as e:
             logging.error(f"Error during top coins extraction: {e}")
             print(f"Error: {e}")
@@ -74,6 +123,8 @@ class CoinScheduler:
                     print(f"Error extracting history for {slug}: {e}")
 
             logging.info("Completed coin history extraction")
+            # Update execution log on successful completion
+            self.update_execution_log("coin_history", "Coin History Extraction", last_execution=datetime.now())
         except Exception as e:
             logging.error(f"Error during coin history job: {e}")
             print(f"Error in coin history job: {e}")
@@ -105,6 +156,8 @@ class CoinScheduler:
                     print(f"Error processing news sentiment for {slug}: {e}")
 
             logging.info("Completed news sentiment extraction")
+            # Update execution log on successful completion
+            self.update_execution_log("news_sentiment", "News Sentiment Extraction", last_execution=datetime.now())
         except Exception as e:
             logging.error(f"Error during news sentiment job: {e}")
             print(f"Error in news sentiment job: {e}")
@@ -140,6 +193,8 @@ class CoinScheduler:
                     print(f"Error fetching stats for {slug}: {e}")
 
             logging.info("Completed coin prices update")
+            # Update execution log on successful completion
+            self.update_execution_log("coin_prices", "Coin Prices Update", last_execution=datetime.now())
         except Exception as e:
             logging.error(f"Error during coin prices job: {e}")
             print(f"Error in coin prices job: {e}")
@@ -150,51 +205,66 @@ class CoinScheduler:
         try:
             self.cleaner.clean_timestamped_files()
             logging.info("Completed daily data cleanup")
+            # Update execution log on successful completion
+            self.update_execution_log("data_cleanup", "Data Cleanup", last_execution=datetime.now())
         except Exception as e:
             logging.error(f"Error during data cleanup: {e}")
             print(f"Error during data cleanup: {e}")
 
     def configure_jobs(self):
         """Configure the scheduler with all jobs and their triggers."""
-        # Top coins extraction every 12 hours
-        self.scheduler.add_job(
-            self._daily_top_coin_list,
-            IntervalTrigger(hours=12),
-            id='top_coins',
-            name='Top Coins Extraction'
-        )
+        # Define jobs with their IDs, names, and triggers
+        jobs = [
+            {
+                "id": "top_coins",
+                "name": "Top Coins Extraction",
+                "func": self._daily_top_coin_list,
+                "trigger": IntervalTrigger(hours=12)
+            },
+            {
+                "id": "coin_history",
+                "name": "Coin History Extraction",
+                "func": self._daily_coin_history,
+                "trigger": CronTrigger(hour=0, minute=20)
+            },
+            {
+                "id": "news_sentiment",
+                "name": "News Sentiment Extraction",
+                "func": self._daily_news_sentiment,
+                "trigger": IntervalTrigger(hours=4)
+            },
+            {
+                "id": "coin_prices",
+                "name": "Coin Prices Update",
+                "func": self._daily_coin_prices,
+                "trigger": IntervalTrigger(hours=1)
+            },
+            {
+                "id": "data_cleanup",
+                "name": "Data Cleanup",
+                "func": self._daily_data_cleaner,
+                "trigger": CronTrigger(hour=1, minute=0)
+            }
+        ]
 
-        # Coin history extraction daily at 00:20
-        self.scheduler.add_job(
-            self._daily_coin_history,
-            CronTrigger(hour=0, minute=20),
-            id='coin_history',
-            name='Coin History Extraction'
-        )
-
-        # News sentiment extraction every 4 hours
-        self.scheduler.add_job(
-            self._daily_news_sentiment,
-            IntervalTrigger(hours=4),
-            id='news_sentiment',
-            name='News Sentiment Extraction'
-        )
-
-        # Coin prices update every 1 hour
-        self.scheduler.add_job(
-            self._daily_coin_prices,
-            IntervalTrigger(hours=1),
-            id='coin_prices',
-            name='Coin Prices Update'
-        )
-
-        # Data cleanup daily at 1:00 AM
-        self.scheduler.add_job(
-            self._daily_data_cleaner,
-            CronTrigger(hour=1, minute=0),
-            id='data_cleanup',
-            name='Data Cleanup'
-        )
+        # Add jobs to scheduler and initialize execution log
+        log_data = self.load_execution_log()
+        for job in jobs:
+            self.scheduler.add_job(
+                job["func"],
+                job["trigger"],
+                id=job["id"],
+                name=job["name"]
+            )
+            # Initialize log entry if not present
+            if job["id"] not in log_data:
+                next_execution = self.scheduler.get_job(job["id"]).next_run_time.isoformat() if self.scheduler.get_job(job["id"]) else None
+                log_data[job["id"]] = {
+                    "job_name": job["name"],
+                    "last_execution": None,
+                    "next_execution": next_execution
+                }
+        self.save_execution_log(log_data)
 
         logging.info("Scheduler jobs configured")
 

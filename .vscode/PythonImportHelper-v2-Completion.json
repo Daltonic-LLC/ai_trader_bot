@@ -235,6 +235,14 @@
         "documentation": {}
     },
     {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
         "label": "timedelta",
         "importPath": "datetime",
         "description": "datetime",
@@ -1197,7 +1205,7 @@
         "kind": 6,
         "importPath": "backend.app.services.coin_scheduler",
         "description": "backend.app.services.coin_scheduler",
-        "peekOfCode": "class CoinScheduler:\n    def __init__(self, log_file='scheduler.log'):\n        \"\"\"Initialize the CoinScheduler with a background scheduler and logging.\"\"\"\n        # Set up logging\n        self._setup_logging(log_file)\n        logging.info(\"Initializing CoinScheduler\")\n        # Initialize the background scheduler\n        self.scheduler = BackgroundScheduler()\n        # Initialize services\n        self.extractor = TopCoinsExtractor()",
+        "peekOfCode": "class CoinScheduler:\n    def __init__(self, log_file='scheduler.log', execution_log_file='data/scheduler/execution_log.json'):\n        \"\"\"Initialize the CoinScheduler with a background scheduler, logging, and execution log file.\"\"\"\n        # Set up logging\n        self._setup_logging(log_file)\n        logging.info(\"Initializing CoinScheduler\")\n        # Initialize the background scheduler\n        self.scheduler = BackgroundScheduler()\n        # Initialize services\n        self.extractor = TopCoinsExtractor()",
         "detail": "backend.app.services.coin_scheduler",
         "documentation": {}
     },
