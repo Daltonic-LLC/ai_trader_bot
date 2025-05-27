@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Query
 from app.services.coin_extractor import TopCoinsExtractor
 from app.services.capital_manager import CapitalManager
+from app.trader_bot.coin_trader import CoinTrader
 import logging
 
 coin_router = APIRouter()
@@ -69,4 +70,36 @@ async def list_available_coins():
             "status": "Error",
             "message": f"Failed to retrieve available coins from CapitalManager: {str(e)}",
             "data": [],
+        }
+
+
+@coin_router.get("/report/{coin}")
+async def get_coin_report(coin: str):
+    try:
+        capital_manager = CapitalManager(coin=coin)
+        trader = CoinTrader(coin=coin, override=True, capital_manager=capital_manager)
+        report_data = trader.get_report(coin)
+        
+        if report_data is None:
+            logging.warning(f"No report found for coin {coin.upper()}")
+            return {
+                "status": "Error",
+                "message": f"No report found for {coin.upper()}. Run the CoinTrader script for this coin.",
+                "data": {},
+            }
+        return {
+            "status": "Success",
+            "message": f"Retrieved trade report for {coin.upper()}",
+            "data": {
+                "coin": coin.upper(),
+                "timestamp": report_data["timestamp"],
+                "report": report_data["report"],
+            },
+        }
+    except Exception as e:
+        logging.error(f"Error retrieving report for {coin.upper()}: {str(e)}")
+        return {
+            "status": "Error",
+            "message": f"Failed to retrieve report for {coin.upper()}: {str(e)}",
+            "data": {},
         }

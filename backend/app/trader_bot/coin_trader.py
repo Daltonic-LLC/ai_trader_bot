@@ -49,6 +49,18 @@ class CoinTrader:
                 return {}
         else:
             return {}
+        
+    def get_report(self, coin):
+        """Retrieve the latest report for the specified coin from the activities file."""
+        if not os.path.exists(self.activities_file_path):
+            return None
+        try:
+            with open(self.activities_file_path, 'r') as f:
+                data = json.load(f)
+            coin = coin.lower()
+            return data.get(coin, None)
+        except (json.JSONDecodeError, IOError):
+            return None
     
     def save_activities(self, data):
         """Save the activities data to the JSON file."""

@@ -10,11 +10,12 @@ import RecentTradeReportCard from '@/components/RecentTradeReport';
 import WithdrawModal from '@/components/WithdrawModal';
 import { useGlobalContext } from '@/contexts/GlobalContext';
 import { useAuth } from '@/hooks/userAuth';
-import { fetchCoins } from '@/utils/api';
+import { fetchCoinReport, fetchCoins } from '@/utils/api';
 import { Coin } from '@/utils/interfaces';
 import React, { useEffect } from 'react';
 
 const DashboardPage: React.FC = () => {
+  const [report, setReport] = React.useState<string | null>(null);
   const {
     isDepositOpen,
     setIsDepositOpen,
@@ -28,22 +29,34 @@ const DashboardPage: React.FC = () => {
 
   const { user, checkAuth } = useAuth()
 
+  const getCoinReport = async (coin: string) => {
+    const report = await fetchCoinReport(coin)
+
+    if (report.data && Object.keys(report.data).length > 0) {
+      setReport(report.data.report);
+    } else {
+      setReport('');
+    }
+  }
+
+  const getCoins = async () => fetchCoins(15)
+    .then(async (data) => {
+      if (data.data.length > 0) {
+        if (setCurrencies) {
+          setCurrencies(data.data! as Coin[]);
+        }
+        if (setSelectedCoin) {
+          setSelectedCoin(data.data[0] as Coin);
+          await getCoinReport(data.data[0].symbol)
+        }
+      }
+    })
+    .catch((error) => {
+      console.error('Error fetching coins:', error);
+    });
 
   useEffect(() => {
-    fetchCoins(15)
-      .then((data) => {
-        if (data.data.length > 0) {
-          if (setCurrencies) {
-            setCurrencies(data.data! as Coin[]);
-          }
-          if (setSelectedCoin) {
-            setSelectedCoin(data.data[0] as Coin);
-          }
-        }
-      })
-      .catch((error) => {
-        console.error('Error fetching coins:', error);
-      });
+    getCoins()
   }, []);
 
   return (
@@ -55,7 +68,12 @@ const DashboardPage: React.FC = () => {
           <CoinSelector
             coins={coins || []}
             selectedCoin={selectedCoin ?? null}
-            onCoinChange={setSelectedCoin ?? (() => { })}
+            onCoinChange={(coin: Coin | null) => {
+              if (coin) getCoinReport(coin.symbol);
+              if (setSelectedCoin) {
+                setSelectedCoin(coin);
+              }
+            }}
             balances={user?.balances || null}
           />
           <ActionButtons isCoinSelected={selectedCoin !== null} />
@@ -68,7 +86,7 @@ const DashboardPage: React.FC = () => {
 
         <div className="lg:w-1/4">
           <RecentTradeReportCard
-            report={''}
+            report={report || ''}
           />
         </div>
       </div>

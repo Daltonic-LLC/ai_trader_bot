@@ -88,6 +88,22 @@
         "documentation": {}
     },
     {
+        "label": "CoinTrader",
+        "importPath": "app.trader_bot.coin_trader",
+        "description": "app.trader_bot.coin_trader",
+        "isExtraImport": true,
+        "detail": "app.trader_bot.coin_trader",
+        "documentation": {}
+    },
+    {
+        "label": "CoinTrader",
+        "importPath": "app.trader_bot.coin_trader",
+        "description": "app.trader_bot.coin_trader",
+        "isExtraImport": true,
+        "detail": "app.trader_bot.coin_trader",
+        "documentation": {}
+    },
+    {
         "label": "logging",
         "kind": 6,
         "isExtraImport": true,
@@ -1111,14 +1127,6 @@
         "description": "watchdog.events",
         "isExtraImport": true,
         "detail": "watchdog.events",
-        "documentation": {}
-    },
-    {
-        "label": "CoinTrader",
-        "importPath": "app.trader_bot.coin_trader",
-        "description": "app.trader_bot.coin_trader",
-        "isExtraImport": true,
-        "detail": "app.trader_bot.coin_trader",
         "documentation": {}
     },
     {

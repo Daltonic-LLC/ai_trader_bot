@@ -12,6 +12,8 @@ const CoinSelector: React.FC<CoinSelectorProps> = ({ coins, selectedCoin, onCoin
     const [isOpen, setIsOpen] = useState(false);
 
     const handleSelect = (coin: Coin) => {
+        console.log('Coin selected:', coin);
+        
         onCoinChange(coin);
         setIsOpen(false);
     };
