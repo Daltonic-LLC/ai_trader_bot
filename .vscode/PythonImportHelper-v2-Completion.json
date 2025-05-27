@@ -88,6 +88,38 @@
         "documentation": {}
     },
     {
+        "label": "CoinScheduler",
+        "importPath": "app.services.coin_scheduler",
+        "description": "app.services.coin_scheduler",
+        "isExtraImport": true,
+        "detail": "app.services.coin_scheduler",
+        "documentation": {}
+    },
+    {
+        "label": "CoinScheduler",
+        "importPath": "app.services.coin_scheduler",
+        "description": "app.services.coin_scheduler",
+        "isExtraImport": true,
+        "detail": "app.services.coin_scheduler",
+        "documentation": {}
+    },
+    {
+        "label": "CoinScheduler",
+        "importPath": "app.services.coin_scheduler",
+        "description": "app.services.coin_scheduler",
+        "isExtraImport": true,
+        "detail": "app.services.coin_scheduler",
+        "documentation": {}
+    },
+    {
+        "label": "CoinScheduler",
+        "importPath": "app.services.coin_scheduler",
+        "description": "app.services.coin_scheduler",
+        "isExtraImport": true,
+        "detail": "app.services.coin_scheduler",
+        "documentation": {}
+    },
+    {
         "label": "CoinTrader",
         "importPath": "app.trader_bot.coin_trader",
         "description": "app.trader_bot.coin_trader",
@@ -228,6 +260,22 @@
     },
     {
         "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
         "importPath": "datetime",
         "description": "datetime",
         "isExtraImport": true,
@@ -612,6 +660,14 @@
         "description": "nltk.sentiment.vader",
         "isExtraImport": true,
         "detail": "nltk.sentiment.vader",
+        "documentation": {}
+    },
+    {
+        "label": "BackgroundScheduler",
+        "importPath": "apscheduler.schedulers.background",
+        "description": "apscheduler.schedulers.background",
+        "isExtraImport": true,
+        "detail": "apscheduler.schedulers.background",
         "documentation": {}
     },
     {
@@ -1097,22 +1153,6 @@
         "documentation": {}
     },
     {
-        "label": "CoinScheduler",
-        "importPath": "app.services.coin_scheduler",
-        "description": "app.services.coin_scheduler",
-        "isExtraImport": true,
-        "detail": "app.services.coin_scheduler",
-        "documentation": {}
-    },
-    {
-        "label": "CoinScheduler",
-        "importPath": "app.services.coin_scheduler",
-        "description": "app.services.coin_scheduler",
-        "isExtraImport": true,
-        "detail": "app.services.coin_scheduler",
-        "documentation": {}
-    },
-    {
         "label": "sys",
         "kind": 6,
         "isExtraImport": true,
@@ -1135,6 +1175,22 @@
         "description": "watchdog.events",
         "isExtraImport": true,
         "detail": "watchdog.events",
+        "documentation": {}
+    },
+    {
+        "label": "DateTrigger",
+        "importPath": "apscheduler.triggers.date",
+        "description": "apscheduler.triggers.date",
+        "isExtraImport": true,
+        "detail": "apscheduler.triggers.date",
+        "documentation": {}
+    },
+    {
+        "label": "ThreadPoolExecutor",
+        "importPath": "apscheduler.executors.pool",
+        "description": "apscheduler.executors.pool",
+        "isExtraImport": true,
+        "detail": "apscheduler.executors.pool",
         "documentation": {}
     },
     {
@@ -1522,6 +1578,87 @@
         "description": "backend.run_dev",
         "peekOfCode": "logger = logging.getLogger(\"server\")\nclass FastAPIServer:\n    def __init__(self):\n        self.config = uvicorn.Config(\n            \"app.main:app\",\n            host=\"0.0.0.0\",\n            port=8000,\n            reload=True,  # Enable auto-reload for development\n            loop=\"asyncio\",\n        )",
         "detail": "backend.run_dev",
+        "documentation": {}
+    },
+    {
+        "label": "TestCoinScheduler",
+        "kind": 6,
+        "importPath": "backend.tester2",
+        "description": "backend.tester2",
+        "peekOfCode": "class TestCoinScheduler(CoinScheduler):\n    def __init__(self, log_file='scheduler_test.log'):\n        super().__init__(log_file)\n        self.scheduler = BackgroundScheduler(executors={'default': ThreadPoolExecutor(max_workers=1)})  # Use APScheduler's ThreadPoolExecutor\n    def configure_jobs(self):\n        \"\"\"Configure jobs to run once at dynamically calculated times.\"\"\"\n        # self.scheduler.add_job(\n        #     self._daily_top_coin_list,\n        #     DateTrigger(run_date=run_times['top_coins']),\n        #     id='top_coins',",
+        "detail": "backend.tester2",
+        "documentation": {}
+    },
+    {
+        "label": "load_execution_durations",
+        "kind": 2,
+        "importPath": "backend.tester2",
+        "description": "backend.tester2",
+        "peekOfCode": "def load_execution_durations():\n    \"\"\"Load execution durations from execution_log.json.\"\"\"\n    if os.path.exists(EXECUTION_LOG_FILE):\n        try:\n            with open(EXECUTION_LOG_FILE, 'r') as f:\n                log_data = json.load(f)\n                # Return durations for each job (in seconds) or None if not available\n                return {\n                    'top_coins': log_data.get('top_coins', {}).get('execution_duration'),\n                    'coin_history': log_data.get('coin_history', {}).get('execution_duration'),",
+        "detail": "backend.tester2",
+        "documentation": {}
+    },
+    {
+        "label": "EXECUTION_LOG_FILE",
+        "kind": 5,
+        "importPath": "backend.tester2",
+        "description": "backend.tester2",
+        "peekOfCode": "EXECUTION_LOG_FILE = 'data/scheduler/execution_log.json'\ndef load_execution_durations():\n    \"\"\"Load execution durations from execution_log.json.\"\"\"\n    if os.path.exists(EXECUTION_LOG_FILE):\n        try:\n            with open(EXECUTION_LOG_FILE, 'r') as f:\n                log_data = json.load(f)\n                # Return durations for each job (in seconds) or None if not available\n                return {\n                    'top_coins': log_data.get('top_coins', {}).get('execution_duration'),",
+        "detail": "backend.tester2",
+        "documentation": {}
+    },
+    {
+        "label": "JOB_ORDER",
+        "kind": 5,
+        "importPath": "backend.tester2",
+        "description": "backend.tester2",
+        "peekOfCode": "JOB_ORDER = [\n    ('top_coins', 'Top Coins Extraction'),\n    ('coin_history', 'Coin History Extraction'),\n    ('news_sentiment', 'News Sentiment Extraction'),\n    ('coin_prices', 'Coin Prices Update'),\n    ('data_cleanup', 'Data Cleanup'),\n]\nDEFAULT_DURATION = 60  # Default duration for jobs with no prior run\nBUFFER_SECONDS = 10    # Buffer between jobs to avoid overlap\n# Calculate run times based on previous durations",
+        "detail": "backend.tester2",
+        "documentation": {}
+    },
+    {
+        "label": "DEFAULT_DURATION",
+        "kind": 5,
+        "importPath": "backend.tester2",
+        "description": "backend.tester2",
+        "peekOfCode": "DEFAULT_DURATION = 60  # Default duration for jobs with no prior run\nBUFFER_SECONDS = 10    # Buffer between jobs to avoid overlap\n# Calculate run times based on previous durations\ndurations = load_execution_durations()\nrun_times = {}\ncurrent_time = datetime.now() + timedelta(seconds=30)  # Start first job in 30 seconds\nfor job_id, job_name in JOB_ORDER:\n    duration = durations[job_id] if durations[job_id] is not None else DEFAULT_DURATION\n    run_times[job_id] = current_time\n    current_time += timedelta(seconds=duration + BUFFER_SECONDS)  # Add duration + buffer",
+        "detail": "backend.tester2",
+        "documentation": {}
+    },
+    {
+        "label": "BUFFER_SECONDS",
+        "kind": 5,
+        "importPath": "backend.tester2",
+        "description": "backend.tester2",
+        "peekOfCode": "BUFFER_SECONDS = 10    # Buffer between jobs to avoid overlap\n# Calculate run times based on previous durations\ndurations = load_execution_durations()\nrun_times = {}\ncurrent_time = datetime.now() + timedelta(seconds=30)  # Start first job in 30 seconds\nfor job_id, job_name in JOB_ORDER:\n    duration = durations[job_id] if durations[job_id] is not None else DEFAULT_DURATION\n    run_times[job_id] = current_time\n    current_time += timedelta(seconds=duration + BUFFER_SECONDS)  # Add duration + buffer\n# Log the planned schedule",
+        "detail": "backend.tester2",
+        "documentation": {}
+    },
+    {
+        "label": "durations",
+        "kind": 5,
+        "importPath": "backend.tester2",
+        "description": "backend.tester2",
+        "peekOfCode": "durations = load_execution_durations()\nrun_times = {}\ncurrent_time = datetime.now() + timedelta(seconds=30)  # Start first job in 30 seconds\nfor job_id, job_name in JOB_ORDER:\n    duration = durations[job_id] if durations[job_id] is not None else DEFAULT_DURATION\n    run_times[job_id] = current_time\n    current_time += timedelta(seconds=duration + BUFFER_SECONDS)  # Add duration + buffer\n# Log the planned schedule\nfor job_id, job_name in JOB_ORDER:\n    logging.info(f\"Scheduled {job_name} to start at {run_times[job_id]} (estimated duration: {durations[job_id] or DEFAULT_DURATION}s)\")",
+        "detail": "backend.tester2",
+        "documentation": {}
+    },
+    {
+        "label": "run_times",
+        "kind": 5,
+        "importPath": "backend.tester2",
+        "description": "backend.tester2",
+        "peekOfCode": "run_times = {}\ncurrent_time = datetime.now() + timedelta(seconds=30)  # Start first job in 30 seconds\nfor job_id, job_name in JOB_ORDER:\n    duration = durations[job_id] if durations[job_id] is not None else DEFAULT_DURATION\n    run_times[job_id] = current_time\n    current_time += timedelta(seconds=duration + BUFFER_SECONDS)  # Add duration + buffer\n# Log the planned schedule\nfor job_id, job_name in JOB_ORDER:\n    logging.info(f\"Scheduled {job_name} to start at {run_times[job_id]} (estimated duration: {durations[job_id] or DEFAULT_DURATION}s)\")\n# Test scheduler class",
+        "detail": "backend.tester2",
+        "documentation": {}
+    },
+    {
+        "label": "current_time",
+        "kind": 5,
+        "importPath": "backend.tester2",
+        "description": "backend.tester2",
+        "peekOfCode": "current_time = datetime.now() + timedelta(seconds=30)  # Start first job in 30 seconds\nfor job_id, job_name in JOB_ORDER:\n    duration = durations[job_id] if durations[job_id] is not None else DEFAULT_DURATION\n    run_times[job_id] = current_time\n    current_time += timedelta(seconds=duration + BUFFER_SECONDS)  # Add duration + buffer\n# Log the planned schedule\nfor job_id, job_name in JOB_ORDER:\n    logging.info(f\"Scheduled {job_name} to start at {run_times[job_id]} (estimated duration: {durations[job_id] or DEFAULT_DURATION}s)\")\n# Test scheduler class\nclass TestCoinScheduler(CoinScheduler):",
+        "detail": "backend.tester2",
         "documentation": {}
     },
     {

@@ -72,7 +72,15 @@ class CoinScheduler:
         """Update the execution log for a job with last and next execution times."""
         log_data = self.load_execution_log()
         job = self.scheduler.get_job(job_id)
-        next_execution = job.next_run_time.isoformat() if job and job.next_run_time else None
+        if job:
+            next_run_time = job.next_run_time
+            if next_run_time is None and last_execution:
+                # Calculate next run time manually using the job's trigger
+                now = datetime.now(job.trigger.timezone)
+                next_run_time = job.trigger.get_next_fire_time(last_execution, now)
+            next_execution = next_run_time.isoformat() if next_run_time else None
+        else:
+            next_execution = None
 
         log_data[job_id] = {
             "job_name": job_name,
@@ -85,19 +93,19 @@ class CoinScheduler:
         """Extract top coins and save them to a JSON file."""
         logging.info("Starting daily top coins extraction")
         try:
-            top_coins = self.extractor.extract_top_coins()
+            top_coins = self.extractor.fetch_coin_data()  # Use the correct method name
             saved_file = self.extractor.save_to_json(top_coins)
             message = f"Saved top coins to: {saved_file}"
             logging.info(message)
             print(message)
-            # Update execution log on successful completion
+            # Update execution log if applicable
             self.update_execution_log("top_coins", "Top Coins Extraction", last_execution=datetime.now())
         except Exception as e:
             logging.error(f"Error during top coins extraction: {e}")
             print(f"Error: {e}")
 
-    def _daily_coin_history(self):
-        """Load top coins and extract historical data for each slug."""
+    def _daily_coin_history(self, limit=None):
+        """Load top coins and extract historical data for a specified number of slugs."""
         logging.info("Starting daily coin history extraction")
         try:
             coins_data = self.extractor.load_most_recent_data()
@@ -105,6 +113,10 @@ class CoinScheduler:
                 logging.warning("No top coins data found for history extraction")
                 print("No top coins data found. Run top coins extraction first.")
                 return
+
+            # Limit the number of coins to process if a limit is specified
+            if limit is not None:
+                coins_data = coins_data[:limit]
 
             for coin in coins_data:
                 slug = coin.get('slug')
@@ -224,7 +236,7 @@ class CoinScheduler:
             {
                 "id": "coin_history",
                 "name": "Coin History Extraction",
-                "func": self._daily_coin_history,
+                "func": lambda: self._daily_coin_history(limit=15),
                 "trigger": CronTrigger(hour=0, minute=20)
             },
             {

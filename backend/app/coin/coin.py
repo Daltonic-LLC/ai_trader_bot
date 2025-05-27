@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Query
 from app.services.coin_extractor import TopCoinsExtractor
 from app.services.capital_manager import CapitalManager
+from app.services.coin_scheduler import CoinScheduler
 from app.trader_bot.coin_trader import CoinTrader
 import logging
 
@@ -79,7 +80,7 @@ async def get_coin_report(coin: str):
         capital_manager = CapitalManager(coin=coin)
         trader = CoinTrader(coin=coin, override=True, capital_manager=capital_manager)
         report_data = trader.get_report(coin)
-        
+
         if report_data is None:
             logging.warning(f"No report found for coin {coin.upper()}")
             return {
@@ -101,5 +102,34 @@ async def get_coin_report(coin: str):
         return {
             "status": "Error",
             "message": f"Failed to retrieve report for {coin.upper()}: {str(e)}",
+            "data": {},
+        }
+
+
+@coin_router.get("/execution_log")
+async def get_execution_log():
+    """Retrieve the last execution details using the CoinScheduler."""
+    try:
+        scheduler = CoinScheduler()
+        execution_log = scheduler.load_execution_log()
+
+        if not execution_log:
+            logging.warning("Execution log is empty or not found.")
+            return {
+                "status": "Error",
+                "message": "Execution log is empty or not found.",
+                "data": {},
+            }
+
+        return {
+            "status": "Success",
+            "message": "Retrieved execution log successfully.",
+            "data": execution_log,
+        }
+    except Exception as e:
+        logging.error(f"Error retrieving execution log: {str(e)}")
+        return {
+            "status": "Error",
+            "message": f"Failed to retrieve execution log: {str(e)}",
             "data": {},
         }
