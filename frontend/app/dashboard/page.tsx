@@ -47,7 +47,7 @@ const DashboardPage: React.FC = () => {
         }
         if (setSelectedCoin) {
           setSelectedCoin(data.data[0] as Coin);
-          await getCoinReport(data.data[0].symbol)
+          await getCoinReport(data.data[0].name)
         }
       }
     })
@@ -62,14 +62,14 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-crypto-dark pt-20 px-6">
       <Header />
-      <div className="flex flex-col lg:flex-row justify-center lg:space-x-6 sm:w-2/3 mx-auto mt-10">
+      <div className="flex flex-col lg:flex-row justify-center lg:space-x-6 sm:w-4/5 mx-auto mt-10">
         {/* Left Section: Selector */}
-        <div className="lg:w-1/4">
+        <div className="lg:w-1/5">
           <CoinSelector
             coins={coins || []}
             selectedCoin={selectedCoin ?? null}
             onCoinChange={(coin: Coin | null) => {
-              if (coin) getCoinReport(coin.symbol);
+              if (coin) getCoinReport(coin.slug);
               if (setSelectedCoin) {
                 setSelectedCoin(coin);
               }
@@ -84,7 +84,7 @@ const DashboardPage: React.FC = () => {
           <CoinDetailsCard coin={selectedCoin ?? null} balances={user?.balances || null} />
         </div>
 
-        <div className="lg:w-1/4">
+        <div className="lg:w-1/3">
           <RecentTradeReportCard
             report={report || ''}
           />

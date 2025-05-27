@@ -17,7 +17,7 @@ const CoinDetailsCard: React.FC<CoinDetailsCardProps> = ({ coin, balances }) => 
 
     return (
         <div className="p-5 bg-crypto-gray rounded-xl shadow-lg border border-crypto-blue/30 hover:border-crypto-blue transition-all">
-            <div className="bg-gradient-to-r from-crypto-blue to-crypto-green text-white p-4 rounded-t-xl">
+            <div className="bg-gradient-to-r from-crypto-blue to-crypto-green text-white py-4 rounded-t-xl">
                 <h2 className="text-xl font-semibold">
                     {`${coin.name} (${balances &&
                         balances[coin.symbol] &&

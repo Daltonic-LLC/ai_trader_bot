@@ -33,14 +33,15 @@ const RecentTradeReportCard: React.FC<TradeReportCardProps> = ({ report }) => {
     let inTradeDetails = false;
 
     for (let i = 1; i < lines.length; i++) {
-        if (lines[i].startsWith('Trade Details:')) {
+        const trimmedLine = lines[i].trim(); // Remove leading and trailing spaces
+        if (trimmedLine.startsWith('Trade Details:')) {
             inTradeDetails = true;
             continue;
         }
         if (inTradeDetails) {
-            tradeDetails.push(lines[i]);
-        } else if (lines[i].startsWith('- ')) {
-            bulletPoints.push(lines[i].substring(2)); // Remove "- "
+            tradeDetails.push(lines[i]); // Keep original line to preserve formatting
+        } else if (trimmedLine.startsWith('- ')) {
+            bulletPoints.push(trimmedLine.substring(2)); // Remove "- " from trimmed line
         }
     }
 
@@ -51,31 +52,40 @@ const RecentTradeReportCard: React.FC<TradeReportCardProps> = ({ report }) => {
     });
 
     return (
-        <div className="p-5 bg-crypto-gray rounded-xl shadow-lg border border-crypto-blue/30 hover:border-crypto-blue transition-all">
-            {/* Header with coin name */}
-            <div className="bg-gradient-to-r from-crypto-blue to-crypto-green text-white p-4 rounded-t-xl">
-                <h2 className="text-xl font-semibold">{`${coinName} Trade Report`}</h2>
-            </div>
+        <div className="p-5 bg-crypto-gray rounded-xl shadow-lg border border-crypto-blue/30
+        hover:border-crypto-blue transition-all relative">
+            <div className='max-h-90 overflow-y-auto'>
 
-            {/* Bullet points section */}
-            <div className="mt-4 space-y-3">
-                <ul className="space-y-2">
-                    {parsedBulletPoints.map(({ key, value }, index) => (
-                        <li key={index} className="flex justify-between items-center text-gray-300">
-                            <span>{key}</span>
-                            <span className="font-medium text-white">{value}</span>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-
-            {/* Trade details section */}
-            {tradeDetails.length > 0 && (
-                <div className="mt-4">
-                    <h3 className="text-lg font-medium text-white">Trade Details:</h3>
-                    <pre className="text-sm text-gray-300 whitespace-pre-wrap">{tradeDetails.join('\n')}</pre>
+                {/* Header with coin name */}
+                <div className="bg-gradient-to-r from-crypto-blue to-crypto-green text-white py-4 rounded-t-xl">
+                    <h2 className="text-xl font-semibold">{`${coinName} Trade Report`}</h2>
                 </div>
-            )}
+
+                {/* Bullet points section */}
+                <div className="mt-4 space-y-3">
+                    <ul className="space-y-2">
+                        {parsedBulletPoints.map(({ key, value }, index) => (
+                            <li key={index} className="flex justify-between items-center text-gray-300">
+                                <span>{key}</span>
+                                <span className="font-medium text-white">{value}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                {/* Trade details section */}
+                {tradeDetails.length > 0 && (
+                    <div className="mt-4">
+                        <h3 className="text-lg font-medium text-white">Trade Details:</h3>
+                        <pre className="text-sm text-gray-300 whitespace-pre-wrap">{tradeDetails.join('\n')}</pre>
+                    </div>
+                )}
+
+            </div>
+            {/* Scroll indicator */}
+            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-gray-400 text-xs pt-3">
+                Scroll for more
+            </div>
         </div>
     );
 };
