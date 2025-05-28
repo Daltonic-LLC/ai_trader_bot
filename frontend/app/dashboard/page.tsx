@@ -10,12 +10,15 @@ import RecentTradeReportCard from '@/components/RecentTradeReport';
 import WithdrawModal from '@/components/WithdrawModal';
 import { useGlobalContext } from '@/contexts/GlobalContext';
 import { useAuth } from '@/hooks/userAuth';
-import { fetchCoinReport, fetchCoins } from '@/utils/api';
-import { Coin } from '@/utils/interfaces';
+import { fetchCoinReport, fetchCoins, fetchExecutionLog } from '@/utils/api';
+import { Coin, ExecutionLog } from '@/utils/interfaces';
 import React, { useEffect } from 'react';
 
 const DashboardPage: React.FC = () => {
   const [report, setReport] = React.useState<string | null>(null);
+  const [lastTrade, setLastTrade] = React.useState<ExecutionLog | null>(null);
+  const [lastReport, setLastReport] = React.useState<ExecutionLog | null>(null);
+
   const {
     isDepositOpen,
     setIsDepositOpen,
@@ -28,6 +31,14 @@ const DashboardPage: React.FC = () => {
   } = useGlobalContext();
 
   const { user, checkAuth } = useAuth()
+
+  const getExecutionLog = async () => {
+    const log = await fetchExecutionLog();
+    if (log.data && Object.keys(log.data).length > 0) {
+      setLastTrade(log.data.data_cleanup);
+      setLastReport(log.data.coin_history);
+    }
+  }
 
   const getCoinReport = async (coin: string) => {
     const report = await fetchCoinReport(coin)
@@ -47,7 +58,7 @@ const DashboardPage: React.FC = () => {
         }
         if (setSelectedCoin) {
           setSelectedCoin(data.data[0] as Coin);
-          await getCoinReport(data.data[0].name)
+          await getCoinReport(data.data[0].slug)
         }
       }
     })
@@ -57,6 +68,7 @@ const DashboardPage: React.FC = () => {
 
   useEffect(() => {
     getCoins()
+    getExecutionLog()
   }, []);
 
   return (
@@ -81,12 +93,12 @@ const DashboardPage: React.FC = () => {
 
         {/* Right Section: Coin Details */}
         <div className="flex-1 mt-6 lg:mt-0">
-          <CoinDetailsCard coin={selectedCoin ?? null} balances={user?.balances || null} />
+          <CoinDetailsCard coin={selectedCoin ?? null} balances={user?.balances || null} executionLog={lastTrade || null} />
         </div>
 
         <div className="lg:w-1/3">
           <RecentTradeReportCard
-            report={report || ''}
+            report={report || ''} executionLog={lastReport || null}
           />
         </div>
       </div>

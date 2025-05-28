@@ -57,3 +57,18 @@ export const fetchCoinReport = async (coin: string) => {
     throw error
   }
 }
+
+export const fetchExecutionLog = async () => {
+  try {
+    const response = await fetch(`${BASE_URL}/coin/execution_log`)
+
+    if (!response.ok) {
+      throw new Error('Failed to retrieve coin report')
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching coin report:', error)
+    throw error
+  }
+}

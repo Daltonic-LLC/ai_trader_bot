@@ -71,35 +71,66 @@ class CoinScheduler:
     def update_execution_log(self, job_id, job_name, last_execution=None):
         """Update the execution log for a job with last and next execution times."""
         log_data = self.load_execution_log()
-        job = self.scheduler.get_job(job_id)
-        if job:
-            next_run_time = job.next_run_time
-            if next_run_time is None and last_execution:
-                # Calculate next run time manually using the job's trigger
-                now = datetime.now(job.trigger.timezone)
-                next_run_time = job.trigger.get_next_fire_time(last_execution, now)
-            next_execution = next_run_time.isoformat() if next_run_time else None
-        else:
-            next_execution = None
-
+        
+        # Update last execution time
         log_data[job_id] = {
             "job_name": job_name,
             "last_execution": last_execution.isoformat() if last_execution else log_data.get(job_id, {}).get("last_execution"),
-            "next_execution": next_execution
+            "next_execution": log_data.get(job_id, {}).get("next_execution")  # Keep existing value for now
         }
+        
+        # Get fresh next execution time from scheduler
+        job = self.scheduler.get_job(job_id)
+        if job and job.next_run_time:
+            log_data[job_id]["next_execution"] = job.next_run_time.isoformat()
+        elif job and job.trigger:
+            # Calculate next run time manually if not available
+            try:
+                now = datetime.now()
+                if hasattr(job.trigger, 'timezone') and job.trigger.timezone:
+                    now = now.replace(tzinfo=job.trigger.timezone)
+                
+                next_run_time = job.trigger.get_next_fire_time(
+                    previous_fire_time=last_execution or now,
+                    now=now
+                )
+                if next_run_time:
+                    log_data[job_id]["next_execution"] = next_run_time.isoformat()
+            except Exception as e:
+                logging.warning(f"Could not calculate next execution time for {job_id}: {e}")
+        
         self.save_execution_log(log_data)
 
+    def refresh_execution_log(self):
+        """Refresh the execution log with current scheduler state for all jobs."""
+        log_data = self.load_execution_log()
+        
+        for job in self.scheduler.get_jobs():
+            job_id = job.id
+            if job_id in log_data:
+                if job.next_run_time:
+                    log_data[job_id]["next_execution"] = job.next_run_time.isoformat()
+                    logging.info(f"Updated next execution for {job_id}: {job.next_run_time}")
+        
+        self.save_execution_log(log_data)
+
+    # Example of how to modify your job methods:
     def _daily_top_coin_list(self):
         """Extract top coins and save them to a JSON file."""
         logging.info("Starting daily top coins extraction")
         try:
-            top_coins = self.extractor.fetch_coin_data()  # Use the correct method name
+            top_coins = self.extractor.fetch_coin_data()
             saved_file = self.extractor.save_to_json(top_coins)
             message = f"Saved top coins to: {saved_file}"
             logging.info(message)
             print(message)
-            # Update execution log if applicable
+            
+            # Update execution log
             self.update_execution_log("top_coins", "Top Coins Extraction", last_execution=datetime.now())
+            
+            # Refresh to get the latest next execution time
+            self.refresh_execution_log()
+            
         except Exception as e:
             logging.error(f"Error during top coins extraction: {e}")
             print(f"Error: {e}")
@@ -135,8 +166,13 @@ class CoinScheduler:
                     print(f"Error extracting history for {slug}: {e}")
 
             logging.info("Completed coin history extraction")
+            
             # Update execution log on successful completion
             self.update_execution_log("coin_history", "Coin History Extraction", last_execution=datetime.now())
+            
+            # Refresh to get the latest next execution time
+            self.refresh_execution_log()
+            
         except Exception as e:
             logging.error(f"Error during coin history job: {e}")
             print(f"Error in coin history job: {e}")
@@ -168,8 +204,13 @@ class CoinScheduler:
                     print(f"Error processing news sentiment for {slug}: {e}")
 
             logging.info("Completed news sentiment extraction")
+            
             # Update execution log on successful completion
             self.update_execution_log("news_sentiment", "News Sentiment Extraction", last_execution=datetime.now())
+            
+            # Refresh to get the latest next execution time
+            self.refresh_execution_log()
+            
         except Exception as e:
             logging.error(f"Error during news sentiment job: {e}")
             print(f"Error in news sentiment job: {e}")
@@ -205,8 +246,13 @@ class CoinScheduler:
                     print(f"Error fetching stats for {slug}: {e}")
 
             logging.info("Completed coin prices update")
+            
             # Update execution log on successful completion
             self.update_execution_log("coin_prices", "Coin Prices Update", last_execution=datetime.now())
+            
+            # Refresh to get the latest next execution time
+            self.refresh_execution_log()
+            
         except Exception as e:
             logging.error(f"Error during coin prices job: {e}")
             print(f"Error in coin prices job: {e}")
@@ -217,8 +263,13 @@ class CoinScheduler:
         try:
             self.cleaner.clean_timestamped_files()
             logging.info("Completed daily data cleanup")
+            
             # Update execution log on successful completion
             self.update_execution_log("data_cleanup", "Data Cleanup", last_execution=datetime.now())
+            
+            # Refresh to get the latest next execution time
+            self.refresh_execution_log()
+            
         except Exception as e:
             logging.error(f"Error during data cleanup: {e}")
             print(f"Error during data cleanup: {e}")

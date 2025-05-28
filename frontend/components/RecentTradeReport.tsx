@@ -2,9 +2,14 @@ import React from 'react';
 
 interface TradeReportCardProps {
     report: string | null;
+    executionLog?: {
+        job_name: string;
+        last_execution: string;
+        next_execution: string;
+    } | null;
 }
 
-const RecentTradeReportCard: React.FC<TradeReportCardProps> = ({ report }) => {
+const RecentTradeReportCard: React.FC<TradeReportCardProps> = ({ report, executionLog }) => {
     // Handle case where no report is provided
     if (!report) {
         return (
@@ -57,8 +62,14 @@ const RecentTradeReportCard: React.FC<TradeReportCardProps> = ({ report }) => {
             <div className='max-h-90 overflow-y-auto'>
 
                 {/* Header with coin name */}
-                <div className="bg-gradient-to-r from-crypto-blue to-crypto-green text-white py-4 rounded-t-xl">
+                <div className="flex justify-between items-center bg-gradient-to-r from-crypto-blue to-crypto-green text-white py-4 rounded-t-xl">
                     <h2 className="text-xl font-semibold">{`${coinName} Trade Report`}</h2>
+
+                    <h4 className="text-sm text-gray-300">
+                        {executionLog?.last_execution
+                            ? new Date(executionLog.last_execution).toLocaleString()
+                            : 'N/A'}
+                    </h4>
                 </div>
 
                 {/* Bullet points section */}
