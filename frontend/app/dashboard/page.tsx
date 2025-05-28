@@ -35,8 +35,8 @@ const DashboardPage: React.FC = () => {
   const getExecutionLog = async () => {
     const log = await fetchExecutionLog();
     if (log.data && Object.keys(log.data).length > 0) {
-      setLastTrade(log.data.data_cleanup);
-      setLastReport(log.data.coin_history);
+      setLastTrade(log.data.coin_prices);
+      setLastReport(log.data.news_sentiment);
     }
   }
 

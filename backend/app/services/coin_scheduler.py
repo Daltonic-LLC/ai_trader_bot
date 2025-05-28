@@ -177,8 +177,11 @@ class CoinScheduler:
             logging.error(f"Error during coin history job: {e}")
             print(f"Error in coin history job: {e}")
 
-    def _daily_news_sentiment(self):
+    def _daily_news_sentiment(self, limit=None):
         """Load top coins and fetch news sentiment for each slug."""
+        # Log start of execution immediately
+        self.update_execution_log("news_sentiment", "News Sentiment Extraction", last_execution=datetime.now())
+        
         logging.info("Starting daily news sentiment extraction")
         try:
             coins_data = self.extractor.load_most_recent_data()
@@ -187,6 +190,10 @@ class CoinScheduler:
                 print("No top coins data found. Run top coins extraction first.")
                 return
 
+            # Limit the number of coins to process if a limit is specified
+            if limit is not None:
+                coins_data = coins_data[:limit]
+                
             for coin in coins_data:
                 slug = coin.get('slug')
                 if not slug or slug == "N/A":
@@ -205,18 +212,20 @@ class CoinScheduler:
 
             logging.info("Completed news sentiment extraction")
             
-            # Update execution log on successful completion
-            self.update_execution_log("news_sentiment", "News Sentiment Extraction", last_execution=datetime.now())
-            
             # Refresh to get the latest next execution time
             self.refresh_execution_log()
             
         except Exception as e:
             logging.error(f"Error during news sentiment job: {e}")
             print(f"Error in news sentiment job: {e}")
+            # Still update the log even if there was an error
+            self.refresh_execution_log()
 
-    def _daily_coin_prices(self):
+    def _daily_coin_prices(self, limit=None):
         """Load top coins and fetch latest prices."""
+        # Log start of execution immediately
+        self.update_execution_log("coin_prices", "Coin Prices Update", last_execution=datetime.now())
+        
         logging.info("Starting coin prices update")
         try:
             coins_data = self.extractor.load_most_recent_data()
@@ -225,6 +234,10 @@ class CoinScheduler:
                 print("No top coins data found. Run top coins extraction first.")
                 return
 
+            # Limit the number of coins to process if a limit is specified
+            if limit is not None:
+                coins_data = coins_data[:limit]
+                
             for coin in coins_data:
                 slug = coin.get('slug')
                 if not slug or slug == "N/A":
@@ -247,15 +260,14 @@ class CoinScheduler:
 
             logging.info("Completed coin prices update")
             
-            # Update execution log on successful completion
-            self.update_execution_log("coin_prices", "Coin Prices Update", last_execution=datetime.now())
-            
             # Refresh to get the latest next execution time
             self.refresh_execution_log()
             
         except Exception as e:
             logging.error(f"Error during coin prices job: {e}")
             print(f"Error in coin prices job: {e}")
+            # Still update the log even if there was an error
+            self.refresh_execution_log()
 
     def _daily_data_cleaner(self):
         """Clean up duplicate files in the data directory."""

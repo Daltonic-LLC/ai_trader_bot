@@ -1585,7 +1585,16 @@
         "kind": 6,
         "importPath": "backend.tester2",
         "description": "backend.tester2",
-        "peekOfCode": "class TestCoinScheduler(CoinScheduler):\n    def __init__(self, log_file='scheduler_test.log'):\n        super().__init__(log_file)\n        self.scheduler = BackgroundScheduler(executors={'default': ThreadPoolExecutor(max_workers=1)})  # Use APScheduler's ThreadPoolExecutor\n    def configure_jobs(self):\n        \"\"\"Configure jobs to run once at dynamically calculated times.\"\"\"\n        # self.scheduler.add_job(\n        #     self._daily_top_coin_list,\n        #     DateTrigger(run_date=run_times['top_coins']),\n        #     id='top_coins',",
+        "peekOfCode": "class TestCoinScheduler(CoinScheduler):\n    def __init__(self, log_file='scheduler_test.log'):\n        super().__init__(log_file)\n        # FIXED: Allow multiple workers so jobs can run in parallel\n        self.scheduler = BackgroundScheduler(\n            executors={'default': ThreadPoolExecutor(max_workers=5)},  # Allow up to 5 concurrent jobs\n            job_defaults={\n                'coalesce': False,  # Don't skip missed jobs\n                'max_instances': 1,  # Only one instance of each job at a time\n                'misfire_grace_time': 300  # Allow 5 minutes grace period for missed jobs",
+        "detail": "backend.tester2",
+        "documentation": {}
+    },
+    {
+        "label": "SequentialTestScheduler",
+        "kind": 6,
+        "importPath": "backend.tester2",
+        "description": "backend.tester2",
+        "peekOfCode": "class SequentialTestScheduler(CoinScheduler):\n    def __init__(self, log_file='scheduler_test.log'):\n        super().__init__(log_file)\n        self.scheduler = BackgroundScheduler(\n            executors={'default': ThreadPoolExecutor(max_workers=1)},\n            job_defaults={\n                'coalesce': False,\n                'max_instances': 1,\n                'misfire_grace_time': 600  # 10 minutes grace period\n            }",
         "detail": "backend.tester2",
         "documentation": {}
     },
@@ -1594,7 +1603,7 @@
         "kind": 2,
         "importPath": "backend.tester2",
         "description": "backend.tester2",
-        "peekOfCode": "def load_execution_durations():\n    \"\"\"Load execution durations from execution_log.json.\"\"\"\n    if os.path.exists(EXECUTION_LOG_FILE):\n        try:\n            with open(EXECUTION_LOG_FILE, 'r') as f:\n                log_data = json.load(f)\n                # Return durations for each job (in seconds) or None if not available\n                return {\n                    'top_coins': log_data.get('top_coins', {}).get('execution_duration'),\n                    'coin_history': log_data.get('coin_history', {}).get('execution_duration'),",
+        "peekOfCode": "def load_execution_durations():\n    \"\"\"Load execution durations from execution_log.json.\"\"\"\n    if os.path.exists(EXECUTION_LOG_FILE):\n        try:\n            with open(EXECUTION_LOG_FILE, 'r') as f:\n                log_data = json.load(f)\n                return {\n                    'top_coins': log_data.get('top_coins', {}).get('execution_duration'),\n                    'coin_history': log_data.get('coin_history', {}).get('execution_duration'),\n                    'news_sentiment': log_data.get('news_sentiment', {}).get('execution_duration'),",
         "detail": "backend.tester2",
         "documentation": {}
     },
@@ -1603,61 +1612,7 @@
         "kind": 5,
         "importPath": "backend.tester2",
         "description": "backend.tester2",
-        "peekOfCode": "EXECUTION_LOG_FILE = 'data/scheduler/execution_log.json'\ndef load_execution_durations():\n    \"\"\"Load execution durations from execution_log.json.\"\"\"\n    if os.path.exists(EXECUTION_LOG_FILE):\n        try:\n            with open(EXECUTION_LOG_FILE, 'r') as f:\n                log_data = json.load(f)\n                # Return durations for each job (in seconds) or None if not available\n                return {\n                    'top_coins': log_data.get('top_coins', {}).get('execution_duration'),",
-        "detail": "backend.tester2",
-        "documentation": {}
-    },
-    {
-        "label": "JOB_ORDER",
-        "kind": 5,
-        "importPath": "backend.tester2",
-        "description": "backend.tester2",
-        "peekOfCode": "JOB_ORDER = [\n    ('top_coins', 'Top Coins Extraction'),\n    ('coin_history', 'Coin History Extraction'),\n    ('news_sentiment', 'News Sentiment Extraction'),\n    ('coin_prices', 'Coin Prices Update'),\n    ('data_cleanup', 'Data Cleanup'),\n]\nDEFAULT_DURATION = 60  # Default duration for jobs with no prior run\nBUFFER_SECONDS = 10    # Buffer between jobs to avoid overlap\n# Calculate run times based on previous durations",
-        "detail": "backend.tester2",
-        "documentation": {}
-    },
-    {
-        "label": "DEFAULT_DURATION",
-        "kind": 5,
-        "importPath": "backend.tester2",
-        "description": "backend.tester2",
-        "peekOfCode": "DEFAULT_DURATION = 60  # Default duration for jobs with no prior run\nBUFFER_SECONDS = 10    # Buffer between jobs to avoid overlap\n# Calculate run times based on previous durations\ndurations = load_execution_durations()\nrun_times = {}\ncurrent_time = datetime.now() + timedelta(seconds=30)  # Start first job in 30 seconds\nfor job_id, job_name in JOB_ORDER:\n    duration = durations[job_id] if durations[job_id] is not None else DEFAULT_DURATION\n    run_times[job_id] = current_time\n    current_time += timedelta(seconds=duration + BUFFER_SECONDS)  # Add duration + buffer",
-        "detail": "backend.tester2",
-        "documentation": {}
-    },
-    {
-        "label": "BUFFER_SECONDS",
-        "kind": 5,
-        "importPath": "backend.tester2",
-        "description": "backend.tester2",
-        "peekOfCode": "BUFFER_SECONDS = 10    # Buffer between jobs to avoid overlap\n# Calculate run times based on previous durations\ndurations = load_execution_durations()\nrun_times = {}\ncurrent_time = datetime.now() + timedelta(seconds=30)  # Start first job in 30 seconds\nfor job_id, job_name in JOB_ORDER:\n    duration = durations[job_id] if durations[job_id] is not None else DEFAULT_DURATION\n    run_times[job_id] = current_time\n    current_time += timedelta(seconds=duration + BUFFER_SECONDS)  # Add duration + buffer\n# Log the planned schedule",
-        "detail": "backend.tester2",
-        "documentation": {}
-    },
-    {
-        "label": "durations",
-        "kind": 5,
-        "importPath": "backend.tester2",
-        "description": "backend.tester2",
-        "peekOfCode": "durations = load_execution_durations()\nrun_times = {}\ncurrent_time = datetime.now() + timedelta(seconds=30)  # Start first job in 30 seconds\nfor job_id, job_name in JOB_ORDER:\n    duration = durations[job_id] if durations[job_id] is not None else DEFAULT_DURATION\n    run_times[job_id] = current_time\n    current_time += timedelta(seconds=duration + BUFFER_SECONDS)  # Add duration + buffer\n# Log the planned schedule\nfor job_id, job_name in JOB_ORDER:\n    logging.info(f\"Scheduled {job_name} to start at {run_times[job_id]} (estimated duration: {durations[job_id] or DEFAULT_DURATION}s)\")",
-        "detail": "backend.tester2",
-        "documentation": {}
-    },
-    {
-        "label": "run_times",
-        "kind": 5,
-        "importPath": "backend.tester2",
-        "description": "backend.tester2",
-        "peekOfCode": "run_times = {}\ncurrent_time = datetime.now() + timedelta(seconds=30)  # Start first job in 30 seconds\nfor job_id, job_name in JOB_ORDER:\n    duration = durations[job_id] if durations[job_id] is not None else DEFAULT_DURATION\n    run_times[job_id] = current_time\n    current_time += timedelta(seconds=duration + BUFFER_SECONDS)  # Add duration + buffer\n# Log the planned schedule\nfor job_id, job_name in JOB_ORDER:\n    logging.info(f\"Scheduled {job_name} to start at {run_times[job_id]} (estimated duration: {durations[job_id] or DEFAULT_DURATION}s)\")\n# Test scheduler class",
-        "detail": "backend.tester2",
-        "documentation": {}
-    },
-    {
-        "label": "current_time",
-        "kind": 5,
-        "importPath": "backend.tester2",
-        "description": "backend.tester2",
-        "peekOfCode": "current_time = datetime.now() + timedelta(seconds=30)  # Start first job in 30 seconds\nfor job_id, job_name in JOB_ORDER:\n    duration = durations[job_id] if durations[job_id] is not None else DEFAULT_DURATION\n    run_times[job_id] = current_time\n    current_time += timedelta(seconds=duration + BUFFER_SECONDS)  # Add duration + buffer\n# Log the planned schedule\nfor job_id, job_name in JOB_ORDER:\n    logging.info(f\"Scheduled {job_name} to start at {run_times[job_id]} (estimated duration: {durations[job_id] or DEFAULT_DURATION}s)\")\n# Test scheduler class\nclass TestCoinScheduler(CoinScheduler):",
+        "peekOfCode": "EXECUTION_LOG_FILE = 'data/scheduler/execution_log.json'\ndef load_execution_durations():\n    \"\"\"Load execution durations from execution_log.json.\"\"\"\n    if os.path.exists(EXECUTION_LOG_FILE):\n        try:\n            with open(EXECUTION_LOG_FILE, 'r') as f:\n                log_data = json.load(f)\n                return {\n                    'top_coins': log_data.get('top_coins', {}).get('execution_duration'),\n                    'coin_history': log_data.get('coin_history', {}).get('execution_duration'),",
         "detail": "backend.tester2",
         "documentation": {}
     },

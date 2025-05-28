@@ -1,7 +1,7 @@
 from app.services.coin_scheduler import CoinScheduler
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.executors.pool import ThreadPoolExecutor  # Use APScheduler's ThreadPoolExecutor
+from apscheduler.executors.pool import ThreadPoolExecutor
 from datetime import datetime, timedelta
 import time
 import logging
@@ -20,7 +20,6 @@ def load_execution_durations():
         try:
             with open(EXECUTION_LOG_FILE, 'r') as f:
                 log_data = json.load(f)
-                # Return durations for each job (in seconds) or None if not available
                 return {
                     'top_coins': log_data.get('top_coins', {}).get('execution_duration'),
                     'coin_history': log_data.get('coin_history', {}).get('execution_duration'),
@@ -38,81 +37,136 @@ def load_execution_durations():
         'data_cleanup': None,
     }
 
-# Define job order and default durations (in seconds) if no prior data
-JOB_ORDER = [
-    ('top_coins', 'Top Coins Extraction'),
-    ('coin_history', 'Coin History Extraction'),
-    ('news_sentiment', 'News Sentiment Extraction'),
-    ('coin_prices', 'Coin Prices Update'),
-    ('data_cleanup', 'Data Cleanup'),
-]
-DEFAULT_DURATION = 60  # Default duration for jobs with no prior run
-BUFFER_SECONDS = 10    # Buffer between jobs to avoid overlap
-
-# Calculate run times based on previous durations
-durations = load_execution_durations()
-run_times = {}
-current_time = datetime.now() + timedelta(seconds=30)  # Start first job in 30 seconds
-for job_id, job_name in JOB_ORDER:
-    duration = durations[job_id] if durations[job_id] is not None else DEFAULT_DURATION
-    run_times[job_id] = current_time
-    current_time += timedelta(seconds=duration + BUFFER_SECONDS)  # Add duration + buffer
-
-# Log the planned schedule
-for job_id, job_name in JOB_ORDER:
-    logging.info(f"Scheduled {job_name} to start at {run_times[job_id]} (estimated duration: {durations[job_id] or DEFAULT_DURATION}s)")
-
-# Test scheduler class
+# Test scheduler class with parallel execution capability
 class TestCoinScheduler(CoinScheduler):
     def __init__(self, log_file='scheduler_test.log'):
         super().__init__(log_file)
-        self.scheduler = BackgroundScheduler(executors={'default': ThreadPoolExecutor(max_workers=1)})  # Use APScheduler's ThreadPoolExecutor
+        # FIXED: Allow multiple workers so jobs can run in parallel
+        self.scheduler = BackgroundScheduler(
+            executors={'default': ThreadPoolExecutor(max_workers=5)},  # Allow up to 5 concurrent jobs
+            job_defaults={
+                'coalesce': False,  # Don't skip missed jobs
+                'max_instances': 1,  # Only one instance of each job at a time
+                'misfire_grace_time': 300  # Allow 5 minutes grace period for missed jobs
+            }
+        )
 
     def configure_jobs(self):
-        """Configure jobs to run once at dynamically calculated times."""
-        # self.scheduler.add_job(
-        #     self._daily_top_coin_list,
-        #     DateTrigger(run_date=run_times['top_coins']),
-        #     id='top_coins',
-        #     name='Top Coins Extraction'
-        # )
+        """Configure jobs to run once, allowing for parallel execution."""
+        # Start all jobs with minimal delays to allow parallel execution
+        base_time = datetime.now() + timedelta(seconds=30)
+        
+        # Option 1: All jobs start at the same time (fully parallel)
+        self.scheduler.add_job(
+            self._daily_top_coin_list,
+            DateTrigger(run_date=base_time),
+            id='top_coins',
+            name='Top Coins Extraction'
+        )
+        
+        # Start dependent jobs slightly later to ensure top_coins completes first
         self.scheduler.add_job(
             self._daily_coin_history,
-            DateTrigger(run_date=run_times['coin_history']),
+            DateTrigger(run_date=base_time + timedelta(seconds=30)),  # 30 seconds after top_coins
             id='coin_history',
             name='Coin History Extraction',
-            kwargs={'limit': 15}  # Pass the 'limit' parameter here
+            kwargs={'limit': 1}
         )
+        
+        # These can run in parallel with coin_history
         self.scheduler.add_job(
             self._daily_news_sentiment,
-            DateTrigger(run_date=run_times['news_sentiment']),
+            DateTrigger(run_date=base_time + timedelta(seconds=35)),  # 35 seconds after top_coins
             id='news_sentiment',
             name='News Sentiment Extraction'
         )
+        
         self.scheduler.add_job(
             self._daily_coin_prices,
-            DateTrigger(run_date=run_times['coin_prices']),
+            DateTrigger(run_date=base_time + timedelta(seconds=40)),  # 40 seconds after top_coins
             id='coin_prices',
             name='Coin Prices Update'
         )
+        
+        # Data cleanup can run independently
         self.scheduler.add_job(
             self._daily_data_cleaner,
-            DateTrigger(run_date=run_times['data_cleanup']),
+            DateTrigger(run_date=base_time + timedelta(seconds=45)),
             id='data_cleanup',
             name='Data Cleanup'
         )
-        logging.info("Test scheduler jobs configured to run sequentially")
+        
+        logging.info("Test scheduler jobs configured for parallel execution")
+        
+        # Log the schedule
+        for job in self.scheduler.get_jobs():
+            logging.info(f"Scheduled {job.name} at {job.next_run_time}")
+
+# Alternative approach: Sequential with proper timing
+class SequentialTestScheduler(CoinScheduler):
+    def __init__(self, log_file='scheduler_test.log'):
+        super().__init__(log_file)
+        self.scheduler = BackgroundScheduler(
+            executors={'default': ThreadPoolExecutor(max_workers=1)},
+            job_defaults={
+                'coalesce': False,
+                'max_instances': 1,
+                'misfire_grace_time': 600  # 10 minutes grace period
+            }
+        )
+
+    def configure_jobs(self):
+        """Configure jobs to run sequentially with proper timing based on actual durations."""
+        # Use realistic durations based on your logs
+        durations = {
+            'top_coins': 30,      # ~17 seconds actual + buffer
+            'coin_history': 180,  # ~162 seconds actual + buffer  
+            'news_sentiment': 60, # Estimated
+            'coin_prices': 60,    # Estimated
+            'data_cleanup': 30    # ~5 seconds actual + buffer
+        }
+        
+        base_time = datetime.now() + timedelta(seconds=30)
+        current_time = base_time
+        
+        jobs_config = [
+            ('top_coins', 'Top Coins Extraction', self._daily_top_coin_list, {}),
+            ('coin_history', 'Coin History Extraction', self._daily_coin_history, {'limit': 1}),
+            ('news_sentiment', 'News Sentiment Extraction', self._daily_news_sentiment, {'limit': 1}),
+            ('coin_prices', 'Coin Prices Update', self._daily_coin_prices, {'limit': 1}),
+            ('data_cleanup', 'Data Cleanup', self._daily_data_cleaner, {})
+        ]
+        
+        for job_id, job_name, job_func, job_kwargs in jobs_config:
+            self.scheduler.add_job(
+                job_func,
+                DateTrigger(run_date=current_time),
+                id=job_id,
+                name=job_name,
+                kwargs=job_kwargs
+            )
+            logging.info(f"Scheduled {job_name} at {current_time}")
+            current_time += timedelta(seconds=durations[job_id])
 
 # Run the scheduler
 if __name__ == "__main__":
-    test_scheduler = TestCoinScheduler()
+    print("Choose scheduler type:")
+    print("1. Parallel execution (faster, but may have resource conflicts)")
+    print("2. Sequential execution (safer, properly timed)")
+    
+    choice = input("Enter choice (1 or 2): ").strip()
+    
+    if choice == "1":
+        test_scheduler = TestCoinScheduler()
+        total_wait_time = 300  # 5 minutes should be enough for parallel execution
+    else:
+        test_scheduler = SequentialTestScheduler()
+        total_wait_time = 400  # Longer wait for sequential execution
+    
     test_scheduler.start()
     try:
-        # Calculate total wait time: last job start + max possible duration + buffer
-        last_start = max(run_times.values())
-        total_wait = (last_start - datetime.now()).total_seconds() + DEFAULT_DURATION + BUFFER_SECONDS
-        logging.info(f"Waiting {total_wait:.0f} seconds for all jobs to complete")
-        time.sleep(total_wait)
+        logging.info(f"Waiting {total_wait_time} seconds for all jobs to complete")
+        time.sleep(total_wait_time)
     except KeyboardInterrupt:
         print("Test interrupted by user")
     finally:
