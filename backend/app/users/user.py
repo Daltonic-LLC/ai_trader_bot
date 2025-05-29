@@ -285,7 +285,7 @@ async def deposit_balance(
             raise HTTPException(status_code=404, detail="User not found")
 
         # Step 2: Deposit to global trading capital
-        capital_manager.deposit(coin.lower(), amount)
+        capital_manager.deposit(user_id, coin.lower(), amount)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Deposit failed: {str(e)}")

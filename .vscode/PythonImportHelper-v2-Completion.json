@@ -337,6 +337,14 @@
         "documentation": {}
     },
     {
+        "label": "MongoUserService",
+        "importPath": "app.services.mongodb_service",
+        "description": "app.services.mongodb_service",
+        "isExtraImport": true,
+        "detail": "app.services.mongodb_service",
+        "documentation": {}
+    },
+    {
         "label": "time",
         "kind": 6,
         "isExtraImport": true,
@@ -1264,7 +1272,7 @@
         "kind": 6,
         "importPath": "backend.app.services.capital_manager",
         "description": "backend.app.services.capital_manager",
-        "peekOfCode": "class CapitalManager:\n    \"\"\"A singleton class to manage trading capital, positions, and trade records.\"\"\"\n    _instance = None\n    def __new__(cls, initial_capital=1000.0):\n        \"\"\"Ensure only one instance of CapitalManager exists.\"\"\"\n        if cls._instance is None:\n            cls._instance = super(CapitalManager, cls).__new__(cls)\n            cls._instance.mongo_service = MongoUserService()\n            cls._instance.initial_capital = initial_capital\n            cls._instance.capital = {}",
+        "peekOfCode": "class CapitalManager:\n    \"\"\"A singleton class to manage trading capital, positions, and trade records.\"\"\"\n    _instance = None\n    def __new__(cls, initial_capital=1000.0):\n        \"\"\"Ensure only one instance of CapitalManager exists.\"\"\"\n        if cls._instance is None:\n            cls._instance = super(CapitalManager, cls).__new__(cls)\n            cls._instance.mongo_service = MongoUserService()\n            cls._instance.initial_capital = initial_capital\n            cls._instance.capital = {}  # Current capital per coin",
         "detail": "backend.app.services.capital_manager",
         "documentation": {}
     },
@@ -1680,6 +1688,24 @@
         "description": "backend.tester3",
         "peekOfCode": "capital_manager = CapitalManager(initial_capital=1000.0)\n# Perform operations\n# capital_manager.deposit(\"bitcoin\", 500.0)\n# capital_manager.simulate_buy(\"bitcoin\", 0.01, 30000.0)\nprint(f\"Bitcoin position: {capital_manager.get_position('btc')}\")\nprint(f\"Bitcoin capital: {capital_manager.get_capital('btc')}\")",
         "detail": "backend.tester3",
+        "documentation": {}
+    },
+    {
+        "label": "mongo_service",
+        "kind": 5,
+        "importPath": "backend.tester4",
+        "description": "backend.tester4",
+        "peekOfCode": "mongo_service = MongoUserService()\nsuccess = mongo_service.clear_database(confirm=True)\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
+        "detail": "backend.tester4",
+        "documentation": {}
+    },
+    {
+        "label": "success",
+        "kind": 5,
+        "importPath": "backend.tester4",
+        "description": "backend.tester4",
+        "peekOfCode": "success = mongo_service.clear_database(confirm=True)\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
+        "detail": "backend.tester4",
         "documentation": {}
     },
     {

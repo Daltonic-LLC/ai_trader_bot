@@ -32,6 +32,10 @@ class CoinTrader:
         self.trading_fee = 0.001  # Assume 0.1% fee per trade
         self.stop_loss_percentage = 0.05  # 5% stop-loss
 
+    def withdraw(self, user_id):
+        """Withdraw the user's share of the capital for this coin."""
+        return self.capital_manager.withdraw(user_id, self.coin)
+
     def ensure_directory_exists(self):
         """Ensure the directory for the activities file exists."""
         directory = os.path.dirname(self.activities_file_path)

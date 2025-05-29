@@ -188,21 +188,6 @@ class MongoUserService:
             logging.error(f"Failed to deposit balance for user_id: {user_id}, coin: {coin}: {str(e)}")
             raise
 
-    def deposit_to_trading_capital(self, coin: str, amount: float):
-        """Increase the trading capital for a specific coin in the global trading state."""
-        coin = coin.lower()  # Standardize coin symbols to lowercase for trading state
-        try:
-            result = self.trading_state.update_one(
-                {"_id": "scheduler_state"},
-                {"$inc": {f"capital.{coin}": amount}},
-                upsert=True
-            )
-            if result.modified_count == 0 and result.upserted_id is None:
-                logging.warning(f"Failed to deposit to trading capital for coin: {coin}")
-            return result.modified_count > 0 or result.upserted_id is not None
-        except Exception as e:
-            logging.error(f"Failed to deposit to trading capital for coin: {coin}: {str(e)}")
-            raise
 
     def withdraw_balance(self, user_id: str, coin: str, amount: float) -> bool:
         """Decrease the user's balance for a specific coin if sufficient funds exist."""
@@ -229,6 +214,8 @@ class MongoUserService:
         state = self.trading_state.find_one({"_id": "scheduler_state"})
         if state:
             return {
+                'user_investments': state.get('user_investments', {}),
+                'total_deposits': state.get('total_deposits', {}),
                 'capital': state.get('capital', {}),
                 'positions': state.get('positions', {}),
                 'total_cost': state.get('total_cost', {}),
@@ -236,11 +223,14 @@ class MongoUserService:
             }
         # Return empty state if no document exists
         return {
+            'user_investments': {},
+            'total_deposits': {},
             'capital': {},
             'positions': {},
             'total_cost': {},
             'trade_records': {}
         }
+
 
     def set_trading_state(self, state: Dict) -> bool:
         """Save or update the scheduler's trading state in the database."""
@@ -253,4 +243,38 @@ class MongoUserService:
             return result.modified_count > 0 or result.upserted_id is not None
         except Exception as e:
             logging.error(f"Failed to set trading state: {str(e)}")
+            return False
+        
+    
+    def clear_database(self, confirm: bool = False) -> bool:
+        """
+        Clear all records from the database. This is a destructive operation and should be used with caution.
+
+        Args:
+            confirm (bool): Confirmation flag to proceed with deletion. Defaults to False.
+
+        Returns:
+            bool: True if deletion was successful, False otherwise.
+
+        Note:
+            Ensure the application is stopped or in a safe state before calling this method to avoid conflicts.
+        """
+        if not confirm:
+            logging.warning("Clear database operation requires confirmation")
+            return False
+
+        try:
+            # Delete all documents from the users collection
+            result_users = self.users.delete_many({})
+            logging.info(f"Deleted {result_users.deleted_count} documents from users collection")
+
+            # Delete all documents from the trading_state collection
+            result_trading = self.trading_state.delete_many({})
+            logging.info(f"Deleted {result_trading.deleted_count} documents from trading_state collection")
+
+            # Add similar delete operations here for additional collections if needed
+
+            return True
+        except Exception as e:
+            logging.error(f"Failed to clear database: {str(e)}")
             return False
