@@ -1235,18 +1235,10 @@
     },
     {
         "label": "path",
-        "importPath": "app.services.mongodb_service import MongoUserService  # Adjust",
-        "description": "app.services.mongodb_service import MongoUserService  # Adjust",
+        "importPath": "app.services.capital_manager import CapitalManager  # Adjust",
+        "description": "app.services.capital_manager import CapitalManager  # Adjust",
         "isExtraImport": true,
-        "detail": "app.services.mongodb_service import MongoUserService  # Adjust",
-        "documentation": {}
-    },
-    {
-        "label": "path",
-        "importPath": "app.services.capital_manager import CapitalManager       # Adjust",
-        "description": "app.services.capital_manager import CapitalManager       # Adjust",
-        "isExtraImport": true,
-        "detail": "app.services.capital_manager import CapitalManager       # Adjust",
+        "detail": "app.services.capital_manager import CapitalManager  # Adjust",
         "documentation": {}
     },
     {
@@ -1272,7 +1264,7 @@
         "kind": 6,
         "importPath": "backend.app.services.capital_manager",
         "description": "backend.app.services.capital_manager",
-        "peekOfCode": "class CapitalManager:\n    def __init__(self, initial_capital=1000.0):\n        \"\"\"\n        Initialize CapitalManager for scheduler operations.\n        :param initial_capital: Initial capital for coins if not in state (default: 1000.0).\n        \"\"\"\n        self.mongo_service = MongoUserService()  # Initialize MongoUserService internally\n        self.initial_capital = initial_capital\n        self.capital = {}\n        self.positions = {}",
+        "peekOfCode": "class CapitalManager:\n    \"\"\"A singleton class to manage trading capital, positions, and trade records.\"\"\"\n    _instance = None\n    def __new__(cls, initial_capital=1000.0):\n        \"\"\"Ensure only one instance of CapitalManager exists.\"\"\"\n        if cls._instance is None:\n            cls._instance = super(CapitalManager, cls).__new__(cls)\n            cls._instance.mongo_service = MongoUserService()\n            cls._instance.initial_capital = initial_capital\n            cls._instance.capital = {}",
         "detail": "backend.app.services.capital_manager",
         "documentation": {}
     },
@@ -1475,6 +1467,15 @@
         "documentation": {}
     },
     {
+        "label": "capital_manager",
+        "kind": 5,
+        "importPath": "backend.app.users.user",
+        "description": "backend.app.users.user",
+        "peekOfCode": "capital_manager = CapitalManager(initial_capital=1000.0)\nuser_service = MongoUserService()\nauth_router = APIRouter()\n# OAuth2 configuration\noauth2_scheme = OAuth2AuthorizationCodeBearer(\n    authorizationUrl=\"https://accounts.google.com/o/oauth2/v2/auth\",\n    tokenUrl=\"https://oauth2.googleapis.com/token\",\n)\ndef create_access_token(data: dict, expires_delta: Optional[timedelta] = None):\n    \"\"\"Create JWT access token\"\"\"",
+        "detail": "backend.app.users.user",
+        "documentation": {}
+    },
+    {
         "label": "user_service",
         "kind": 5,
         "importPath": "backend.app.users.user",
@@ -1673,20 +1674,11 @@
         "documentation": {}
     },
     {
-        "label": "mongo_service",
-        "kind": 5,
-        "importPath": "backend.tester3",
-        "description": "backend.tester3",
-        "peekOfCode": "mongo_service = MongoUserService()\n# Initialize CapitalManager for the scheduler\ncapital_manager = CapitalManager(\n    initial_capital=1000.0,\n    mongo_service=mongo_service\n)\n# Perform operations\n# capital_manager.deposit(\"bitcoin\", 500.0)\n# capital_manager.simulate_buy(\"bitcoin\", 0.01, 30000.0)\nprint(f\"Bitcoin position: {capital_manager.get_position('bitcoin')}\")",
-        "detail": "backend.tester3",
-        "documentation": {}
-    },
-    {
         "label": "capital_manager",
         "kind": 5,
         "importPath": "backend.tester3",
         "description": "backend.tester3",
-        "peekOfCode": "capital_manager = CapitalManager(\n    initial_capital=1000.0,\n    mongo_service=mongo_service\n)\n# Perform operations\n# capital_manager.deposit(\"bitcoin\", 500.0)\n# capital_manager.simulate_buy(\"bitcoin\", 0.01, 30000.0)\nprint(f\"Bitcoin position: {capital_manager.get_position('bitcoin')}\")\nprint(f\"Bitcoin capital: {capital_manager.get_capital('bitcoin')}\")",
+        "peekOfCode": "capital_manager = CapitalManager(initial_capital=1000.0)\n# Perform operations\n# capital_manager.deposit(\"bitcoin\", 500.0)\n# capital_manager.simulate_buy(\"bitcoin\", 0.01, 30000.0)\nprint(f\"Bitcoin position: {capital_manager.get_position('btc')}\")\nprint(f\"Bitcoin capital: {capital_manager.get_capital('btc')}\")",
         "detail": "backend.tester3",
         "documentation": {}
     },

@@ -19,6 +19,7 @@ from app.users.models import (
 )
 
 # Initialize services
+capital_manager = CapitalManager(initial_capital=1000.0)
 user_service = MongoUserService()
 auth_router = APIRouter()
 
@@ -284,7 +285,6 @@ async def deposit_balance(
             raise HTTPException(status_code=404, detail="User not found")
 
         # Step 2: Deposit to global trading capital
-        capital_manager = CapitalManager()
         capital_manager.deposit(coin.lower(), amount)
 
     except Exception as e:
