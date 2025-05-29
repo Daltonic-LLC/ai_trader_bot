@@ -96,6 +96,14 @@
         "documentation": {}
     },
     {
+        "label": "CapitalManager",
+        "importPath": "app.services.capital_manager",
+        "description": "app.services.capital_manager",
+        "isExtraImport": true,
+        "detail": "app.services.capital_manager",
+        "documentation": {}
+    },
+    {
         "label": "CoinScheduler",
         "importPath": "app.services.coin_scheduler",
         "description": "app.services.coin_scheduler",
@@ -190,32 +198,6 @@
         "description": "pydantic",
         "isExtraImport": true,
         "detail": "pydantic",
-        "documentation": {}
-    },
-    {
-        "label": "json",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "json",
-        "description": "json",
-        "detail": "json",
-        "documentation": {}
-    },
-    {
-        "label": "os",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "os",
-        "description": "os",
-        "detail": "os",
-        "documentation": {}
-    },
-    {
-        "label": "environ",
-        "importPath": "os",
-        "description": "os",
-        "isExtraImport": true,
-        "detail": "os",
         "documentation": {}
     },
     {
@@ -320,6 +302,38 @@
         "description": "datetime",
         "isExtraImport": true,
         "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "MongoUserService",
+        "importPath": "app.services.mongodb_service",
+        "description": "app.services.mongodb_service",
+        "isExtraImport": true,
+        "detail": "app.services.mongodb_service",
+        "documentation": {}
+    },
+    {
+        "label": "MongoUserService",
+        "importPath": "app.services.mongodb_service",
+        "description": "app.services.mongodb_service",
+        "isExtraImport": true,
+        "detail": "app.services.mongodb_service",
+        "documentation": {}
+    },
+    {
+        "label": "UserRole",
+        "importPath": "app.services.mongodb_service",
+        "description": "app.services.mongodb_service",
+        "isExtraImport": true,
+        "detail": "app.services.mongodb_service",
+        "documentation": {}
+    },
+    {
+        "label": "SocialProvider",
+        "importPath": "app.services.mongodb_service",
+        "description": "app.services.mongodb_service",
+        "isExtraImport": true,
+        "detail": "app.services.mongodb_service",
         "documentation": {}
     },
     {
@@ -652,6 +666,15 @@
         "documentation": {}
     },
     {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
         "label": "re",
         "kind": 6,
         "isExtraImport": true,
@@ -716,6 +739,23 @@
         "description": "apscheduler.triggers.cron",
         "isExtraImport": true,
         "detail": "apscheduler.triggers.cron",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "environ",
+        "importPath": "os",
+        "description": "os",
+        "isExtraImport": true,
+        "detail": "os",
         "documentation": {}
     },
     {
@@ -1094,30 +1134,6 @@
         "documentation": {}
     },
     {
-        "label": "MongoUserService",
-        "importPath": "app.services.mongodb_service",
-        "description": "app.services.mongodb_service",
-        "isExtraImport": true,
-        "detail": "app.services.mongodb_service",
-        "documentation": {}
-    },
-    {
-        "label": "UserRole",
-        "importPath": "app.services.mongodb_service",
-        "description": "app.services.mongodb_service",
-        "isExtraImport": true,
-        "detail": "app.services.mongodb_service",
-        "documentation": {}
-    },
-    {
-        "label": "SocialProvider",
-        "importPath": "app.services.mongodb_service",
-        "description": "app.services.mongodb_service",
-        "isExtraImport": true,
-        "detail": "app.services.mongodb_service",
-        "documentation": {}
-    },
-    {
         "label": "auth_router",
         "importPath": "app.users.user",
         "description": "app.users.user",
@@ -1218,6 +1234,22 @@
         "documentation": {}
     },
     {
+        "label": "path",
+        "importPath": "app.services.mongodb_service import MongoUserService  # Adjust",
+        "description": "app.services.mongodb_service import MongoUserService  # Adjust",
+        "isExtraImport": true,
+        "detail": "app.services.mongodb_service import MongoUserService  # Adjust",
+        "documentation": {}
+    },
+    {
+        "label": "path",
+        "importPath": "app.services.capital_manager import CapitalManager       # Adjust",
+        "description": "app.services.capital_manager import CapitalManager       # Adjust",
+        "isExtraImport": true,
+        "detail": "app.services.capital_manager import CapitalManager       # Adjust",
+        "documentation": {}
+    },
+    {
         "label": "coin_router",
         "kind": 5,
         "importPath": "backend.app.coin.coin",
@@ -1240,7 +1272,7 @@
         "kind": 6,
         "importPath": "backend.app.services.capital_manager",
         "description": "backend.app.services.capital_manager",
-        "peekOfCode": "class CapitalManager:\n    def __init__(self, initial_capital=1000.0, file_path=\"data/activities/trade_history.json\", coin=None):\n        \"\"\"\n        Initialize the CapitalManager with optional coin parameter.\n        :param initial_capital: The initial capital for coins if not already in state (default: 1000.0).\n        :param file_path: Path to the JSON file for saving state.\n        :param coin: Optional coin symbol for legacy data handling (default: None).\n        \"\"\"\n        self.capital = {}  # {coin: current_capital}\n        self.positions = {}  # {coin: quantity}",
+        "peekOfCode": "class CapitalManager:\n    def __init__(self, initial_capital=1000.0):\n        \"\"\"\n        Initialize CapitalManager for scheduler operations.\n        :param initial_capital: Initial capital for coins if not in state (default: 1000.0).\n        \"\"\"\n        self.mongo_service = MongoUserService()  # Initialize MongoUserService internally\n        self.initial_capital = initial_capital\n        self.capital = {}\n        self.positions = {}",
         "detail": "backend.app.services.capital_manager",
         "documentation": {}
     },
@@ -1638,6 +1670,24 @@
         "description": "backend.tester2",
         "peekOfCode": "EXECUTION_LOG_FILE = 'data/scheduler/execution_log.json'\ndef load_execution_durations():\n    \"\"\"Load execution durations from execution_log.json.\"\"\"\n    if os.path.exists(EXECUTION_LOG_FILE):\n        try:\n            with open(EXECUTION_LOG_FILE, 'r') as f:\n                log_data = json.load(f)\n                return {\n                    'top_coins': log_data.get('top_coins', {}).get('execution_duration'),\n                    'coin_history': log_data.get('coin_history', {}).get('execution_duration'),",
         "detail": "backend.tester2",
+        "documentation": {}
+    },
+    {
+        "label": "mongo_service",
+        "kind": 5,
+        "importPath": "backend.tester3",
+        "description": "backend.tester3",
+        "peekOfCode": "mongo_service = MongoUserService()\n# Initialize CapitalManager for the scheduler\ncapital_manager = CapitalManager(\n    initial_capital=1000.0,\n    mongo_service=mongo_service\n)\n# Perform operations\n# capital_manager.deposit(\"bitcoin\", 500.0)\n# capital_manager.simulate_buy(\"bitcoin\", 0.01, 30000.0)\nprint(f\"Bitcoin position: {capital_manager.get_position('bitcoin')}\")",
+        "detail": "backend.tester3",
+        "documentation": {}
+    },
+    {
+        "label": "capital_manager",
+        "kind": 5,
+        "importPath": "backend.tester3",
+        "description": "backend.tester3",
+        "peekOfCode": "capital_manager = CapitalManager(\n    initial_capital=1000.0,\n    mongo_service=mongo_service\n)\n# Perform operations\n# capital_manager.deposit(\"bitcoin\", 500.0)\n# capital_manager.simulate_buy(\"bitcoin\", 0.01, 30000.0)\nprint(f\"Bitcoin position: {capital_manager.get_position('bitcoin')}\")\nprint(f\"Bitcoin capital: {capital_manager.get_capital('bitcoin')}\")",
+        "detail": "backend.tester3",
         "documentation": {}
     },
     {

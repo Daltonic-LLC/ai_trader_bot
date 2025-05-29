@@ -50,7 +50,7 @@ async def list_top_coin(
 @coin_router.get("/available")
 async def list_available_coins():
     try:
-        capital_manager = CapitalManager(coin="shared", initial_capital=0.0)
+        capital_manager = CapitalManager(initial_capital=0.0)
         available_coins = capital_manager.get_available_coins()
 
         if not available_coins:
@@ -77,7 +77,7 @@ async def list_available_coins():
 @coin_router.get("/report/{coin}")
 async def get_coin_report(coin: str):
     try:
-        capital_manager = CapitalManager(coin=coin)
+        capital_manager = CapitalManager()
         trader = CoinTrader(coin=coin, override=True, capital_manager=capital_manager)
         report_data = trader.get_report(coin)
 

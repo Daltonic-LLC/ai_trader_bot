@@ -41,10 +41,12 @@ class MongoUserService:
             self.client = MongoClient(mongo_uri)
             self.db = self.client.user_management
             self.users = self.db.users
+            self.trading_state = self.db.trading_state
 
             # Create indexes
             self.users.create_index("email", unique=True)
             self.users.create_index([("social_id", 1), ("provider", 1)], unique=True)
+            
 
             logging.info("Successfully connected to MongoDB")
         except Exception as e:
@@ -186,6 +188,22 @@ class MongoUserService:
             logging.error(f"Failed to deposit balance for user_id: {user_id}, coin: {coin}: {str(e)}")
             raise
 
+    def deposit_to_trading_capital(self, coin: str, amount: float):
+        """Increase the trading capital for a specific coin in the global trading state."""
+        coin = coin.lower()  # Standardize coin symbols to lowercase for trading state
+        try:
+            result = self.trading_state.update_one(
+                {"_id": "scheduler_state"},
+                {"$inc": {f"capital.{coin}": amount}},
+                upsert=True
+            )
+            if result.modified_count == 0 and result.upserted_id is None:
+                logging.warning(f"Failed to deposit to trading capital for coin: {coin}")
+            return result.modified_count > 0 or result.upserted_id is not None
+        except Exception as e:
+            logging.error(f"Failed to deposit to trading capital for coin: {coin}: {str(e)}")
+            raise
+
     def withdraw_balance(self, user_id: str, coin: str, amount: float) -> bool:
         """Decrease the user's balance for a specific coin if sufficient funds exist."""
         try:
@@ -205,3 +223,34 @@ class MongoUserService:
         except Exception as e:
             logging.error(f"Failed to withdraw balance for user_id: {user_id}, coin: {coin}: {str(e)}")
             raise
+        
+    def get_trading_state(self) -> Dict:
+        """Retrieve the scheduler's trading state from the database."""
+        state = self.trading_state.find_one({"_id": "scheduler_state"})
+        if state:
+            return {
+                'capital': state.get('capital', {}),
+                'positions': state.get('positions', {}),
+                'total_cost': state.get('total_cost', {}),
+                'trade_records': state.get('trade_records', {})
+            }
+        # Return empty state if no document exists
+        return {
+            'capital': {},
+            'positions': {},
+            'total_cost': {},
+            'trade_records': {}
+        }
+
+    def set_trading_state(self, state: Dict) -> bool:
+        """Save or update the scheduler's trading state in the database."""
+        try:
+            result = self.trading_state.update_one(
+                {"_id": "scheduler_state"},  # Fixed ID for the scheduler's state
+                {"$set": state},
+                upsert=True  # Create the document if it doesn’t exist
+            )
+            return result.modified_count > 0 or result.upserted_id is not None
+        except Exception as e:
+            logging.error(f"Failed to set trading state: {str(e)}")
+            return False

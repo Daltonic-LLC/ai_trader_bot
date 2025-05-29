@@ -8,6 +8,7 @@ from jose import jwt, JWTError
 from config import config
 from typing import List
 
+from app.services.capital_manager import CapitalManager
 from app.services.mongodb_service import MongoUserService, UserRole, SocialProvider
 from app.users.models import (
     GoogleTokenRequest,
@@ -264,9 +265,11 @@ async def list_all_users(current_user: Dict = Depends(get_current_user)):
 async def deposit_balance(
     operation: BalanceOperation, current_user: Dict = Depends(get_current_user)
 ):
-    """Deposit an amount of a specific coin into the user's balance."""
+    """Deposit an amount of a specific coin into the user's balance and update global trading capital."""
     user_id = current_user["id"]
-    coin = operation.coin.upper()  # Standardize coin symbols to uppercase
+    coin = (
+        operation.coin.upper()
+    )  # Standardize coin symbols to uppercase for user balance
     amount = operation.amount
 
     # Validate amount
@@ -275,9 +278,15 @@ async def deposit_balance(
 
     # Perform deposit
     try:
+        # Step 1: Deposit to user's balance
         success = user_service.deposit_balance(user_id, coin, amount)
         if not success:
             raise HTTPException(status_code=404, detail="User not found")
+
+        # Step 2: Deposit to global trading capital
+        capital_manager = CapitalManager()
+        capital_manager.deposit(coin.lower(), amount)
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Deposit failed: {str(e)}")
 
