@@ -39,9 +39,8 @@ def load_execution_durations():
 
 # Test scheduler class with parallel execution capability
 class TestCoinScheduler(CoinScheduler):
-    def __init__(self, log_file='scheduler_test.log'):
-        super().__init__(log_file)
-        # FIXED: Allow multiple workers so jobs can run in parallel
+    def __init__(self, log_file='scheduler_test.log', trading_config=None):
+        super().__init__(log_file, trading_config=trading_config)
         self.scheduler = BackgroundScheduler(
             executors={'default': ThreadPoolExecutor(max_workers=5)},  # Allow up to 5 concurrent jobs
             job_defaults={
@@ -53,10 +52,8 @@ class TestCoinScheduler(CoinScheduler):
 
     def configure_jobs(self):
         """Configure jobs to run once, allowing for parallel execution."""
-        # Start all jobs with minimal delays to allow parallel execution
         base_time = datetime.now() + timedelta(seconds=30)
         
-        # Option 1: All jobs start at the same time (fully parallel)
         self.scheduler.add_job(
             self._daily_top_coin_list,
             DateTrigger(run_date=base_time),
@@ -64,31 +61,30 @@ class TestCoinScheduler(CoinScheduler):
             name='Top Coins Extraction'
         )
         
-        # Start dependent jobs slightly later to ensure top_coins completes first
         self.scheduler.add_job(
             self._daily_coin_history,
-            DateTrigger(run_date=base_time + timedelta(seconds=30)),  # 30 seconds after top_coins
+            DateTrigger(run_date=base_time + timedelta(seconds=30)),
             id='coin_history',
             name='Coin History Extraction',
             kwargs={'limit': 1}
         )
         
-        # These can run in parallel with coin_history
         self.scheduler.add_job(
             self._daily_news_sentiment,
-            DateTrigger(run_date=base_time + timedelta(seconds=35)),  # 35 seconds after top_coins
+            DateTrigger(run_date=base_time + timedelta(seconds=35)),
             id='news_sentiment',
-            name='News Sentiment Extraction'
+            name='News Sentiment Extraction',
+            kwargs={'limit': 1}
         )
         
         self.scheduler.add_job(
             self._daily_coin_prices,
-            DateTrigger(run_date=base_time + timedelta(seconds=40)),  # 40 seconds after top_coins
+            DateTrigger(run_date=base_time + timedelta(seconds=40)),
             id='coin_prices',
-            name='Coin Prices Update'
+            name='Coin Prices Update',
+            kwargs={'limit': 1}
         )
         
-        # Data cleanup can run independently
         self.scheduler.add_job(
             self._daily_data_cleaner,
             DateTrigger(run_date=base_time + timedelta(seconds=45)),
@@ -96,16 +92,25 @@ class TestCoinScheduler(CoinScheduler):
             name='Data Cleanup'
         )
         
+        # Add trading bot job if trading is enabled
+        if self.trading_config.get('enabled', False):
+            self.scheduler.add_job(
+                self._trading_bot_execution,
+                DateTrigger(run_date=base_time + timedelta(seconds=50)),
+                id='trading_bot',
+                name='Trading Bot Execution',
+                kwargs={'limit': 1}
+            )
+        
         logging.info("Test scheduler jobs configured for parallel execution")
         
-        # Log the schedule
         for job in self.scheduler.get_jobs():
             logging.info(f"Scheduled {job.name} at {job.next_run_time}")
 
 # Alternative approach: Sequential with proper timing
 class SequentialTestScheduler(CoinScheduler):
-    def __init__(self, log_file='scheduler_test.log'):
-        super().__init__(log_file)
+    def __init__(self, log_file='scheduler_test.log', trading_config=None):
+        super().__init__(log_file, trading_config=trading_config)
         self.scheduler = BackgroundScheduler(
             executors={'default': ThreadPoolExecutor(max_workers=1)},
             job_defaults={
@@ -116,14 +121,14 @@ class SequentialTestScheduler(CoinScheduler):
         )
 
     def configure_jobs(self):
-        """Configure jobs to run sequentially with proper timing based on actual durations."""
-        # Use realistic durations based on your logs
+        """Configure jobs to run sequentially with proper timing based on estimated durations."""
         durations = {
             'top_coins': 30,      # ~17 seconds actual + buffer
-            'coin_history': 180,  # ~162 seconds actual + buffer  
+            'coin_history': 180,  # ~162 seconds actual + buffer
             'news_sentiment': 60, # Estimated
             'coin_prices': 60,    # Estimated
-            'data_cleanup': 30    # ~5 seconds actual + buffer
+            'data_cleanup': 30,   # ~5 seconds actual + buffer
+            'trading_bot': 60     # Estimated duration for trading bot
         }
         
         base_time = datetime.now() + timedelta(seconds=30)
@@ -136,6 +141,10 @@ class SequentialTestScheduler(CoinScheduler):
             ('coin_prices', 'Coin Prices Update', self._daily_coin_prices, {'limit': 1}),
             ('data_cleanup', 'Data Cleanup', self._daily_data_cleaner, {})
         ]
+        
+        # Add trading bot job if trading is enabled
+        if self.trading_config.get('enabled', False):
+            jobs_config.append(('trading_bot', 'Trading Bot Execution', self._trading_bot_execution, {'limit': 1}))
         
         for job_id, job_name, job_func, job_kwargs in jobs_config:
             self.scheduler.add_job(
@@ -156,12 +165,20 @@ if __name__ == "__main__":
     
     choice = input("Enter choice (1 or 2): ").strip()
     
+    # Example trading configuration
+    trading_config = {
+        'enabled': True,
+        'coins': ['bitcoin'],
+        'initial_capital': 1000.0,
+        'override': False
+    }
+    
     if choice == "1":
-        test_scheduler = TestCoinScheduler()
-        total_wait_time = 300  # 5 minutes should be enough for parallel execution
+        test_scheduler = TestCoinScheduler(trading_config=trading_config)
+        total_wait_time = 300  # 5 minutes for parallel execution
     else:
-        test_scheduler = SequentialTestScheduler()
-        total_wait_time = 400  # Longer wait for sequential execution
+        test_scheduler = SequentialTestScheduler(trading_config=trading_config)
+        total_wait_time = 600  # 10 minutes for sequential execution to include trading bot
     
     test_scheduler.start()
     try:

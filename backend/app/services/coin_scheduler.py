@@ -11,9 +11,12 @@ from app.services.coin_history import CoinHistory
 from app.services.coin_news import NewsSentimentService
 from app.services.coin_stats import CoinStatsService
 from app.services.file_manager import DataCleaner
+from app.trader_bot.coin_trader import CoinTrader
+from app.services.capital_manager import CapitalManager  # Assuming this exists
 
 class CoinScheduler:
-    def __init__(self, log_file='scheduler.log', execution_log_file='data/scheduler/execution_log.json'):
+    def __init__(self, log_file='scheduler.log', execution_log_file='data/scheduler/execution_log.json', 
+                 trading_config=None):
         """Initialize the CoinScheduler with a background scheduler, logging, and execution log file."""
         # Set up logging
         self._setup_logging(log_file)
@@ -28,6 +31,19 @@ class CoinScheduler:
         self.sentiment_service = NewsSentimentService()
         self.stats_service = CoinStatsService()
         self.cleaner = DataCleaner()
+
+        # Initialize trading configuration
+        self.trading_config = trading_config or {
+            'enabled': True,
+            'initial_capital': 1000.0,  # Default capital per coin
+            'override': False
+        }
+        
+        # Initialize capital manager for trading
+        if self.trading_config.get('enabled', False):
+            self.capital_manager = CapitalManager(
+                initial_capital=self.trading_config.get('initial_capital', 1000.0)
+            )
 
         # Execution log file path
         self.execution_log_file = execution_log_file
@@ -366,6 +382,89 @@ class CoinScheduler:
             # Still update log even on error
             self.update_execution_log(job_id, "Data Cleanup", last_execution=datetime.now(timezone.utc))
 
+    def _trading_bot_execution(self, limit=None):
+        """Execute trading bot for configured coins."""
+        job_id = "trading_bot"
+        logging.info("Starting trading bot execution")
+        
+        # Log start of execution immediately
+        self.update_execution_log(job_id, "Trading Bot Execution", last_execution=datetime.now(timezone.utc))
+        
+        if not self.trading_config.get('enabled', False):
+            logging.info("Trading bot is disabled in configuration")
+            print("Trading bot execution skipped - disabled in configuration")
+            return
+        
+        try:
+            coins_data = self.extractor.load_most_recent_data()
+            if coins_data is None:
+                logging.warning("No top coins data found for trading bot execution")
+                print("No top coins data found. Run top coins extraction first.")
+                return
+
+            # Limit the number of coins to process if a limit is specified
+            if limit is not None:
+                coins_data = coins_data[:limit]
+            
+            successful_trades = 0
+            failed_trades = 0
+            
+            for coin in coins_data:
+                slug = coin.get('slug')
+                coin_name = coin.get('name', 'Unknown')
+                
+                if not slug or slug == "N/A":
+                    logging.warning(f"Skipping coin with invalid slug: {coin_name}")
+                    continue
+                
+                logging.info(f"Executing trading bot for {coin_name} ({slug})")
+                print(f"Running trading analysis for {coin_name.upper()}...")
+                
+                try:
+                    # Initialize trader for this coin using the slug
+                    trader = CoinTrader(
+                        coin=slug,  # Use the slug, not the entire coin object
+                        override=self.trading_config.get('override', False),
+                        capital_manager=self.capital_manager
+                    )
+                    
+                    # Execute trading analysis and potential trade
+                    report = trader.run()
+                    
+                    logging.info(f"Trading bot completed for {coin_name} ({slug})")
+                    print(f"Trading analysis completed for {coin_name.upper()}")
+                    print(f"Report summary: {report[:200]}...")  # Print first 200 chars
+                    
+                    successful_trades += 1
+                    
+                except Exception as e:
+                    logging.error(f"Error during trading bot execution for {coin_name} ({slug}): {e}")
+                    print(f"Error executing trading bot for {coin_name}: {e}")
+                    failed_trades += 1
+            
+            # Summary
+            total_coins = len(coins_data)
+            summary_message = f"Trading bot execution completed: {successful_trades}/{total_coins} successful"
+            logging.info(summary_message)
+            print(summary_message)
+            
+            if failed_trades > 0:
+                error_message = f"Failed trades: {failed_trades}/{total_coins}"
+                logging.warning(error_message)
+                print(error_message)
+            
+            # Give scheduler time to update next run time, then refresh
+            time.sleep(0.5)
+            self.refresh_execution_log()
+            
+        except Exception as e:
+            logging.error(f"Error during trading bot job: {e}")
+            print(f"Error in trading bot job: {e}")
+            # Still refresh the log even if there was an error
+            time.sleep(0.5)
+            self.refresh_execution_log()
+            
+            
     def configure_jobs(self):
         """Configure the scheduler with all jobs and their triggers."""
         # Define jobs with their IDs, names, and triggers
@@ -385,14 +484,20 @@ class CoinScheduler:
             {
                 "id": "news_sentiment",
                 "name": "News Sentiment Extraction",
-                "func": self._daily_news_sentiment,
+                "func": lambda: self._daily_news_sentiment(limit=15),
                 "trigger": IntervalTrigger(hours=4)
             },
             {
                 "id": "coin_prices",
                 "name": "Coin Prices Update",
-                "func": self._daily_coin_prices,
+                "func": lambda: self._daily_coin_prices(limit=15),
                 "trigger": IntervalTrigger(hours=1)
+            },
+            {
+                "id": "trading_bot",
+                "name": "Trading Bot Execution",
+                "func": lambda: self._trading_bot_execution(15),
+                "trigger": IntervalTrigger(hours=6)  # Run every 6 hours
             },
             {
                 "id": "data_cleanup",
@@ -405,6 +510,11 @@ class CoinScheduler:
         # Add jobs to scheduler and initialize execution log
         log_data = self.load_execution_log()
         for job in jobs:
+            # Skip trading bot job if trading is disabled
+            if job["id"] == "trading_bot" and not self.trading_config.get('enabled', False):
+                logging.info("Skipping trading bot job - trading disabled")
+                continue
+                
             self.scheduler.add_job(
                 job["func"],
                 job["trigger"],
@@ -425,13 +535,60 @@ class CoinScheduler:
         self.save_execution_log(log_data)
         logging.info("Scheduler jobs configured")
 
+    # Updated get_trading_summary method
+    def get_trading_summary(self):
+        """Get a summary of trading activities and capital status."""
+        if not self.trading_config.get('enabled', False):
+            return "Trading is disabled"
+        
+        try:
+            summary = []
+            
+            # Get coins from the most recent extracted data
+            coins_data = self.extractor.load_most_recent_data()
+            if coins_data is None:
+                return "No coin data available for trading summary"
+            
+            for coin in coins_data:
+                slug = coin.get('slug')
+                coin_name = coin.get('name', 'Unknown')
+                
+                if not slug or slug == "N/A":
+                    continue
+                    
+                try:
+                    capital = self.capital_manager.get_capital(slug)
+                    position = self.capital_manager.get_position(slug)
+                    summary.append(f"{coin_name.upper()} ({slug}): ${capital:.2f} capital, {position:.2f} position")
+                except Exception as e:
+                    summary.append(f"{coin_name.upper()} ({slug}): Error getting data - {e}")
+            
+            return "\n".join(summary) if summary else "No trading data available"
+        except Exception as e:
+            return f"Error getting trading summary: {e}"
+
     def start(self):
         """Start the scheduler and run the jobs."""
         try:
             self.configure_jobs()
             self.scheduler.start()
-            logging.info("CoinScheduler started, executing coin jobs")
-            print("CoinScheduler started, executing coin jobs. Press Ctrl+C to stop.")
+            
+            startup_message = "CoinScheduler started, executing coin jobs"
+            if self.trading_config.get('enabled', False):
+                # Get count of coins that will be traded
+                coins_data = self.extractor.load_most_recent_data()
+                coin_count = len(coins_data) if coins_data else 0
+                startup_message += f" including trading bot for up to {coin_count} coins"
+            
+            logging.info(startup_message)
+            print(startup_message + ". Press Ctrl+C to stop.")
+            
+            if self.trading_config.get('enabled', False):
+                print("\nTrading Configuration:")
+                print(f"- Coins: Loaded dynamically from extracted data")
+                print(f"- Initial Capital: ${self.trading_config.get('initial_capital', 1000.0):.2f}")
+                print(f"- Override Mode: {self.trading_config.get('override', False)}")
+                
         except Exception as e:
             logging.error(f"Failed to start scheduler: {e}")
             print(f"Error starting scheduler: {e}")
@@ -443,6 +600,34 @@ class CoinScheduler:
             self.scheduler.shutdown()
             logging.info("CoinScheduler shut down")
             print("CoinScheduler stopped.")
+            
+            # Print final trading summary if trading was enabled
+            if self.trading_config.get('enabled', False):
+                print("\nFinal Trading Summary:")
+                print(self.get_trading_summary())
+                
         except Exception as e:
             logging.error(f"Error shutting down scheduler: {e}")
             print(f"Error shutting down scheduler: {e}")
+
+# Example usage with trading configuration
+if __name__ == "__main__":
+    # Configuration for trading
+    trading_config = {
+        'enabled': True,
+        # No need to specify coins manually - they will be loaded dynamically from extracted data
+        'initial_capital': 1000.0,  # $1000 initial capital for trading
+        'override': False  # Set to True to force refresh of data
+    }
+    
+    # Initialize scheduler with trading configuration
+    scheduler = CoinScheduler(trading_config=trading_config)
+    
+    try:
+        scheduler.start()
+        # Keep the scheduler running
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("\nShutting down scheduler...")
+        scheduler.shutdown()

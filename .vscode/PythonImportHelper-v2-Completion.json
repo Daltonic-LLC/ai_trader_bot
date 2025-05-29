@@ -88,11 +88,11 @@
         "documentation": {}
     },
     {
-        "label": "CoinScheduler",
-        "importPath": "app.services.coin_scheduler",
-        "description": "app.services.coin_scheduler",
+        "label": "CapitalManager",
+        "importPath": "app.services.capital_manager",
+        "description": "app.services.capital_manager",
         "isExtraImport": true,
-        "detail": "app.services.coin_scheduler",
+        "detail": "app.services.capital_manager",
         "documentation": {}
     },
     {
@@ -117,6 +117,22 @@
         "description": "app.services.coin_scheduler",
         "isExtraImport": true,
         "detail": "app.services.coin_scheduler",
+        "documentation": {}
+    },
+    {
+        "label": "CoinScheduler",
+        "importPath": "app.services.coin_scheduler",
+        "description": "app.services.coin_scheduler",
+        "isExtraImport": true,
+        "detail": "app.services.coin_scheduler",
+        "documentation": {}
+    },
+    {
+        "label": "CoinTrader",
+        "importPath": "app.trader_bot.coin_trader",
+        "description": "app.trader_bot.coin_trader",
+        "isExtraImport": true,
+        "detail": "app.trader_bot.coin_trader",
         "documentation": {}
     },
     {
@@ -1224,7 +1240,7 @@
         "kind": 6,
         "importPath": "backend.app.services.capital_manager",
         "description": "backend.app.services.capital_manager",
-        "peekOfCode": "class CapitalManager:\n    def __init__(self, coin, initial_capital=1000.0, file_path=\"data/activities/trade_history.json\"):\n        \"\"\"\n        Initialize the CapitalManager with capital for a single coin, updating records based on trades.\n        :param coin: The coin symbol (e.g., 'bnb') to initialize with capital if not already set.\n        :param initial_capital: The initial capital for the coin if not already in state (default: 1000.0).\n        :param file_path: Path to the JSON file for saving state.\n        \"\"\"\n        self.capital = {}  # {coin: current_capital}\n        self.positions = {}  # {coin: quantity}",
+        "peekOfCode": "class CapitalManager:\n    def __init__(self, initial_capital=1000.0, file_path=\"data/activities/trade_history.json\", coin=None):\n        \"\"\"\n        Initialize the CapitalManager with optional coin parameter.\n        :param initial_capital: The initial capital for coins if not already in state (default: 1000.0).\n        :param file_path: Path to the JSON file for saving state.\n        :param coin: Optional coin symbol for legacy data handling (default: None).\n        \"\"\"\n        self.capital = {}  # {coin: current_capital}\n        self.positions = {}  # {coin: quantity}",
         "detail": "backend.app.services.capital_manager",
         "documentation": {}
     },
@@ -1269,7 +1285,7 @@
         "kind": 6,
         "importPath": "backend.app.services.coin_scheduler",
         "description": "backend.app.services.coin_scheduler",
-        "peekOfCode": "class CoinScheduler:\n    def __init__(self, log_file='scheduler.log', execution_log_file='data/scheduler/execution_log.json'):\n        \"\"\"Initialize the CoinScheduler with a background scheduler, logging, and execution log file.\"\"\"\n        # Set up logging\n        self._setup_logging(log_file)\n        logging.info(\"Initializing CoinScheduler\")\n        # Initialize the background scheduler\n        self.scheduler = BackgroundScheduler()\n        # Initialize services\n        self.extractor = TopCoinsExtractor()",
+        "peekOfCode": "class CoinScheduler:\n    def __init__(self, log_file='scheduler.log', execution_log_file='data/scheduler/execution_log.json', \n                 trading_config=None):\n        \"\"\"Initialize the CoinScheduler with a background scheduler, logging, and execution log file.\"\"\"\n        # Set up logging\n        self._setup_logging(log_file)\n        logging.info(\"Initializing CoinScheduler\")\n        # Initialize the background scheduler\n        self.scheduler = BackgroundScheduler()\n        # Initialize services",
         "detail": "backend.app.services.coin_scheduler",
         "documentation": {}
     },
@@ -1593,7 +1609,7 @@
         "kind": 6,
         "importPath": "backend.tester2",
         "description": "backend.tester2",
-        "peekOfCode": "class TestCoinScheduler(CoinScheduler):\n    def __init__(self, log_file='scheduler_test.log'):\n        super().__init__(log_file)\n        # FIXED: Allow multiple workers so jobs can run in parallel\n        self.scheduler = BackgroundScheduler(\n            executors={'default': ThreadPoolExecutor(max_workers=5)},  # Allow up to 5 concurrent jobs\n            job_defaults={\n                'coalesce': False,  # Don't skip missed jobs\n                'max_instances': 1,  # Only one instance of each job at a time\n                'misfire_grace_time': 300  # Allow 5 minutes grace period for missed jobs",
+        "peekOfCode": "class TestCoinScheduler(CoinScheduler):\n    def __init__(self, log_file='scheduler_test.log', trading_config=None):\n        super().__init__(log_file, trading_config=trading_config)\n        self.scheduler = BackgroundScheduler(\n            executors={'default': ThreadPoolExecutor(max_workers=5)},  # Allow up to 5 concurrent jobs\n            job_defaults={\n                'coalesce': False,  # Don't skip missed jobs\n                'max_instances': 1,  # Only one instance of each job at a time\n                'misfire_grace_time': 300  # Allow 5 minutes grace period for missed jobs\n            }",
         "detail": "backend.tester2",
         "documentation": {}
     },
@@ -1602,7 +1618,7 @@
         "kind": 6,
         "importPath": "backend.tester2",
         "description": "backend.tester2",
-        "peekOfCode": "class SequentialTestScheduler(CoinScheduler):\n    def __init__(self, log_file='scheduler_test.log'):\n        super().__init__(log_file)\n        self.scheduler = BackgroundScheduler(\n            executors={'default': ThreadPoolExecutor(max_workers=1)},\n            job_defaults={\n                'coalesce': False,\n                'max_instances': 1,\n                'misfire_grace_time': 600  # 10 minutes grace period\n            }",
+        "peekOfCode": "class SequentialTestScheduler(CoinScheduler):\n    def __init__(self, log_file='scheduler_test.log', trading_config=None):\n        super().__init__(log_file, trading_config=trading_config)\n        self.scheduler = BackgroundScheduler(\n            executors={'default': ThreadPoolExecutor(max_workers=1)},\n            job_defaults={\n                'coalesce': False,\n                'max_instances': 1,\n                'misfire_grace_time': 600  # 10 minutes grace period\n            }",
         "detail": "backend.tester2",
         "documentation": {}
     },

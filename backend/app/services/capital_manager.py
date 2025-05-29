@@ -3,20 +3,20 @@ import os
 from datetime import datetime
 
 class CapitalManager:
-    def __init__(self, coin, initial_capital=1000.0, file_path="data/activities/trade_history.json"):
+    def __init__(self, initial_capital=1000.0, file_path="data/activities/trade_history.json", coin=None):
         """
-        Initialize the CapitalManager with capital for a single coin, updating records based on trades.
+        Initialize the CapitalManager with optional coin parameter.
 
-        :param coin: The coin symbol (e.g., 'bnb') to initialize with capital if not already set.
-        :param initial_capital: The initial capital for the coin if not already in state (default: 1000.0).
+        :param initial_capital: The initial capital for coins if not already in state (default: 1000.0).
         :param file_path: Path to the JSON file for saving state.
+        :param coin: Optional coin symbol for legacy data handling (default: None).
         """
         self.capital = {}  # {coin: current_capital}
         self.positions = {}  # {coin: quantity}
         self.total_cost = {}  # {coin: total_cost_basis}
         self.trade_records = {}  # {coin: {timestamp, quantity, price, total_profit}}
         self.file_path = file_path
-        self.coin = coin.lower()
+        self.coin = coin.lower() if coin else None
         self.initial_capital = initial_capital
         self.ensure_directory_exists()
         self.load_state()
@@ -36,14 +36,19 @@ class CapitalManager:
                     data = json.load(f)
                     loaded_capital = data.get('capital', {})
                     if isinstance(loaded_capital, float):
-                        print(f"Warning: Legacy capital format detected. Converting.")
-                        self.capital[self.coin] = loaded_capital
-                        self.trade_records[self.coin] = {
-                            'timestamp': datetime.now().isoformat(),
-                            'quantity': 0.0,
-                            'price': 0.0,
-                            'total_profit': 0.0
-                        }
+                        if self.coin:
+                            print(f"Warning: Legacy capital format detected. Converting for coin {self.coin}.")
+                            self.capital[self.coin] = loaded_capital
+                            self.trade_records[self.coin] = {
+                                'timestamp': datetime.now().isoformat(),
+                                'quantity': 0.0,
+                                'price': 0.0,
+                                'total_profit': 0.0
+                            }
+                        else:
+                            print("Warning: Legacy capital format detected, but no coin specified. Initializing empty state.")
+                            self.capital = {}
+                            self.trade_records = {}
                     else:
                         self.capital.update(loaded_capital)
                     self.positions = data.get('positions', {})
@@ -72,8 +77,6 @@ class CapitalManager:
             self.positions = {}
             self.total_cost = {}
             self.trade_records = {}
-        # Do not automatically initialize the coin here
-        # Let deposit() or simulate_buy() handle coin initialization
         self.save_state()
 
     def save_state(self):
