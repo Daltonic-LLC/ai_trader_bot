@@ -72,3 +72,28 @@ export const fetchExecutionLog = async () => {
     throw error
   }
 }
+
+export const fetchCoinInvestment = async (coin: string) => {
+  try {
+    const _user = Cookies.get('bot_user')!
+    const parsedUser = JSON.parse(_user) || {}
+    const token = parsedUser?.token?.access_token || ''
+
+    const response = await fetch(`${BASE_URL}/auth/investment/${coin}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to retrieve coin report')
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching coin report:', error)
+    throw error
+  }
+}

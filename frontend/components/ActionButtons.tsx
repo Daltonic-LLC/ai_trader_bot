@@ -23,7 +23,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ isCoinSelected }) => {
 
     return (
         <div className="flex flex-col justify-center items-center space-y-4 mt-4 w-full">
-            <div className="flex flex-col lg:flex-row justify-center items-center space-y-4 lg:space-y-0 lg:space-x-4 w-full">
+            <div className="flex flex-col md:flex-row justify-center items-center space-y-4 lg:space-y-0 lg:space-x-4 w-full">
                 <button
                     onClick={handleDeposit}
                     disabled={!isCoinSelected}

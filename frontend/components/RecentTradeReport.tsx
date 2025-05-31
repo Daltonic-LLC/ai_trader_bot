@@ -59,7 +59,7 @@ const RecentTradeReportCard: React.FC<TradeReportCardProps> = ({ report, executi
     return (
         <div className="p-5 bg-crypto-gray rounded-xl shadow-lg border border-crypto-blue/30
         hover:border-crypto-blue transition-all relative">
-            <div className='max-h-90 overflow-y-auto'>
+            <div className='max-h-72 overflow-y-auto'>
 
                 {/* Header with coin name */}
                 <div className="flex justify-between items-center bg-gradient-to-r from-crypto-blue to-crypto-green text-white py-4 rounded-t-xl">

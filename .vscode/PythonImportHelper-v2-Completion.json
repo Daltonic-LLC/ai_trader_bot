@@ -815,6 +815,14 @@
         "documentation": {}
     },
     {
+        "label": "CoinStatsService",
+        "importPath": "app.services.coin_stats",
+        "description": "app.services.coin_stats",
+        "isExtraImport": true,
+        "detail": "app.services.coin_stats",
+        "documentation": {}
+    },
+    {
         "label": "DataCleaner",
         "importPath": "app.services.file_manager",
         "description": "app.services.file_manager",
@@ -1479,7 +1487,16 @@
         "kind": 5,
         "importPath": "backend.app.users.user",
         "description": "backend.app.users.user",
-        "peekOfCode": "capital_manager = CapitalManager(initial_capital=1000.0)\nuser_service = MongoUserService()\nauth_router = APIRouter()\n# OAuth2 configuration\noauth2_scheme = OAuth2AuthorizationCodeBearer(\n    authorizationUrl=\"https://accounts.google.com/o/oauth2/v2/auth\",\n    tokenUrl=\"https://oauth2.googleapis.com/token\",\n)\ndef create_access_token(data: dict, expires_delta: Optional[timedelta] = None):\n    \"\"\"Create JWT access token\"\"\"",
+        "peekOfCode": "capital_manager = CapitalManager(initial_capital=1000.0)\nstats_service = CoinStatsService()\nuser_service = MongoUserService()\nauth_router = APIRouter()\n# OAuth2 configuration\noauth2_scheme = OAuth2AuthorizationCodeBearer(\n    authorizationUrl=\"https://accounts.google.com/o/oauth2/v2/auth\",\n    tokenUrl=\"https://oauth2.googleapis.com/token\",\n)\ndef create_access_token(data: dict, expires_delta: Optional[timedelta] = None):",
+        "detail": "backend.app.users.user",
+        "documentation": {}
+    },
+    {
+        "label": "stats_service",
+        "kind": 5,
+        "importPath": "backend.app.users.user",
+        "description": "backend.app.users.user",
+        "peekOfCode": "stats_service = CoinStatsService()\nuser_service = MongoUserService()\nauth_router = APIRouter()\n# OAuth2 configuration\noauth2_scheme = OAuth2AuthorizationCodeBearer(\n    authorizationUrl=\"https://accounts.google.com/o/oauth2/v2/auth\",\n    tokenUrl=\"https://oauth2.googleapis.com/token\",\n)\ndef create_access_token(data: dict, expires_delta: Optional[timedelta] = None):\n    \"\"\"Create JWT access token\"\"\"",
         "detail": "backend.app.users.user",
         "documentation": {}
     },

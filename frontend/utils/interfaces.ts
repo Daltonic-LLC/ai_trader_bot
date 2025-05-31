@@ -17,3 +17,18 @@ export interface ExecutionLog {
   last_execution: string
   next_execution: string
 }
+
+export interface InvestmentData {
+  user_investment: {
+    investment: number
+    ownership_percentage: number
+    current_share: number
+    profit_loss: number
+  }
+  coin_performance: {
+    current_price: number
+    price_change_24h: number
+    volume_24h: number
+    market_cap: number
+  }
+}

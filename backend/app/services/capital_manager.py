@@ -180,3 +180,47 @@ class CapitalManager:
             price = market_prices.get(coin, 0.0)
             total_value += position * price
         return total_value
+    
+    def get_user_investment_details(self, user_id, coin, current_price):
+        """Retrieve investment details for a user and a specific coin."""
+        coin = coin.lower()
+        
+        # Check if the user has investments in this coin
+        if coin not in self.user_investments or user_id not in self.user_investments[coin]:
+            return {
+                "investment": 0.0,
+                "ownership_percentage": 0.0,
+                "current_share": 0.0,
+                "profit_loss": 0.0
+            }
+        
+        # Get user's investment amount
+        user_investment = self.user_investments[coin][user_id]
+        total_deposits = self.total_deposits.get(coin, 0.0)
+        
+        # Handle edge case where total deposits are zero
+        if total_deposits == 0:
+            return {
+                "investment": user_investment,
+                "ownership_percentage": 0.0,
+                "current_share": 0.0,
+                "profit_loss": 0.0
+            }
+        
+        # Calculate ownership percentage
+        ownership_percentage = (user_investment / total_deposits) * 100
+        
+        # Calculate total value including positions
+        position_value = self.positions.get(coin, 0.0) * current_price
+        total_value = self.capital.get(coin, 0.0) + position_value
+        
+        # Calculate user's current share and profit/loss
+        current_share = (ownership_percentage / 100) * total_value
+        profit_loss = current_share - user_investment
+        
+        return {
+            "investment": user_investment,
+            "ownership_percentage": ownership_percentage,
+            "current_share": current_share,
+            "profit_loss": profit_loss
+        }

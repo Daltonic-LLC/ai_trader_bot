@@ -17,9 +17,11 @@ from app.users.models import (
     BalanceOperation,
     BalanceResponse,
 )
+from app.services.coin_stats import CoinStatsService
 
 # Initialize services
 capital_manager = CapitalManager(initial_capital=1000.0)
+stats_service = CoinStatsService()
 user_service = MongoUserService()
 auth_router = APIRouter()
 
@@ -269,7 +271,7 @@ async def deposit_balance(
     """Deposit an amount of a specific coin into the user's balance and update global trading capital."""
     user_id = current_user["id"]
     coin = (
-        operation.coin.upper()
+        operation.coin.lower()
     )  # Standardize coin symbols to uppercase for user balance
     amount = operation.amount
 
@@ -329,3 +331,39 @@ async def withdraw_balance(
     new_balance = user.get("balances", {}).get(coin, 0.0)
 
     return BalanceResponse(coin=coin, balance=new_balance)
+
+
+@auth_router.get("/investment/{coin}")
+async def get_investment_details(
+    coin: str, current_user: dict = Depends(get_current_user)
+):
+    """Display user investment details and coin performance for a given coin."""
+    user_id = current_user["id"]
+    coin = coin.lower()  # Ensure consistency with CapitalManager
+
+    # Fetch current coin stats
+    stats = stats_service.get_latest_stats(coin)
+    if stats is None or "price" not in stats:
+        raise HTTPException(
+            status_code=404, detail="Coin not found or no price data available"
+        )
+
+    current_price = stats["price"]
+
+    # Get user investment details
+    details = capital_manager.get_user_investment_details(user_id, coin, current_price)
+
+    # If no investment, return a message
+    if details["investment"] == 0.0:
+        return {"message": "No investment found for this coin"}
+
+    # Compile coin performance metrics
+    coin_performance = {
+        "current_price": stats.get("price", "N/A"),
+        "price_change_24h": stats.get("price_change_24h_percent", "N/A"),
+        "volume_24h": stats.get("volume_24h", "N/A"),
+        "market_cap": stats.get("market_cap", "N/A"),
+    }
+
+    # Return combined data
+    return {"user_investment": details, "coin_performance": coin_performance}

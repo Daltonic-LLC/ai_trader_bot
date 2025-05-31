@@ -25,7 +25,7 @@ const DepositModal: React.FC<DepositModalProps> = ({ coin, currentBalance, onClo
             return;
         }
 
-        deposit_funds(coin.symbol, numAmount)
+        deposit_funds(coin.slug, numAmount)
             .then(() => {
                 setAmount('');
                 onDeposit(numAmount);

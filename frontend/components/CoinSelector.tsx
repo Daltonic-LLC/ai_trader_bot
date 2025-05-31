@@ -12,15 +12,13 @@ const CoinSelector: React.FC<CoinSelectorProps> = ({ coins, selectedCoin, onCoin
     const [isOpen, setIsOpen] = useState(false);
 
     const handleSelect = (coin: Coin) => {
-        console.log('Coin selected:', coin);
-        
         onCoinChange(coin);
         setIsOpen(false);
     };
 
     return (
-        <div className="relative mb-6">
-            <div className="p-4 rounded-xl shadow-lg border
+        <div className="relative mb-6 w-full">
+            <div className="p-4 rounded-xl shadow-lg border w-full
             border-crypto-blue/30 hover:border-crypto-blue transition-all">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
@@ -31,8 +29,8 @@ const CoinSelector: React.FC<CoinSelectorProps> = ({ coins, selectedCoin, onCoin
                     <span>{
                         selectedCoin ?
                             `${selectedCoin.name} (${balances &&
-                            balances[selectedCoin.symbol] &&
-                            balances[selectedCoin.symbol].toFixed(2) ||
+                            balances[selectedCoin.slug] &&
+                            balances[selectedCoin.slug].toFixed(2) ||
                             '0.00'})` :
                             'Select a Coin'}</span>
                     <svg
@@ -56,7 +54,7 @@ const CoinSelector: React.FC<CoinSelectorProps> = ({ coins, selectedCoin, onCoin
                                 hover:border-crypto-blue hover:scale-105 transition-all transform duration-200"
                             >
                                 <span>{coin.name}</span>
-                                <span>{balances && balances[coin.symbol] && balances[coin.symbol].toFixed(2) || '0.00'} {coin.symbol}</span>
+                                <span>{balances && balances[coin.slug] && balances[coin.slug].toFixed(2) || '0.00'} {coin.symbol}</span>
                             </button>
                         ))}
                     </div>

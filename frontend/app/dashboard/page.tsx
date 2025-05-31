@@ -6,18 +6,20 @@ import CoinDetailsCard from '@/components/CoinDetailsCard';
 import CoinSelector from '@/components/CoinSelector';
 import DepositModal from '@/components/DepositeModal';
 import Header from '@/components/Header';
+import InvestmentCard from '@/components/InvestmentCard';
 import RecentTradeReportCard from '@/components/RecentTradeReport';
 import WithdrawModal from '@/components/WithdrawModal';
 import { useGlobalContext } from '@/contexts/GlobalContext';
 import { useAuth } from '@/hooks/userAuth';
-import { fetchCoinReport, fetchCoins, fetchExecutionLog } from '@/utils/api';
-import { Coin, ExecutionLog } from '@/utils/interfaces';
+import { fetchCoinInvestment, fetchCoinReport, fetchCoins, fetchExecutionLog } from '@/utils/api';
+import { Coin, ExecutionLog, InvestmentData } from '@/utils/interfaces';
 import React, { useEffect } from 'react';
 
 const DashboardPage: React.FC = () => {
   const [report, setReport] = React.useState<string | null>(null);
   const [lastTrade, setLastTrade] = React.useState<ExecutionLog | null>(null);
   const [lastReport, setLastReport] = React.useState<ExecutionLog | null>(null);
+  const [investmentData, setInvestmentData] = React.useState<InvestmentData | null>(null);
 
   const {
     isDepositOpen,
@@ -50,6 +52,18 @@ const DashboardPage: React.FC = () => {
     }
   }
 
+  const getCoinInvestment = async (coin: string) => fetchCoinInvestment(coin)
+    .then((data) => {
+      if (data && Object.keys(data).length > 0) {
+
+        setInvestmentData(data);
+      }
+    })
+    .catch((error) => {
+      console.error('Error fetching coin investment:', error);
+      setInvestmentData(null);
+    });
+
   const getCoins = async () => fetchCoins(15)
     .then(async (data) => {
       if (data.data.length > 0) {
@@ -59,6 +73,7 @@ const DashboardPage: React.FC = () => {
         if (setSelectedCoin) {
           setSelectedCoin(data.data[0] as Coin);
           await getCoinReport(data.data[0].slug)
+          await getCoinInvestment(data.data[0].slug);
         }
       }
     })
@@ -74,9 +89,9 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-crypto-dark pt-20 px-6">
       <Header />
-      <div className="flex flex-col lg:flex-row justify-center lg:space-x-6 sm:w-4/5 mx-auto mt-10">
+      <div className='flex flex-col lg:flex-row justify-center lg:space-x-6 sm:w-11/12 mx-auto mt-10'>
         {/* Left Section: Selector */}
-        <div className="lg:w-1/5">
+        <div className="lg:w-3/12">
           <CoinSelector
             coins={coins || []}
             selectedCoin={selectedCoin ?? null}
@@ -90,17 +105,26 @@ const DashboardPage: React.FC = () => {
           />
           <ActionButtons isCoinSelected={selectedCoin !== null} />
         </div>
+        <div className="flex flex-col lg:space-x-6 space-y-4 sm:w-4/5 mx-auto">
 
-        {/* Right Section: Coin Details */}
-        <div className="flex-1 mt-6 lg:mt-0">
-          <CoinDetailsCard coin={selectedCoin ?? null} balances={user?.balances || null} executionLog={lastTrade || null} />
+          <div className='flex-1 flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0 mr-0'>
+            {/* Right Section: Coin Details */}
+            <div className="flex-1 lg:mt-0">
+              <CoinDetailsCard coin={selectedCoin ?? null} balances={user?.balances || null} executionLog={lastTrade || null} />
+            </div>
+
+            <div className="lg:w-5/12">
+              {investmentData && <InvestmentCard data={investmentData} />}
+            </div>
+          </div>
+
+          <div className='flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0'>
+            <RecentTradeReportCard
+              report={report || ''} executionLog={lastReport || null}
+            />
+          </div>
         </div>
 
-        <div className="lg:w-1/3">
-          <RecentTradeReportCard
-            report={report || ''} executionLog={lastReport || null}
-          />
-        </div>
       </div>
 
       {isDepositOpen && selectedCoin && setIsDepositOpen && (
