@@ -282,9 +282,9 @@ async def deposit_balance(
     # Perform deposit
     try:
         # Step 1: Deposit to user's balance
-        success = user_service.deposit_balance(user_id, coin, amount)
-        if not success:
-            raise HTTPException(status_code=404, detail="User not found")
+        # success = user_service.deposit_balance(user_id, coin, amount)
+        # if not success:
+        #     raise HTTPException(status_code=404, detail="User not found")
 
         # Step 2: Deposit to global trading capital
         capital_manager.deposit(user_id, coin.lower(), amount)

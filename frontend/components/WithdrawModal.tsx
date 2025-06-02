@@ -70,13 +70,13 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({ coin, currentBalance, onC
                 <div className="flex justify-end space-x-2">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition"
+                        className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition cursor-pointer"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleWithdraw}
-                        className="px-4 py-2 bg-crypto-blue text-white rounded hover:bg-crypto-blue/80 transition"
+                        className="px-4 py-2 bg-crypto-blue text-white rounded hover:bg-crypto-blue/80 transition cursor-pointer"
                     >
                         Withdraw
                     </button>

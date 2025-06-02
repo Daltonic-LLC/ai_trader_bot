@@ -248,7 +248,8 @@ class MongoUserService:
     
     def clear_database(self, confirm: bool = False) -> bool:
         """
-        Clear all records from the database. This is a destructive operation and should be used with caution.
+        Clear all records from the database, including users, trading_state, and investment_records.
+        This is a destructive operation and should be used with caution.
 
         Args:
             confirm (bool): Confirmation flag to proceed with deletion. Defaults to False.
@@ -272,7 +273,9 @@ class MongoUserService:
             result_trading = self.trading_state.delete_many({})
             logging.info(f"Deleted {result_trading.deleted_count} documents from trading_state collection")
 
-            # Add similar delete operations here for additional collections if needed
+            # Delete all documents from the investment_records collection
+            result_investments = self.db.investment_records.delete_many({})
+            logging.info(f"Deleted {result_investments.deleted_count} documents from investment_records collection")
 
             return True
         except Exception as e:

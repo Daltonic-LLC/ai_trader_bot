@@ -4,11 +4,10 @@ import { Coin } from '@/utils/interfaces';
 interface CoinSelectorProps {
     coins: Coin[];
     selectedCoin: Coin | null;
-    balances?: Record<string, number> | null;
     onCoinChange: (coin: Coin | null) => void;
 }
 
-const CoinSelector: React.FC<CoinSelectorProps> = ({ coins, selectedCoin, onCoinChange, balances }) => {
+const CoinSelector: React.FC<CoinSelectorProps> = ({ coins, selectedCoin, onCoinChange }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleSelect = (coin: Coin) => {
@@ -28,10 +27,7 @@ const CoinSelector: React.FC<CoinSelectorProps> = ({ coins, selectedCoin, onCoin
                 >
                     <span>{
                         selectedCoin ?
-                            `${selectedCoin.name} (${balances &&
-                            balances[selectedCoin.slug] &&
-                            balances[selectedCoin.slug].toFixed(2) ||
-                            '0.00'})` :
+                            `${selectedCoin.name}` :
                             'Select a Coin'}</span>
                     <svg
                         className={`w-5 h-5 transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
@@ -54,7 +50,6 @@ const CoinSelector: React.FC<CoinSelectorProps> = ({ coins, selectedCoin, onCoin
                                 hover:border-crypto-blue hover:scale-105 transition-all transform duration-200"
                             >
                                 <span>{coin.name}</span>
-                                <span>{balances && balances[coin.slug] && balances[coin.slug].toFixed(2) || '0.00'} {coin.symbol}</span>
                             </button>
                         ))}
                     </div>

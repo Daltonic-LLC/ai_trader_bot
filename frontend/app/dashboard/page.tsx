@@ -10,7 +10,6 @@ import InvestmentCard from '@/components/InvestmentCard';
 import RecentTradeReportCard from '@/components/RecentTradeReport';
 import WithdrawModal from '@/components/WithdrawModal';
 import { useGlobalContext } from '@/contexts/GlobalContext';
-import { useAuth } from '@/hooks/userAuth';
 import { fetchCoinInvestment, fetchCoinReport, fetchCoins, fetchExecutionLog } from '@/utils/api';
 import { Coin, ExecutionLog, InvestmentData } from '@/utils/interfaces';
 import React, { useEffect } from 'react';
@@ -31,8 +30,6 @@ const DashboardPage: React.FC = () => {
     currencies: coins,
     selectedCoin
   } = useGlobalContext();
-
-  const { user, checkAuth } = useAuth()
 
   const getExecutionLog = async () => {
     const log = await fetchExecutionLog();
@@ -96,12 +93,15 @@ const DashboardPage: React.FC = () => {
             coins={coins || []}
             selectedCoin={selectedCoin ?? null}
             onCoinChange={(coin: Coin | null) => {
-              if (coin) getCoinReport(coin.slug);
+              if (coin) {
+                getCoinReport(coin.slug);
+                getCoinInvestment(coin.slug)
+              }
+
               if (setSelectedCoin) {
                 setSelectedCoin(coin);
               }
             }}
-            balances={user?.balances || null}
           />
           <ActionButtons isCoinSelected={selectedCoin !== null} />
         </div>
@@ -110,12 +110,14 @@ const DashboardPage: React.FC = () => {
           <div className='flex-1 flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0 mr-0'>
             {/* Right Section: Coin Details */}
             <div className="flex-1 lg:mt-0">
-              <CoinDetailsCard coin={selectedCoin ?? null} balances={user?.balances || null} executionLog={lastTrade || null} />
+              <CoinDetailsCard coin={selectedCoin ?? null} executionLog={lastTrade || null} />
             </div>
 
-            <div className="lg:w-5/12">
-              {investmentData && <InvestmentCard data={investmentData} />}
-            </div>
+            {investmentData && investmentData.user_investment &&
+              <div className="lg:w-5/12">
+                <InvestmentCard data={investmentData} />
+              </div>
+            }
           </div>
 
           <div className='flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0'>
@@ -130,17 +132,29 @@ const DashboardPage: React.FC = () => {
       {isDepositOpen && selectedCoin && setIsDepositOpen && (
         <DepositModal
           coin={selectedCoin}
-          currentBalance={user?.balances?.[selectedCoin.symbol] ? parseFloat(user.balances[selectedCoin.symbol].toFixed(2)) : 0}
+          currentBalance={
+            investmentData?.user_investment.investment ?
+              parseFloat(investmentData?.user_investment.investment.toFixed(2)) :
+              0
+          }
           onClose={() => setIsDepositOpen(false)}
-          onDeposit={() => checkAuth()}
+          onDeposit={() => {
+            getCoinInvestment(selectedCoin.slug);
+          }}
         />
       )}
       {isWithdrawOpen && selectedCoin && setIsWithdrawOpen && (
         <WithdrawModal
           coin={selectedCoin}
-          currentBalance={0}
+          currentBalance={
+            investmentData?.user_investment.investment ?
+              parseFloat(investmentData?.user_investment.investment.toFixed(2)) :
+              0
+          }
           onClose={() => setIsWithdrawOpen(false)}
-          onWithdraw={() => { }}
+          onWithdraw={() => {
+            getCoinInvestment(selectedCoin.slug);
+          }}
         />
       )}
     </div>
