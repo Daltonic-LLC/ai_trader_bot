@@ -24,8 +24,10 @@ class MongoUserService:
                 escaped_password = quote_plus(password)
                 # Ensure the URI includes credentials and authSource
                 if base_uri.startswith("mongodb://"):
-                    base_uri = base_uri[len("mongodb://"):]
-                mongo_uri = f"mongodb://{escaped_username}:{escaped_password}@{base_uri}"
+                    base_uri = base_uri[len("mongodb://") :]
+                mongo_uri = (
+                    f"mongodb://{escaped_username}:{escaped_password}@{base_uri}"
+                )
                 if "?authSource=" not in mongo_uri:
                     mongo_uri += "?authSource=admin"
             else:
@@ -35,7 +37,9 @@ class MongoUserService:
                     mongo_uri += "?authSource=admin"
 
             # Log connection attempt (mask password)
-            logging.info(f"Connecting to MongoDB at {mongo_uri.replace(password, '****') if password else mongo_uri}")
+            logging.info(
+                f"Connecting to MongoDB at {mongo_uri.replace(password, '****') if password else mongo_uri}"
+            )
 
             # Connect to MongoDB
             self.client = MongoClient(mongo_uri)
@@ -46,7 +50,6 @@ class MongoUserService:
             # Create indexes
             self.users.create_index("email", unique=True)
             self.users.create_index([("social_id", 1), ("provider", 1)], unique=True)
-            
 
             logging.info("Successfully connected to MongoDB")
         except Exception as e:
@@ -177,17 +180,20 @@ class MongoUserService:
                 {"_id": ObjectId(user_id)},
                 {
                     "$inc": {f"balances.{coin}": amount},
-                    "$set": {"updated_at": datetime.utcnow()}
-                }
+                    "$set": {"updated_at": datetime.utcnow()},
+                },
             )
             # $inc creates the balances field and coin entry if they don't exist
             if result.modified_count == 0:
-                logging.warning(f"No user found or balance unchanged for user_id: {user_id}, coin: {coin}")
+                logging.warning(
+                    f"No user found or balance unchanged for user_id: {user_id}, coin: {coin}"
+                )
             return result.modified_count > 0
         except Exception as e:
-            logging.error(f"Failed to deposit balance for user_id: {user_id}, coin: {coin}: {str(e)}")
+            logging.error(
+                f"Failed to deposit balance for user_id: {user_id}, coin: {coin}: {str(e)}"
+            )
             raise
-
 
     def withdraw_balance(self, user_id: str, coin: str, amount: float) -> bool:
         """Decrease the user's balance for a specific coin if sufficient funds exist."""
@@ -195,42 +201,45 @@ class MongoUserService:
             result = self.users.update_one(
                 {
                     "_id": ObjectId(user_id),
-                    f"balances.{coin}": {"$gte": amount}  # Ensure sufficient balance
+                    f"balances.{coin}": {"$gte": amount},  # Ensure sufficient balance
                 },
                 {
                     "$inc": {f"balances.{coin}": -amount},
-                    "$set": {"updated_at": datetime.utcnow()}
-                }
+                    "$set": {"updated_at": datetime.utcnow()},
+                },
             )
             if result.matched_count == 0:
-                logging.warning(f"Insufficient balance or user not found for user_id: {user_id}, coin: {coin}")
+                logging.warning(
+                    f"Insufficient balance or user not found for user_id: {user_id}, coin: {coin}"
+                )
             return result.matched_count > 0 and result.modified_count > 0
         except Exception as e:
-            logging.error(f"Failed to withdraw balance for user_id: {user_id}, coin: {coin}: {str(e)}")
+            logging.error(
+                f"Failed to withdraw balance for user_id: {user_id}, coin: {coin}: {str(e)}"
+            )
             raise
-        
+
     def get_trading_state(self) -> Dict:
         """Retrieve the scheduler's trading state from the database."""
         state = self.trading_state.find_one({"_id": "scheduler_state"})
         if state:
             return {
-                'user_investments': state.get('user_investments', {}),
-                'total_deposits': state.get('total_deposits', {}),
-                'capital': state.get('capital', {}),
-                'positions': state.get('positions', {}),
-                'total_cost': state.get('total_cost', {}),
-                'trade_records': state.get('trade_records', {})
+                "user_investments": state.get("user_investments", {}),
+                "total_deposits": state.get("total_deposits", {}),
+                "capital": state.get("capital", {}),
+                "positions": state.get("positions", {}),
+                "total_cost": state.get("total_cost", {}),
+                "trade_records": state.get("trade_records", {}),
             }
         # Return empty state if no document exists
         return {
-            'user_investments': {},
-            'total_deposits': {},
-            'capital': {},
-            'positions': {},
-            'total_cost': {},
-            'trade_records': {}
+            "user_investments": {},
+            "total_deposits": {},
+            "capital": {},
+            "positions": {},
+            "total_cost": {},
+            "trade_records": {},
         }
-
 
     def set_trading_state(self, state: Dict) -> bool:
         """Save or update the scheduler's trading state in the database."""
@@ -238,14 +247,64 @@ class MongoUserService:
             result = self.trading_state.update_one(
                 {"_id": "scheduler_state"},  # Fixed ID for the scheduler's state
                 {"$set": state},
-                upsert=True  # Create the document if it doesn’t exist
+                upsert=True,  # Create the document if it doesn’t exist
             )
             return result.modified_count > 0 or result.upserted_id is not None
         except Exception as e:
             logging.error(f"Failed to set trading state: {str(e)}")
             return False
-        
-    
+
+    def add_wallet(self, user_id: str, coin: str, wallet_address: str) -> bool:
+        """
+        Add or update a wallet address for a specific coin for the user.
+
+        Args:
+            user_id (str): The user's MongoDB ID.
+            coin (str): The coin symbol (e.g., 'BTC', 'ETH').
+            wallet_address (str): The wallet address to associate.
+
+        Returns:
+            bool: True if the wallet was added/updated, False otherwise.
+        """
+        try:
+            result = self.users.update_one(
+                {"_id": ObjectId(user_id)},
+                {
+                    "$set": {
+                        f"wallets.{coin}": wallet_address,
+                        "updated_at": datetime.utcnow(),
+                    }
+                },
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            logging.error(
+                f"Failed to add wallet for user_id: {user_id}, coin: {coin}: {str(e)}"
+            )
+            return False
+
+    def get_wallet(self, user_id: str, coin: str) -> Optional[str]:
+        """
+        Retrieve the wallet address for a specific coin for the user.
+
+        Args:
+            user_id (str): The user's MongoDB ID.
+            coin (str): The coin symbol (e.g., 'BTC', 'ETH').
+
+        Returns:
+            Optional[str]: The wallet address if found, None otherwise.
+        """
+        try:
+            user = self.users.find_one({"_id": ObjectId(user_id)}, {"wallets": 1})
+            if user and "wallets" in user and coin in user["wallets"]:
+                return user["wallets"][coin]
+            return None
+        except Exception as e:
+            logging.error(
+                f"Failed to get wallet for user_id: {user_id}, coin: {coin}: {str(e)}"
+            )
+            return None
+
     def clear_database(self, confirm: bool = False) -> bool:
         """
         Clear all records from the database, including users, trading_state, and investment_records.
@@ -267,15 +326,21 @@ class MongoUserService:
         try:
             # Delete all documents from the users collection
             result_users = self.users.delete_many({})
-            logging.info(f"Deleted {result_users.deleted_count} documents from users collection")
+            logging.info(
+                f"Deleted {result_users.deleted_count} documents from users collection"
+            )
 
             # Delete all documents from the trading_state collection
             result_trading = self.trading_state.delete_many({})
-            logging.info(f"Deleted {result_trading.deleted_count} documents from trading_state collection")
+            logging.info(
+                f"Deleted {result_trading.deleted_count} documents from trading_state collection"
+            )
 
             # Delete all documents from the investment_records collection
             result_investments = self.db.investment_records.delete_many({})
-            logging.info(f"Deleted {result_investments.deleted_count} documents from investment_records collection")
+            logging.info(
+                f"Deleted {result_investments.deleted_count} documents from investment_records collection"
+            )
 
             return True
         except Exception as e:

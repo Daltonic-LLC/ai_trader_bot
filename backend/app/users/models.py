@@ -38,10 +38,17 @@ class UserRole(Enum):
 class SocialProvider(Enum):
     GOOGLE = "google"
 
+
 class BalanceOperation(BaseModel):
     coin: str  # e.g., "BTC", "ETH"
     amount: float  # Amount to deposit or withdraw
 
+
 class BalanceResponse(BaseModel):
     coin: str
     balance: float  # Updated balance after the operation
+
+
+class WalletOperation(BaseModel):
+    coin: str
+    wallet_address: str

@@ -97,3 +97,82 @@ export const fetchCoinInvestment = async (coin: string) => {
     throw error
   }
 }
+
+export const fetchUserProfile = async () => {
+  try {
+    const _user = Cookies.get('bot_user')!
+    const parsedUser = JSON.parse(_user) || {}
+    const token = parsedUser?.token?.access_token || ''
+
+    const response = await fetch(`${BASE_URL}/auth/profile`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to retrieve user profile')
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching user profile:', error)
+    throw error
+  }
+}
+
+export const updateWalletAddress = async (
+  coin: string,
+  wallet_address: string
+) => {
+  try {
+    const _user = Cookies.get('bot_user')!
+    const parsedUser = JSON.parse(_user) || {}
+    const token = parsedUser?.token?.access_token || ''
+
+    const response = await fetch(`${BASE_URL}/auth/wallet/add`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ coin, wallet_address }),
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to add or update wallet address')
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error updating wallet address:', error)
+    throw error
+  }
+}
+
+export const fetchWalletAddresses = async (coin: string) => {
+  try {
+    const _user = Cookies.get('bot_user')!
+    const parsedUser = JSON.parse(_user) || {}
+    const token = parsedUser?.token?.access_token || ''
+
+    const response = await fetch(`${BASE_URL}/auth/wallets/${coin}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to retrieve wallet addresses')
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching wallet addresses:', error)
+    throw error
+  }
+}

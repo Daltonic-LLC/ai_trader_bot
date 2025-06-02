@@ -18,6 +18,7 @@ from app.users.models import (
     BalanceResponse,
 )
 from app.services.coin_stats import CoinStatsService
+from app.users.models import WalletOperation
 
 # Initialize services
 capital_manager = CapitalManager(initial_capital=1000.0)
@@ -367,3 +368,39 @@ async def get_investment_details(
 
     # Return combined data
     return {"user_investment": details, "coin_performance": coin_performance}
+
+
+@auth_router.post("/wallet/add")
+async def add_wallet_address(
+    operation: WalletOperation, current_user: dict = Depends(get_current_user)
+):
+    """
+    Add or update a wallet address for a specific coin for the authenticated user.
+    """
+    user_id = current_user["id"]
+    coin = operation.coin.upper()
+    wallet_address = operation.wallet_address
+
+    success = user_service.add_wallet(user_id, coin, wallet_address)
+    if not success:
+        raise HTTPException(
+            status_code=500, detail="Failed to add or update wallet address"
+        )
+
+    return {"message": f"Wallet address for {coin} added/updated successfully."}
+
+
+@auth_router.get("/wallets/{coin}")
+async def get_wallet_addresses(
+    coin: str, current_user: dict = Depends(get_current_user)
+):
+    """
+    Retrieve all wallet addresses for the authenticated user.
+    """
+    user_id = current_user["id"]
+    wallet = user_service.get_wallet(user_id, coin)
+
+    if not wallet:
+        raise HTTPException(status_code=404, detail="No wallet found for this user")
+
+    return {"wallet": wallet}

@@ -986,6 +986,14 @@
         "documentation": {}
     },
     {
+        "label": "WalletOperation",
+        "importPath": "app.users.models",
+        "description": "app.users.models",
+        "isExtraImport": true,
+        "detail": "app.users.models",
+        "documentation": {}
+    },
+    {
         "label": "Client",
         "importPath": "binance.client",
         "description": "binance.client",
@@ -1451,7 +1459,7 @@
         "kind": 6,
         "importPath": "backend.app.users.models",
         "description": "backend.app.users.models",
-        "peekOfCode": "class SocialProvider(Enum):\n    GOOGLE = \"google\"\nclass BalanceOperation(BaseModel):\n    coin: str  # e.g., \"BTC\", \"ETH\"\n    amount: float  # Amount to deposit or withdraw\nclass BalanceResponse(BaseModel):\n    coin: str\n    balance: float  # Updated balance after the operation",
+        "peekOfCode": "class SocialProvider(Enum):\n    GOOGLE = \"google\"\nclass BalanceOperation(BaseModel):\n    coin: str  # e.g., \"BTC\", \"ETH\"\n    amount: float  # Amount to deposit or withdraw\nclass BalanceResponse(BaseModel):\n    coin: str\n    balance: float  # Updated balance after the operation\nclass WalletOperation(BaseModel):\n    coin: str",
         "detail": "backend.app.users.models",
         "documentation": {}
     },
@@ -1460,7 +1468,7 @@
         "kind": 6,
         "importPath": "backend.app.users.models",
         "description": "backend.app.users.models",
-        "peekOfCode": "class BalanceOperation(BaseModel):\n    coin: str  # e.g., \"BTC\", \"ETH\"\n    amount: float  # Amount to deposit or withdraw\nclass BalanceResponse(BaseModel):\n    coin: str\n    balance: float  # Updated balance after the operation",
+        "peekOfCode": "class BalanceOperation(BaseModel):\n    coin: str  # e.g., \"BTC\", \"ETH\"\n    amount: float  # Amount to deposit or withdraw\nclass BalanceResponse(BaseModel):\n    coin: str\n    balance: float  # Updated balance after the operation\nclass WalletOperation(BaseModel):\n    coin: str\n    wallet_address: str",
         "detail": "backend.app.users.models",
         "documentation": {}
     },
@@ -1469,7 +1477,16 @@
         "kind": 6,
         "importPath": "backend.app.users.models",
         "description": "backend.app.users.models",
-        "peekOfCode": "class BalanceResponse(BaseModel):\n    coin: str\n    balance: float  # Updated balance after the operation",
+        "peekOfCode": "class BalanceResponse(BaseModel):\n    coin: str\n    balance: float  # Updated balance after the operation\nclass WalletOperation(BaseModel):\n    coin: str\n    wallet_address: str",
+        "detail": "backend.app.users.models",
+        "documentation": {}
+    },
+    {
+        "label": "WalletOperation",
+        "kind": 6,
+        "importPath": "backend.app.users.models",
+        "description": "backend.app.users.models",
+        "peekOfCode": "class WalletOperation(BaseModel):\n    coin: str\n    wallet_address: str",
         "detail": "backend.app.users.models",
         "documentation": {}
     },
