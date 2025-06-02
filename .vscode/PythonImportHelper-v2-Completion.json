@@ -104,6 +104,14 @@
         "documentation": {}
     },
     {
+        "label": "CapitalManager",
+        "importPath": "app.services.capital_manager",
+        "description": "app.services.capital_manager",
+        "isExtraImport": true,
+        "detail": "app.services.capital_manager",
+        "documentation": {}
+    },
+    {
         "label": "CoinScheduler",
         "importPath": "app.services.coin_scheduler",
         "description": "app.services.coin_scheduler",
@@ -1729,7 +1737,16 @@
         "kind": 5,
         "importPath": "backend.tester4",
         "description": "backend.tester4",
-        "peekOfCode": "mongo_service = MongoUserService()\nsuccess = mongo_service.clear_database(confirm=True)\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
+        "peekOfCode": "mongo_service = MongoUserService()\ncapital_service = CapitalManager()\nsuccess = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")\n# capital_manager = CapitalManager()\n# debug_info = capital_manager.debug_all_coins()",
+        "detail": "backend.tester4",
+        "documentation": {}
+    },
+    {
+        "label": "capital_service",
+        "kind": 5,
+        "importPath": "backend.tester4",
+        "description": "backend.tester4",
+        "peekOfCode": "capital_service = CapitalManager()\nsuccess = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")\n# capital_manager = CapitalManager()\n# debug_info = capital_manager.debug_all_coins()\n# print(debug_info)",
         "detail": "backend.tester4",
         "documentation": {}
     },
@@ -1738,7 +1755,7 @@
         "kind": 5,
         "importPath": "backend.tester4",
         "description": "backend.tester4",
-        "peekOfCode": "success = mongo_service.clear_database(confirm=True)\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
+        "peekOfCode": "success = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")\n# capital_manager = CapitalManager()\n# debug_info = capital_manager.debug_all_coins()\n# print(debug_info)",
         "detail": "backend.tester4",
         "documentation": {}
     },

@@ -3,11 +3,13 @@ import logging
 from app.services.mongodb_service import MongoUserService
 
 # Configure basic logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 class CapitalManager:
     """A singleton class to manage trading capital, positions, and trade records."""
-    
+
     _instance = None
 
     def __new__(cls, initial_capital=1000.0):
@@ -21,7 +23,9 @@ class CapitalManager:
             cls._instance.total_cost = {}  # Total cost of positions per coin
             cls._instance.trade_records = {}  # Trade history per coin
             cls._instance.user_investments = {}  # {coin: {user_id: total_deposit}}
+            cls._instance.user_withdrawals = {}  # {coin: {user_id: total_withdrawn}}
             cls._instance.total_deposits = {}  # {coin: total_deposits}
+            cls._instance.total_withdrawals = {}  # {coin: total_withdrawals}
             cls._instance.load_state()
         return cls._instance
 
@@ -29,12 +33,14 @@ class CapitalManager:
         """Load the trading state from MongoDB."""
         try:
             state = self.mongo_service.get_trading_state()
-            self.capital = state.get('capital', {})
-            self.positions = state.get('positions', {})
-            self.total_cost = state.get('total_cost', {})
-            self.trade_records = state.get('trade_records', {})
-            self.user_investments = state.get('user_investments', {})
-            self.total_deposits = state.get('total_deposits', {})
+            self.capital = state.get("capital", {})
+            self.positions = state.get("positions", {})
+            self.total_cost = state.get("total_cost", {})
+            self.trade_records = state.get("trade_records", {})
+            self.user_investments = state.get("user_investments", {})
+            self.user_withdrawals = state.get("user_withdrawals", {})
+            self.total_deposits = state.get("total_deposits", {})
+            self.total_withdrawals = state.get("total_withdrawals", {})
             logging.info("Loaded trading state from database.")
         except Exception as e:
             logging.error(f"Failed to load state from MongoDB: {e}")
@@ -43,12 +49,14 @@ class CapitalManager:
     def save_state(self):
         """Save the trading state to MongoDB."""
         state = {
-            'capital': self.capital,
-            'positions': self.positions,
-            'total_cost': self.total_cost,
-            'trade_records': self.trade_records,
-            'user_investments': self.user_investments,
-            'total_deposits': self.total_deposits
+            "capital": self.capital,
+            "positions": self.positions,
+            "total_cost": self.total_cost,
+            "trade_records": self.trade_records,
+            "user_investments": self.user_investments,
+            "user_withdrawals": self.user_withdrawals,
+            "total_deposits": self.total_deposits,
+            "total_withdrawals": self.total_withdrawals,
         }
         try:
             self.mongo_service.set_trading_state(state)
@@ -63,81 +71,214 @@ class CapitalManager:
         # Initialize coin-specific dictionaries if not present
         if coin not in self.user_investments:
             self.user_investments[coin] = {}
+        if coin not in self.user_withdrawals:
+            self.user_withdrawals[coin] = {}
+        
         # Update user's total deposit for the coin
-        self.user_investments[coin][user_id] = self.user_investments[coin].get(user_id, 0.0) + amount
+        self.user_investments[coin][user_id] = (
+            self.user_investments[coin].get(user_id, 0.0) + amount
+        )
         # Update total deposits for the coin
         self.total_deposits[coin] = self.total_deposits.get(coin, 0.0) + amount
         # Update current capital
         self.capital[coin] = self.capital.get(coin, 0.0) + amount
+        
         if coin not in self.trade_records:
-            self.trade_records[coin] = {'trades': [], 'total_profit': 0.0}
+            self.trade_records[coin] = {"trades": [], "total_profit": 0.0}
+        
         self.save_state()
-        logging.info(f"User {user_id} deposited ${amount:.2f} to {coin}. Total deposits: ${self.total_deposits[coin]:.2f}, Current capital: ${self.capital[coin]:.2f}")
+        logging.info(
+            f"User {user_id} deposited ${amount:.2f} to {coin}. Total deposits: ${self.total_deposits[coin]:.2f}, Current capital: ${self.capital[coin]:.2f}"
+        )
+
+    def withdraw(self, user_id, coin, amount):
+        """Withdraw capital from a specific coin for a user."""
+        coin = coin.lower()
+
+        if (
+            coin not in self.user_investments
+            or user_id not in self.user_investments[coin]
+        ):
+            raise ValueError(f"No investment found for user {user_id} in {coin}")
+        
+        # Calculate user's current withdrawable balance
+        user_total_deposits = self.user_investments[coin][user_id]
+        user_total_withdrawals = self.user_withdrawals.get(coin, {}).get(user_id, 0.0)
+        user_net_investment = user_total_deposits - user_total_withdrawals
+        
+        # Calculate available withdrawal amount based on ownership
+        withdrawal_amount = self.calculate_withdrawal(user_id, coin)
+        
+        if amount > withdrawal_amount:
+            raise ValueError(
+                f"Insufficient withdrawable amount for {coin}: Requested ${amount:.2f}, Available ${withdrawal_amount:.2f}"
+            )
+        
+        available_capital = self.capital.get(coin, 0.0)
+        if amount > available_capital:
+            raise ValueError(
+                f"Insufficient capital for {coin}: Requested ${amount:.2f}, Available ${available_capital:.2f}"
+            )
+        
+        # Initialize withdrawal tracking if not present
+        if coin not in self.user_withdrawals:
+            self.user_withdrawals[coin] = {}
+        
+        # Record the withdrawal (but don't change user_investments)
+        self.user_withdrawals[coin][user_id] = (
+            self.user_withdrawals[coin].get(user_id, 0.0) + amount
+        )
+        self.total_withdrawals[coin] = self.total_withdrawals.get(coin, 0.0) + amount
+        
+        # Reduce available capital
+        self.capital[coin] -= amount
+        
+        self.save_state()
+        
+        logging.info(
+            f"User {user_id} withdrew ${amount:.2f} from {coin}. Remaining capital: ${self.capital[coin]:.2f}"
+        )
 
     def calculate_withdrawal(self, user_id, coin):
         """Calculate the withdrawal amount based on user's ownership percentage."""
         coin = coin.lower()
-        if coin not in self.user_investments or user_id not in self.user_investments[coin]:
+        if (
+            coin not in self.user_investments
+            or user_id not in self.user_investments[coin]
+        ):
             logging.warning(f"No investment found for user {user_id} in {coin}")
             return 0.0
-        user_deposit = self.user_investments[coin][user_id]
+        
+        user_total_deposits = self.user_investments[coin][user_id]
         total_deposits = self.total_deposits.get(coin, 0.0)
+        
         if total_deposits == 0:
             logging.warning(f"No total deposits recorded for {coin}")
             return 0.0
-        ownership_percentage = user_deposit / total_deposits
-        withdrawal_amount = ownership_percentage * self.capital.get(coin, 0.0)
-        return withdrawal_amount
+        
+        # Calculate ownership based on original deposits
+        ownership_percentage = user_total_deposits / total_deposits
+        
+        # Calculate total current value (capital + positions)
+        position_value = self.positions.get(coin, 0.0) * 1.0  # You'll need current price here
+        total_current_value = self.capital.get(coin, 0.0) + position_value
+        
+        # User's share of current value
+        user_current_value = ownership_percentage * total_current_value
+        
+        # Subtract what they've already withdrawn
+        user_total_withdrawals = self.user_withdrawals.get(coin, {}).get(user_id, 0.0)
+        available_for_withdrawal = max(0, user_current_value - user_total_withdrawals)
+        
+        return available_for_withdrawal
 
-    def withdraw(self, user_id, coin):
-        """Process a withdrawal for a user based on their proportional share."""
+    def get_user_investment_details(self, user_id, coin, current_price):
+        """Retrieve investment details for a user and a specific coin."""
         coin = coin.lower()
-        withdrawal_amount = self.calculate_withdrawal(user_id, coin)
-        if withdrawal_amount > 0 and withdrawal_amount <= self.capital.get(coin, 0.0):
-            self.capital[coin] -= withdrawal_amount
-            # Remove user's investment record after full withdrawal
-            if coin in self.user_investments and user_id in self.user_investments[coin]:
-                del self.user_investments[coin][user_id]
-                if not self.user_investments[coin]:
-                    del self.user_investments[coin]
-            self.save_state()
-            logging.info(f"Withdrew ${withdrawal_amount:.2f} for user {user_id} from {coin}. New capital: ${self.capital[coin]:.2f}")
-            return withdrawal_amount
-        logging.warning(f"Withdrawal failed for user {user_id} from {coin}: Insufficient capital or no investment.")
-        return 0.0
+
+        # Check if the user has investments in this coin
+        if (
+            coin not in self.user_investments
+            or user_id not in self.user_investments[coin]
+        ):
+            return {
+                "investment": 0.0,
+                "ownership_percentage": 0.0,
+                "current_share": 0.0,
+                "profit_loss": 0.0,
+            }
+
+        # Get user's total investment amount (original deposits)
+        user_investment = self.user_investments[coin][user_id]
+        user_withdrawals = self.user_withdrawals.get(coin, {}).get(user_id, 0.0)
+        total_deposits = self.total_deposits.get(coin, 0.0)
+
+        # Handle edge case where total deposits are zero
+        if total_deposits == 0:
+            return {
+                "investment": user_investment,
+                "ownership_percentage": 0.0,
+                "current_share": 0.0,
+                "profit_loss": 0.0,
+            }
+
+        # Calculate ownership percentage based on original deposits
+        ownership_percentage = (user_investment / total_deposits) * 100
+
+        # Calculate total value including positions
+        position_value = self.positions.get(coin, 0.0) * current_price
+        total_value = self.capital.get(coin, 0.0) + position_value
+
+        # Calculate user's current share
+        current_share = (ownership_percentage / 100) * total_value
+        
+        # Calculate net investment (what user should currently own)
+        net_investment = user_investment - user_withdrawals
+        
+        # Calculate profit/loss: current_share vs what they should have (net_investment)
+        # If no trading occurred, current_share should equal net_investment
+        profit_loss = current_share - net_investment
+
+        return {
+            "investment": user_investment,
+            "net_investment": net_investment,
+            "total_withdrawals": user_withdrawals,
+            "ownership_percentage": ownership_percentage,
+            "current_share": current_share,
+            "profit_loss": profit_loss,
+        }
+
+    def get_user_investment(self, user_id, coin):
+        """Get the user's net investment (total deposits - withdrawals) for a specific coin."""
+        coin = coin.lower()
+        total_deposits = self.user_investments.get(coin, {}).get(user_id, 0.0)
+        total_withdrawals = self.user_withdrawals.get(coin, {}).get(user_id, 0.0)
+        return total_deposits - total_withdrawals
 
     def simulate_buy(self, coin, quantity, price, trading_fee=0.001):
         """Simulate a buy trade."""
         coin = coin.lower()
         if coin not in self.capital:
             self.capital[coin] = 0.0
-            self.trade_records[coin] = {'trades': [], 'total_profit': 0.0}
+            self.trade_records[coin] = {"trades": [], "total_profit": 0.0}
         cost = quantity * price * (1 + trading_fee)
         if cost > self.capital[coin]:
-            logging.warning(f"Insufficient capital for BUY {coin}: Need ${cost:.2f}, have ${self.capital[coin]:.2f}")
+            logging.warning(
+                f"Insufficient capital for BUY {coin}: Need ${cost:.2f}, have ${self.capital[coin]:.2f}"
+            )
             return False
         self.capital[coin] -= cost
         self.positions[coin] = self.positions.get(coin, 0.0) + quantity
         self.total_cost[coin] = self.total_cost.get(coin, 0.0) + cost
-        self.trade_records[coin]['trades'].append({
-            'timestamp': datetime.now().isoformat(),
-            'type': 'buy',
-            'quantity': quantity,
-            'price': price,
-            'cost': cost
-        })
+        self.trade_records[coin]["trades"].append(
+            {
+                "timestamp": datetime.now().isoformat(),
+                "type": "buy",
+                "quantity": quantity,
+                "price": price,
+                "cost": cost,
+            }
+        )
         self.save_state()
-        logging.info(f"Simulated BUY of {quantity} {coin} at ${price:.2f}. Cost: ${cost:.2f}")
+        logging.info(
+            f"Simulated BUY of {quantity} {coin} at ${price:.2f}. Cost: ${cost:.2f}"
+        )
         return True
 
     def simulate_sell(self, coin, quantity, price, trading_fee=0.001):
         """Simulate a sell trade."""
         coin = coin.lower()
         if coin not in self.positions or self.positions[coin] < quantity:
-            logging.warning(f"Insufficient position for SELL {coin}: Have {self.positions.get(coin, 0.0)}, need {quantity}")
+            logging.warning(
+                f"Insufficient position for SELL {coin}: Have {self.positions.get(coin, 0.0)}, need {quantity}"
+            )
             return False
         original_quantity = self.positions[coin]
-        average_cost = self.total_cost.get(coin, 0.0) / original_quantity if original_quantity > 0 else 0
+        average_cost = (
+            self.total_cost.get(coin, 0.0) / original_quantity
+            if original_quantity > 0
+            else 0
+        )
         proceeds = quantity * price * (1 - trading_fee)
         profit = (price * (1 - trading_fee) - average_cost) * quantity
         self.capital[coin] = self.capital.get(coin, 0.0) + proceeds
@@ -148,17 +289,21 @@ class CapitalManager:
         else:
             cost_removed = (quantity / original_quantity) * self.total_cost[coin]
             self.total_cost[coin] -= cost_removed
-        self.trade_records[coin]['trades'].append({
-            'timestamp': datetime.now().isoformat(),
-            'type': 'sell',
-            'quantity': quantity,
-            'price': price,
-            'proceeds': proceeds,
-            'profit': profit
-        })
-        self.trade_records[coin]['total_profit'] += profit
+        self.trade_records[coin]["trades"].append(
+            {
+                "timestamp": datetime.now().isoformat(),
+                "type": "sell",
+                "quantity": quantity,
+                "price": price,
+                "proceeds": proceeds,
+                "profit": profit,
+            }
+        )
+        self.trade_records[coin]["total_profit"] += profit
         self.save_state()
-        logging.info(f"Simulated SELL of {quantity} {coin} at ${price:.2f}. Proceeds: ${proceeds:.2f}, Profit: ${profit:.2f}")
+        logging.info(
+            f"Simulated SELL of {quantity} {coin} at ${price:.2f}. Proceeds: ${proceeds:.2f}, Profit: ${profit:.2f}"
+        )
         return True
 
     def get_position(self, coin):
@@ -173,6 +318,84 @@ class CapitalManager:
         """Return the total capital across all coins."""
         return sum(self.capital.values())
 
+    def get_coin_summary(self, coin):
+        """Get a summary of all investments and current state for a coin."""
+        coin = coin.lower()
+        
+        total_deposits = self.total_deposits.get(coin, 0.0)
+        total_withdrawals = self.total_withdrawals.get(coin, 0.0)
+        current_capital = self.capital.get(coin, 0.0)
+        current_positions = self.positions.get(coin, 0.0)
+        
+        # Calculate sum of all user investments to verify consistency
+        calculated_total_deposits = 0.0
+        user_details = {}
+        if coin in self.user_investments:
+            for user_id, investment in self.user_investments[coin].items():
+                withdrawals = self.user_withdrawals.get(coin, {}).get(user_id, 0.0)
+                user_details[user_id] = {
+                    "total_deposits": investment,
+                    "total_withdrawals": withdrawals,
+                    "net_investment": investment - withdrawals
+                }
+                calculated_total_deposits += investment
+        
+        # Check for data inconsistencies
+        deposits_match = abs(total_deposits - calculated_total_deposits) < 0.01
+        
+        return {
+            "coin": coin.upper(),
+            "recorded_total_deposits": total_deposits,
+            "calculated_total_deposits": calculated_total_deposits,
+            "deposits_consistent": deposits_match,
+            "total_withdrawals": total_withdrawals,
+            "current_capital": current_capital,
+            "current_positions": current_positions,
+            "total_current_value": current_capital,  # + position_value when you have current price
+            "user_details": user_details,
+            "number_of_users": len(user_details),
+            "data_integrity_issues": not deposits_match
+        }
+
+    def debug_all_coins(self):
+        """Debug all coins to find inconsistencies."""
+        all_coins = set(list(self.capital.keys()) + list(self.total_deposits.keys()) + list(self.user_investments.keys()))
+        
+        debug_info = {}
+        for coin in all_coins:
+            debug_info[coin] = self.get_coin_summary(coin)
+        
+        return debug_info
+
+    def reset_coin_data(self, coin):
+        """Reset all data for a specific coin - USE WITH CAUTION!"""
+        coin = coin.lower()
+        
+        # Remove all traces of this coin
+        self.capital.pop(coin, None)
+        self.positions.pop(coin, None)
+        self.total_cost.pop(coin, None)
+        self.trade_records.pop(coin, None)
+        self.user_investments.pop(coin, None)
+        self.user_withdrawals.pop(coin, None)
+        self.total_deposits.pop(coin, None)
+        self.total_withdrawals.pop(coin, None)
+        
+        self.save_state()
+        logging.info(f"Reset all data for {coin.upper()}")
+
+    def fix_total_deposits_consistency(self):
+        """Fix total_deposits to match sum of user investments."""
+        for coin, users in self.user_investments.items():
+            calculated_total = sum(users.values())
+            current_total = self.total_deposits.get(coin, 0.0)
+            
+            if abs(calculated_total - current_total) > 0.01:
+                logging.warning(f"Fixing {coin}: total_deposits was {current_total}, should be {calculated_total}")
+                self.total_deposits[coin] = calculated_total
+        
+        self.save_state()
+
     def get_portfolio_value(self, market_prices):
         """Calculate the current portfolio value based on market prices."""
         total_value = self.get_total_capital()
@@ -181,46 +404,11 @@ class CapitalManager:
             total_value += position * price
         return total_value
     
-    def get_user_investment_details(self, user_id, coin, current_price):
-        """Retrieve investment details for a user and a specific coin."""
-        coin = coin.lower()
-        
-        # Check if the user has investments in this coin
-        if coin not in self.user_investments or user_id not in self.user_investments[coin]:
-            return {
-                "investment": 0.0,
-                "ownership_percentage": 0.0,
-                "current_share": 0.0,
-                "profit_loss": 0.0
-            }
-        
-        # Get user's investment amount
-        user_investment = self.user_investments[coin][user_id]
-        total_deposits = self.total_deposits.get(coin, 0.0)
-        
-        # Handle edge case where total deposits are zero
-        if total_deposits == 0:
-            return {
-                "investment": user_investment,
-                "ownership_percentage": 0.0,
-                "current_share": 0.0,
-                "profit_loss": 0.0
-            }
-        
-        # Calculate ownership percentage
-        ownership_percentage = (user_investment / total_deposits) * 100
-        
-        # Calculate total value including positions
-        position_value = self.positions.get(coin, 0.0) * current_price
-        total_value = self.capital.get(coin, 0.0) + position_value
-        
-        # Calculate user's current share and profit/loss
-        current_share = (ownership_percentage / 100) * total_value
-        profit_loss = current_share - user_investment
-        
-        return {
-            "investment": user_investment,
-            "ownership_percentage": ownership_percentage,
-            "current_share": current_share,
-            "profit_loss": profit_loss
-        }
+    def reset_state(self):
+        self.capital = {}
+        self.positions = {}
+        self.total_cost = {}
+        self.trade_records = {}
+        self.user_investments = {}
+        self.total_deposits = {}
+        self.save_state()

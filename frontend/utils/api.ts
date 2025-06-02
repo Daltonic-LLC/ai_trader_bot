@@ -28,6 +28,32 @@ export const deposit_funds = async (coin: string, amount: number) => {
   }
 }
 
+export const withdraw_funds = async (coin: string, amount: number) => {
+  try {
+    const _user = Cookies.get('bot_user')!
+    const parsedUser = JSON.parse(_user) || {}
+    const token = parsedUser?.token?.access_token || ''
+
+    const response = await fetch(`${BASE_URL}/auth/balance/withdraw`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ coin, amount }),
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to withdraw funds')
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error withdrawing funds:', error)
+    throw error
+  }
+}
+
 export const fetchCoins = async (limit: number) => {
   try {
     const response = await fetch(`${BASE_URL}/coin/top_coins?limit=${limit}`)

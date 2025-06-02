@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Coin } from '@/utils/interfaces';
+import { withdraw_funds } from '@/utils/api';
 
 interface WithdrawModalProps {
     coin: Coin;
@@ -27,8 +28,17 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({ coin, currentBalance, onC
             setError('Insufficient balance.');
             return;
         }
-        onWithdraw(numAmount);
-        onClose();
+
+        withdraw_funds(coin.slug, numAmount)
+            .then(() => {
+                setAmount('');
+                onWithdraw(numAmount);
+                onClose();
+            })
+            .catch((error) => {
+                setError(error.message);
+            });
+
     };
 
     const setMaxAmount = () => {

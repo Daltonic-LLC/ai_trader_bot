@@ -133,9 +133,9 @@ const DashboardPage: React.FC = () => {
         <DepositModal
           coin={selectedCoin}
           currentBalance={
-            investmentData?.user_investment.investment ?
-              parseFloat(investmentData?.user_investment.investment.toFixed(2)) :
-              0
+            investmentData?.user_investment?.investment
+              ? parseFloat(investmentData.user_investment.investment.toFixed(2))
+              : 0
           }
           onClose={() => setIsDepositOpen(false)}
           onDeposit={() => {
@@ -143,13 +143,14 @@ const DashboardPage: React.FC = () => {
           }}
         />
       )}
+
       {isWithdrawOpen && selectedCoin && setIsWithdrawOpen && (
         <WithdrawModal
           coin={selectedCoin}
           currentBalance={
-            investmentData?.user_investment.investment ?
-              parseFloat(investmentData?.user_investment.investment.toFixed(2)) :
-              0
+            investmentData?.user_investment?.investment
+              ? parseFloat(investmentData.user_investment.investment.toFixed(2))
+              : 0
           }
           onClose={() => setIsWithdrawOpen(false)}
           onWithdraw={() => {

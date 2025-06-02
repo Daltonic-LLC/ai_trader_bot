@@ -271,9 +271,7 @@ async def deposit_balance(
 ):
     """Deposit an amount of a specific coin into the user's balance and update global trading capital."""
     user_id = current_user["id"]
-    coin = (
-        operation.coin.lower()
-    )  # Standardize coin symbols to uppercase for user balance
+    coin = operation.coin.lower()  # Standardize to lowercase for internal use
     amount = operation.amount
 
     # Validate amount
@@ -282,24 +280,11 @@ async def deposit_balance(
 
     # Perform deposit
     try:
-        # Step 1: Deposit to user's balance
-        # success = user_service.deposit_balance(user_id, coin, amount)
-        # if not success:
-        #     raise HTTPException(status_code=404, detail="User not found")
-
-        # Step 2: Deposit to global trading capital
-        capital_manager.deposit(user_id, coin.lower(), amount)
-
+        capital_manager.deposit(user_id, coin, amount)
+        new_balance = capital_manager.get_user_investment(user_id, coin)
+        return BalanceResponse(coin=coin.upper(), balance=new_balance)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Deposit failed: {str(e)}")
-
-    # Fetch updated balance
-    user = user_service.get_user_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    new_balance = user.get("balances", {}).get(coin, 0.0)
-
-    return BalanceResponse(coin=coin, balance=new_balance)
 
 
 @auth_router.post("/balance/withdraw", response_model=BalanceResponse)
@@ -308,30 +293,20 @@ async def withdraw_balance(
 ):
     """Withdraw an amount of a specific coin from the user's balance."""
     user_id = current_user["id"]
-    coin = operation.coin.upper()
+    coin = operation.coin.lower()
     amount = operation.amount
 
-    # Validate amount
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be positive")
 
-    # Perform withdrawal
     try:
-        success = user_service.withdraw_balance(user_id, coin, amount)
-        if not success:
-            raise HTTPException(
-                status_code=400, detail="Insufficient balance or user not found"
-            )
+        capital_manager.withdraw(user_id, coin, amount)
+        new_balance = capital_manager.get_user_investment(user_id, coin)
+        return BalanceResponse(coin=coin.upper(), balance=new_balance)
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Withdrawal failed: {str(e)}")
-
-    # Fetch updated balance
-    user = user_service.get_user_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    new_balance = user.get("balances", {}).get(coin, 0.0)
-
-    return BalanceResponse(coin=coin, balance=new_balance)
 
 
 @auth_router.get("/investment/{coin}")
