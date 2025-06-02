@@ -1737,7 +1737,7 @@
         "kind": 5,
         "importPath": "backend.tester4",
         "description": "backend.tester4",
-        "peekOfCode": "mongo_service = MongoUserService()\ncapital_service = CapitalManager()\nsuccess = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")\n# capital_manager = CapitalManager()\n# debug_info = capital_manager.debug_all_coins()",
+        "peekOfCode": "mongo_service = MongoUserService()\ncapital_service = CapitalManager()\nsuccess = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    debug_info = capital_service.debug_all_coins()\n    print(debug_info)\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
         "detail": "backend.tester4",
         "documentation": {}
     },
@@ -1746,7 +1746,7 @@
         "kind": 5,
         "importPath": "backend.tester4",
         "description": "backend.tester4",
-        "peekOfCode": "capital_service = CapitalManager()\nsuccess = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")\n# capital_manager = CapitalManager()\n# debug_info = capital_manager.debug_all_coins()\n# print(debug_info)",
+        "peekOfCode": "capital_service = CapitalManager()\nsuccess = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    debug_info = capital_service.debug_all_coins()\n    print(debug_info)\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
         "detail": "backend.tester4",
         "documentation": {}
     },
@@ -1755,7 +1755,7 @@
         "kind": 5,
         "importPath": "backend.tester4",
         "description": "backend.tester4",
-        "peekOfCode": "success = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")\n# capital_manager = CapitalManager()\n# debug_info = capital_manager.debug_all_coins()\n# print(debug_info)",
+        "peekOfCode": "success = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    debug_info = capital_service.debug_all_coins()\n    print(debug_info)\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
         "detail": "backend.tester4",
         "documentation": {}
     },

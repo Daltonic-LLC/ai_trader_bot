@@ -91,8 +91,8 @@ class CapitalManager:
             f"User {user_id} deposited ${amount:.2f} to {coin}. Total deposits: ${self.total_deposits[coin]:.2f}, Current capital: ${self.capital[coin]:.2f}"
         )
 
-    def withdraw(self, user_id, coin, amount):
-        """Withdraw capital from a specific coin for a user."""
+    def withdraw(self, user_id, coin, amount, withdrawal_fee=0.001):
+        """Withdraw capital from a specific coin for a user with 0.1% withdrawal fee."""
         coin = coin.lower()
 
         if (
@@ -100,11 +100,6 @@ class CapitalManager:
             or user_id not in self.user_investments[coin]
         ):
             raise ValueError(f"No investment found for user {user_id} in {coin}")
-        
-        # Calculate user's current withdrawable balance
-        user_total_deposits = self.user_investments[coin][user_id]
-        user_total_withdrawals = self.user_withdrawals.get(coin, {}).get(user_id, 0.0)
-        user_net_investment = user_total_deposits - user_total_withdrawals
         
         # Calculate available withdrawal amount based on ownership
         withdrawal_amount = self.calculate_withdrawal(user_id, coin)
@@ -120,6 +115,10 @@ class CapitalManager:
                 f"Insufficient capital for {coin}: Requested ${amount:.2f}, Available ${available_capital:.2f}"
             )
         
+        # Calculate withdrawal fee
+        fee = amount * withdrawal_fee
+        net_withdrawal = amount - fee
+        
         # Initialize withdrawal tracking if not present
         if coin not in self.user_withdrawals:
             self.user_withdrawals[coin] = {}
@@ -130,14 +129,20 @@ class CapitalManager:
         )
         self.total_withdrawals[coin] = self.total_withdrawals.get(coin, 0.0) + amount
         
-        # Reduce available capital
+        # Reduce available capital (full amount including fee stays in system)
         self.capital[coin] -= amount
         
         self.save_state()
         
         logging.info(
-            f"User {user_id} withdrew ${amount:.2f} from {coin}. Remaining capital: ${self.capital[coin]:.2f}"
+            f"User {user_id} withdrew ${amount:.2f} from {coin} (Fee: ${fee:.2f}, Net: ${net_withdrawal:.2f}). Remaining capital: ${self.capital[coin]:.2f}"
         )
+        
+        return {
+            "gross_amount": amount,
+            "fee": fee,
+            "net_amount": net_withdrawal
+        }
 
     def calculate_withdrawal(self, user_id, coin):
         """Calculate the withdrawal amount based on user's ownership percentage."""
@@ -220,9 +225,11 @@ class CapitalManager:
         profit_loss = current_share - net_investment
 
         return {
-            "investment": user_investment,
-            "net_investment": net_investment,
-            "total_withdrawals": user_withdrawals,
+            "investment": net_investment,  # Current remaining investment (what user should see)
+            "original_investment": user_investment,  # For internal tracking
+            "total_deposits": user_investment,  # Total ever deposited
+            "total_withdrawals": user_withdrawals,  # Total ever withdrawn
+            "net_investment": net_investment,  # Current remaining investment
             "ownership_percentage": ownership_percentage,
             "current_share": current_share,
             "profit_loss": profit_loss,
@@ -236,20 +243,25 @@ class CapitalManager:
         return total_deposits - total_withdrawals
 
     def simulate_buy(self, coin, quantity, price, trading_fee=0.001):
-        """Simulate a buy trade."""
+        """Simulate a buy trade with 0.1% trading fee."""
         coin = coin.lower()
         if coin not in self.capital:
             self.capital[coin] = 0.0
             self.trade_records[coin] = {"trades": [], "total_profit": 0.0}
+        
         cost = quantity * price * (1 + trading_fee)
         if cost > self.capital[coin]:
             logging.warning(
                 f"Insufficient capital for BUY {coin}: Need ${cost:.2f}, have ${self.capital[coin]:.2f}"
             )
             return False
+        
         self.capital[coin] -= cost
         self.positions[coin] = self.positions.get(coin, 0.0) + quantity
         self.total_cost[coin] = self.total_cost.get(coin, 0.0) + cost
+        
+        fee_amount = quantity * price * trading_fee
+        
         self.trade_records[coin]["trades"].append(
             {
                 "timestamp": datetime.now().isoformat(),
@@ -257,38 +269,46 @@ class CapitalManager:
                 "quantity": quantity,
                 "price": price,
                 "cost": cost,
+                "fee": fee_amount,
+                "fee_percentage": trading_fee * 100
             }
         )
         self.save_state()
         logging.info(
-            f"Simulated BUY of {quantity} {coin} at ${price:.2f}. Cost: ${cost:.2f}"
+            f"Simulated BUY of {quantity} {coin} at ${price:.2f}. Cost: ${cost:.2f} (Fee: ${fee_amount:.2f})"
         )
         return True
 
     def simulate_sell(self, coin, quantity, price, trading_fee=0.001):
-        """Simulate a sell trade."""
+        """Simulate a sell trade with 0.1% trading fee."""
         coin = coin.lower()
         if coin not in self.positions or self.positions[coin] < quantity:
             logging.warning(
                 f"Insufficient position for SELL {coin}: Have {self.positions.get(coin, 0.0)}, need {quantity}"
             )
             return False
+        
         original_quantity = self.positions[coin]
         average_cost = (
             self.total_cost.get(coin, 0.0) / original_quantity
             if original_quantity > 0
             else 0
         )
+        
         proceeds = quantity * price * (1 - trading_fee)
+        fee_amount = quantity * price * trading_fee
         profit = (price * (1 - trading_fee) - average_cost) * quantity
+        
         self.capital[coin] = self.capital.get(coin, 0.0) + proceeds
         self.positions[coin] -= quantity
+        
         if self.positions[coin] <= 0:
             del self.positions[coin]
             self.total_cost[coin] = 0
         else:
             cost_removed = (quantity / original_quantity) * self.total_cost[coin]
             self.total_cost[coin] -= cost_removed
+        
         self.trade_records[coin]["trades"].append(
             {
                 "timestamp": datetime.now().isoformat(),
@@ -297,12 +317,14 @@ class CapitalManager:
                 "price": price,
                 "proceeds": proceeds,
                 "profit": profit,
+                "fee": fee_amount,
+                "fee_percentage": trading_fee * 100
             }
         )
         self.trade_records[coin]["total_profit"] += profit
         self.save_state()
         logging.info(
-            f"Simulated SELL of {quantity} {coin} at ${price:.2f}. Proceeds: ${proceeds:.2f}, Profit: ${profit:.2f}"
+            f"Simulated SELL of {quantity} {coin} at ${price:.2f}. Proceeds: ${proceeds:.2f}, Profit: ${profit:.2f} (Fee: ${fee_amount:.2f})"
         )
         return True
 
@@ -405,10 +427,13 @@ class CapitalManager:
         return total_value
     
     def reset_state(self):
+        """Reset the entire state."""
         self.capital = {}
         self.positions = {}
         self.total_cost = {}
         self.trade_records = {}
         self.user_investments = {}
+        self.user_withdrawals = {}
         self.total_deposits = {}
+        self.total_withdrawals = {}
         self.save_state()
