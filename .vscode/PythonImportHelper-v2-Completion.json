@@ -209,6 +209,22 @@
         "documentation": {}
     },
     {
+        "label": "Decimal",
+        "importPath": "decimal",
+        "description": "decimal",
+        "isExtraImport": true,
+        "detail": "decimal",
+        "documentation": {}
+    },
+    {
+        "label": "ROUND_HALF_UP",
+        "importPath": "decimal",
+        "description": "decimal",
+        "isExtraImport": true,
+        "detail": "decimal",
+        "documentation": {}
+    },
+    {
         "label": "datetime",
         "importPath": "datetime",
         "description": "datetime",
@@ -310,6 +326,14 @@
         "description": "datetime",
         "isExtraImport": true,
         "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "Lock",
+        "importPath": "threading",
+        "description": "threading",
+        "isExtraImport": true,
+        "detail": "threading",
         "documentation": {}
     },
     {
@@ -1296,7 +1320,7 @@
         "kind": 6,
         "importPath": "backend.app.services.capital_manager",
         "description": "backend.app.services.capital_manager",
-        "peekOfCode": "class CapitalManager:\n    \"\"\"A singleton class to manage trading capital, positions, and trade records.\"\"\"\n    _instance = None\n    def __new__(cls, initial_capital=1000.0):\n        \"\"\"Ensure only one instance of CapitalManager exists.\"\"\"\n        if cls._instance is None:\n            cls._instance = super(CapitalManager, cls).__new__(cls)\n            cls._instance.mongo_service = MongoUserService()\n            cls._instance.initial_capital = initial_capital\n            cls._instance.capital = {}  # Current capital per coin",
+        "peekOfCode": "class CapitalManager:\n    \"\"\"A singleton class to manage trading capital, positions, and trade records.\"\"\"\n    _instance = None\n    _lock = Lock()  # Lock for thread safety\n    # Fee constants - 0.1% for all operations\n    TRADING_FEE = 0.001  # 0.1% trading fee for buy/sell orders\n    WITHDRAWAL_FEE = 0.001  # 0.1% withdrawal fee\n    def __new__(cls, initial_capital=1000.0):\n        \"\"\"Ensure only one instance of CapitalManager exists.\"\"\"\n        if cls._instance is None:",
         "detail": "backend.app.services.capital_manager",
         "documentation": {}
     },
@@ -1737,7 +1761,7 @@
         "kind": 5,
         "importPath": "backend.tester4",
         "description": "backend.tester4",
-        "peekOfCode": "mongo_service = MongoUserService()\ncapital_service = CapitalManager()\nsuccess = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    debug_info = capital_service.debug_all_coins()\n    print(debug_info)\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
+        "peekOfCode": "mongo_service = MongoUserService()\ncapital_service = CapitalManager()\nsuccess = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
         "detail": "backend.tester4",
         "documentation": {}
     },
@@ -1746,7 +1770,7 @@
         "kind": 5,
         "importPath": "backend.tester4",
         "description": "backend.tester4",
-        "peekOfCode": "capital_service = CapitalManager()\nsuccess = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    debug_info = capital_service.debug_all_coins()\n    print(debug_info)\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
+        "peekOfCode": "capital_service = CapitalManager()\nsuccess = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
         "detail": "backend.tester4",
         "documentation": {}
     },
@@ -1755,7 +1779,7 @@
         "kind": 5,
         "importPath": "backend.tester4",
         "description": "backend.tester4",
-        "peekOfCode": "success = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    debug_info = capital_service.debug_all_coins()\n    print(debug_info)\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
+        "peekOfCode": "success = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
         "detail": "backend.tester4",
         "documentation": {}
     },
