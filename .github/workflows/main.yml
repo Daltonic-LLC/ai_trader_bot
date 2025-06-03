@@ -1,0 +1,133 @@
+name: Deploy AI Scraper to Ubuntu VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  prepare_directories:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or clean target directory
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            if [ ! -d "/dockerized/containers/bot_trader" ]; then
+              mkdir -p /dockerized/containers/bot_trader
+            else
+              rm -rf /dockerized/containers/bot_trader/*
+            fi
+
+  deploy_code:
+    needs: prepare_directories
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Copy files to VPS
+        uses: appleboy/scp-action@v0.1.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: './'
+          target: '/dockerized/containers/bot_trader'
+
+  setup_environment:
+    needs: deploy_code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create backend .env
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cat << EOF > /dockerized/containers/bot_trader/backend/.env
+            CHAT_MODEL=${{ secrets.CHAT_MODEL }}
+            CHAT_ENDPOINT=${{ secrets.CHAT_ENDPOINT }}
+            MONGODB_URI=${{ secrets.MONGODB_URI }}
+            MONGODB_USERNAME=${{ secrets.MONGODB_USERNAME }}
+            MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
+            EOF
+
+      - name: Create frontend .env
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cat << EOF > /dockerized/containers/bot_trader/frontend/.env
+            NEXT_PUBLIC_BACKEND_API_URL=${{ secrets.NEXT_PUBLIC_BACKEND_API_URL }}
+            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+            EOF
+
+      - name: Create root .env
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cat << EOF > /dockerized/containers/bot_trader/.env
+            MONGODB_USERNAME=${{ secrets.MONGODB_USERNAME }}
+            MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }}
+            EOF
+
+  build_and_deploy:
+    needs: setup_environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build new images
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /dockerized/containers/bot_trader
+            # Build images without starting containers
+            docker-compose build
+
+      - name: Deploy with minimal downtime
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /dockerized/containers/bot_trader
+            # Stop and start containers after build is complete
+            docker-compose down
+            docker-compose up -d
+
+  cleanup:
+    needs: build_and_deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove untagged images
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker rmi $(docker images -f "dangling=true" -q) || true
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker ps
+            docker-compose -f /dockerized/containers/bot_trader/docker-compose.yml ps
