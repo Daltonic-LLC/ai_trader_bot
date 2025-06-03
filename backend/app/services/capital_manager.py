@@ -403,3 +403,15 @@ class CapitalManager:
         self.total_deposits = {}
         self.total_withdrawals = {}
         self.save_state()
+
+    def get_position(self, coin):
+        """Return the quantity held for a coin."""
+        return self.positions.get(coin.lower(), 0.0)
+
+    def get_capital(self, coin):
+        """Return the current capital for a coin."""
+        return self.capital.get(coin.lower(), 0.0)
+
+    def get_total_capital(self):
+        """Return the total capital across all coins."""
+        return sum(self.capital.values())

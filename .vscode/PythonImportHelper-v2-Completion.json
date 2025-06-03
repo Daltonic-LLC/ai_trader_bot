@@ -112,6 +112,14 @@
         "documentation": {}
     },
     {
+        "label": "CapitalManager",
+        "importPath": "app.services.capital_manager",
+        "description": "app.services.capital_manager",
+        "isExtraImport": true,
+        "detail": "app.services.capital_manager",
+        "documentation": {}
+    },
+    {
         "label": "CoinScheduler",
         "importPath": "app.services.coin_scheduler",
         "description": "app.services.coin_scheduler",
@@ -1781,6 +1789,15 @@
         "description": "backend.tester4",
         "peekOfCode": "success = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
         "detail": "backend.tester4",
+        "documentation": {}
+    },
+    {
+        "label": "load_test_funds",
+        "kind": 2,
+        "importPath": "backend.tester5",
+        "description": "backend.tester5",
+        "peekOfCode": "def load_test_funds(user_id, coins_amounts, reset=False):\n    \"\"\"\n    Load test funds for a user across specified coins into the CapitalManager.\n    :param user_id: The ID of the user depositing the funds.\n    :param coins_amounts: A dictionary with coin names as keys and amounts as values.\n    :param reset: If True, reset the CapitalManager state before loading funds.\n    \"\"\"\n    # Get the singleton instance of CapitalManager\n    cm = CapitalManager()\n    # Optionally reset the state for a clean slate",
+        "detail": "backend.tester5",
         "documentation": {}
     },
     {

@@ -31,6 +31,8 @@ class CoinTrader:
         self.news_handler = NewsHandler(self.news_service, self.coin, self.override, self.llm_handler)
         self.trading_fee = 0.001  # Assume 0.1% fee per trade
         self.stop_loss_percentage = 0.05  # 5% stop-loss
+        self.trade_percentage = 0.2  # Use 20% of capital per trade
+        self.stop_loss_price = None  # Track stop-loss price after a buy
 
     def withdraw(self, user_id):
         """Withdraw the user's share of the capital for this coin."""
@@ -135,16 +137,18 @@ class CoinTrader:
         # Potential BUY details if no position exists
         if position == 0.0:
             capital = self.capital_manager.get_capital(self.coin)
-            quantity = (capital * (1 - self.trading_fee)) / current_price
+            trade_capital = capital * self.trade_percentage
+            quantity = (trade_capital * (1 - self.trading_fee)) / current_price
             if quantity > 0:
                 stop_loss_price = current_price * (1 - self.stop_loss_percentage)
                 potential_sale_value = quantity * predicted_close * (1 - self.trading_fee)
-                potential_profit = potential_sale_value - capital
+                potential_profit = potential_sale_value - trade_capital
                 trade_details += f"Potential BUY:\n" + \
                                 f"- Quantity: {quantity:.2f} {self.coin.upper()} at ${current_price:.2f}\n" + \
+                                f"- Using {self.trade_percentage*100:.0f}% of capital: ${trade_capital:.2f}\n" + \
                                 f"- Stop-Loss: ${stop_loss_price:.2f} (-{self.stop_loss_percentage*100:.1f}%)\n" + \
                                 f"- Potential Sale at ${predicted_close:.2f}: ${potential_sale_value:.2f}\n" + \
-                                f"- Potential Profit: ${potential_profit:.2f} ({(potential_profit/capital)*100:.2f}%)\n"
+                                f"- Potential Profit: ${potential_profit:.2f} ({(potential_profit/trade_capital)*100:.2f}%)\n"
             else:
                 trade_details += "Potential BUY: Insufficient capital to buy.\n"
         
@@ -159,6 +163,17 @@ class CoinTrader:
             trade_details = f"No trade possible.\n- Current Position: {position:.2f} {self.coin.upper()}"
 
         return trade_details.strip()
+
+    def check_stop_loss(self, current_price):
+        """Check if the current price triggers the stop-loss and simulate a sell."""
+        position = self.capital_manager.get_position(self.coin)
+        if position > 0 and self.stop_loss_price is not None:
+            if current_price <= self.stop_loss_price:
+                sale_value = position * current_price * (1 - self.trading_fee)
+                if self.capital_manager.simulate_sell(self.coin, position, current_price, self.trading_fee):
+                    self.stop_loss_price = None  # Reset stop-loss after selling
+                    return f"Stop-loss triggered: Sold {position:.2f} {self.coin.upper()} at ${current_price:.2f}\nNet proceeds: ${sale_value:.2f}"
+        return None
 
     def run(self):
         """Executes the trading process, simulates trades, updates capital, and returns the report."""
@@ -177,49 +192,54 @@ class CoinTrader:
         
         news_sentiment, news_text = self.news_handler.process_news()
 
-        # Generate potential trade details for the LLM
-        potential_trade_details = self.generate_potential_trade_details(stats, predicted_close)
-        
-        # Generate preliminary report with potential trade details but no recommendation
-        prelim_report = self.generate_report(stats, predicted_close, news_sentiment, news_text, trade_details=potential_trade_details)
-        
-        # Get recommendation from LLM based on the preliminary report
-        recommendation = self.llm_handler.decide(prelim_report)
-
-        # Simulate trading based on recommendation
-        trade_details = ""
-        position = self.capital_manager.get_position(self.coin)
-        if recommendation == "BUY" and position == 0.0:
-            capital = self.capital_manager.get_capital(self.coin)
-            quantity = (capital * (1 - self.trading_fee)) / current_price
-            if self.capital_manager.simulate_buy(self.coin, quantity, current_price, self.trading_fee):
-                stop_loss_price = current_price * (1 - self.stop_loss_percentage)
-                potential_sale_value = quantity * predicted_close * (1 - self.trading_fee)
-                potential_profit = potential_sale_value - capital
-                trade_details = f"Simulated BUY: {quantity:.2f} {self.coin.upper()} at ${current_price:.2f}\n" + \
-                                f"Stop-Loss set at ${stop_loss_price:.2f} (-{self.stop_loss_percentage*100:.1f}%)\n" + \
-                                f"Potential sale at ${predicted_close:.2f} yields ${potential_sale_value:.2f}\n" + \
-                                f"Potential profit: ${potential_profit:.2f} ({(potential_profit/capital)*100:.2f}%)\n" + \
-                                f"Action: Manually buy {quantity:.2f} {self.coin.upper()} on an exchange."
-                print(f"Simulated BUY: {quantity:.2f} {self.coin.upper()} at ${current_price:.2f}")
-            else:
-                trade_details = f"BUY failed: Insufficient capital.\nCurrent position: {position:.2f} {self.coin.upper()}\nAction: No trade possible."
-                print(f"BUY failed: Insufficient capital.")
-        elif recommendation == "SELL" and position > 0.0:
-            if self.capital_manager.simulate_sell(self.coin, position, current_price, self.trading_fee):
-                sale_value = position * current_price * (1 - self.trading_fee)
-                trade_details = f"Simulated SELL: {position:.2f} {self.coin.upper()} at ${current_price:.2f}\n" + \
-                                f"Net proceeds: ${sale_value:.2f}\n" + \
-                                f"Action: Manually sell {position:.2f} {self.coin.upper()} on an exchange."
-                print(f"Simulated SELL: {position:.2f} {self.coin.upper()} at ${current_price:.2f}")
-            else:
-                trade_details = f"SELL failed: Insufficient position.\nCurrent position: {position:.2f} {self.coin.upper()}\nAction: No trade possible."
-                print(f"SELL failed: Insufficient position.")
+        # Check stop-loss before proceeding (simulating price monitoring)
+        stop_loss_result = self.check_stop_loss(current_price)
+        if stop_loss_result:
+            trade_details = stop_loss_result
+            recommendation = "SELL (Stop-Loss)"
         else:
-            trade_details = f"No trade executed (Recommendation: {recommendation}).\n" + \
-                            f"Current position: {position:.2f} {self.coin.upper()}\n" + \
-                            "Action: No manual trade required."
-            print(f"No trade executed: {recommendation}")
+            # Generate potential trade details for the LLM
+            potential_trade_details = self.generate_potential_trade_details(stats, predicted_close)
+            
+            # Generate preliminary report with potential trade details but no recommendation
+            prelim_report = self.generate_report(stats, predicted_close, news_sentiment, news_text, trade_details=potential_trade_details)
+            
+            # Get recommendation from LLM based on the preliminary report
+            recommendation = self.llm_handler.decide(prelim_report)
+
+            # Simulate trading based on recommendation
+            trade_details = ""
+            position = self.capital_manager.get_position(self.coin)
+            if recommendation == "BUY" and position == 0.0:
+                capital = self.capital_manager.get_capital(self.coin)
+                trade_capital = capital * self.trade_percentage
+                quantity = (trade_capital * (1 - self.trading_fee)) / current_price
+                if self.capital_manager.simulate_buy(self.coin, quantity, current_price):
+                    self.stop_loss_price = current_price * (1 - self.stop_loss_percentage)
+                    trade_details = f"Simulated BUY: {quantity:.2f} {self.coin.upper()} at ${current_price:.2f}\n" + \
+                                    f"Using {self.trade_percentage*100:.0f}% of capital: ${trade_capital:.2f}\n" + \
+                                    f"Stop-Loss set at ${self.stop_loss_price:.2f}\n" + \
+                                    "Action: Manually buy on an exchange."
+                    print(f"Simulated BUY: {quantity:.2f} {self.coin.upper()} with {self.trade_percentage*100:.0f}% of capital")
+                else:
+                    trade_details = f"BUY failed: Insufficient capital.\nCurrent position: {position:.2f} {self.coin.upper()}\nAction: No trade possible."
+                    print(f"BUY failed: Insufficient capital.")
+            elif recommendation == "SELL" and position > 0.0:
+                if self.capital_manager.simulate_sell(self.coin, position, current_price):
+                    sale_value = position * current_price * (1 - self.trading_fee)
+                    self.stop_loss_price = None  # Reset stop-loss after selling
+                    trade_details = f"Simulated SELL: {position:.2f} {self.coin.upper()} at ${current_price:.2f}\n" + \
+                                    f"Net proceeds: ${sale_value:.2f}\n" + \
+                                    "Action: Manually sell on an exchange."
+                    print(f"Simulated SELL: {position:.2f} {self.coin.upper()} at ${current_price:.2f}")
+                else:
+                    trade_details = f"SELL failed: Insufficient position.\nCurrent position: {position:.2f} {self.coin.upper()}\nAction: No trade possible."
+                    print(f"SELL failed: Insufficient position.")
+            else:
+                trade_details = f"No trade executed (Recommendation: {recommendation}).\n" + \
+                                f"Current position: {position:.2f} {self.coin.upper()}\n" + \
+                                "Action: No manual trade required."
+                print(f"No trade executed: {recommendation}")
 
         # Generate and return the final report with recommendation and actual trade details
         news_text_truncated = " ".join(news_text.split()[:50]) + ("..." if len(news_text.split()) > 50 else "")
