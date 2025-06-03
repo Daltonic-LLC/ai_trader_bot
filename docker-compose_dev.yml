@@ -1,0 +1,35 @@
+version: '3.7'
+
+networks:
+  public_network:
+  private_network:
+
+volumes:
+  ollama_data:
+  mongodb_data:
+
+services:
+  ollama_service:
+    image: ollama/ollama:latest
+    container_name: ollama_service
+    restart: unless-stopped
+    networks:
+      - private_network
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+
+  mongodb_service:
+    image: mongo:latest
+    container_name: mongodb_service
+    restart: unless-stopped
+    networks:
+      - private_network
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD}
+    ports:
+      - "27017:27017"

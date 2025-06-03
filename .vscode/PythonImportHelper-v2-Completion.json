@@ -650,38 +650,6 @@
         "documentation": {}
     },
     {
-        "label": "Tuple",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "List",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "Dict",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "Optional",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
         "label": "Optional",
         "importPath": "typing",
         "description": "typing",
@@ -1034,32 +1002,6 @@
         "documentation": {}
     },
     {
-        "label": "Client",
-        "importPath": "binance.client",
-        "description": "binance.client",
-        "isExtraImport": true,
-        "detail": "binance.client",
-        "documentation": {}
-    },
-    {
-        "label": "math",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "math",
-        "description": "math",
-        "detail": "math",
-        "documentation": {}
-    },
-    {
-        "label": "itertools",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "itertools",
-        "description": "itertools",
-        "detail": "itertools",
-        "documentation": {}
-    },
-    {
         "label": "LLMHandler",
         "importPath": "app.trader_bot.llm_handler",
         "description": "app.trader_bot.llm_handler",
@@ -1402,15 +1344,6 @@
         "description": "backend.app.services.mongodb_service",
         "peekOfCode": "class MongoUserService:\n    def __init__(self):\n        \"\"\"Initialize MongoDB connection and set up collections.\"\"\"\n        try:\n            # Get base URI and credentials from config\n            base_uri = config.mongodb_uri\n            username = config.mongodb_username\n            password = config.mongodb_password\n            # Construct the MongoDB URI\n            if username and password:",
         "detail": "backend.app.services.mongodb_service",
-        "documentation": {}
-    },
-    {
-        "label": "BinanceClient",
-        "kind": 6,
-        "importPath": "backend.app.trader_bot.binance_client",
-        "description": "backend.app.trader_bot.binance_client",
-        "peekOfCode": "class BinanceClient:\n    \"\"\"Handles trading on Binance Testnet with versatile triangular arbitrage.\"\"\"\n    def __init__(self, api_key: str, api_secret: str, top_coins: list, base_currency: str = \"USDT\"):\n        self.client = Client(api_key, api_secret, testnet=True)\n        self.trading_fee = 0.001  # 0.1% fee per trade\n        self.top_coins = top_coins\n        self.base_currency = base_currency\n        self.all_tickers = {}\n        self.last_ticker_update = 0\n        self.ticker_cache_duration = 10  # Refresh tickers every 10 seconds",
-        "detail": "backend.app.trader_bot.binance_client",
         "documentation": {}
     },
     {
