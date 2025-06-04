@@ -27,13 +27,15 @@ class EnvironmentConfig:
             "mongodb_username": environ.get("MONGODB_USERNAME", ""),
             "mongodb_password": environ.get("MONGODB_PASSWORD", ""),
             "google_client_id": environ.get("GOOGLE_CLIENT_ID", ""),
-            "jwt_secret_key": environ.get("SECRET_KEY", None),
+            "jwt_secret_key": environ.get("SECRET_KEY", ""),
+            "n8n_webhook_secret": environ.get("N8N_WEBHOOK_SECRET", ""),
+            "n8n_webhook_url": environ.get("N8N_WEBHOOK_URL", ""),
         }
-    
+
     @property
     def binance_api_key(self) -> str:
         return self.config["binance_api_key"]
-    
+
     @property
     def binance_api_secret(self) -> str:
         return self.config["binance_api_secret"]
@@ -45,7 +47,7 @@ class EnvironmentConfig:
     @property
     def chat_model(self) -> str:
         return self.config["chat_model"]
-    
+
     @property
     def mongodb_uri(self) -> str:
         url = self.config["mongodb_uri"]
@@ -66,11 +68,11 @@ class EnvironmentConfig:
         if not password:
             raise ValueError("MONGODB_PASSWORD environment variable is not set")
         return password
-    
+
     @property
     def google_client_id(self) -> str:
         return self.config["google_client_id"]
-    
+
     @property
     def jwt_secret_key(self) -> str:
         return self.config["jwt_secret_key"]
@@ -86,6 +88,14 @@ class EnvironmentConfig:
     def get_all(self) -> Dict[str, str]:
         """Return all configuration values"""
         return self.config
+    
+    @property
+    def n8n_webhook_secret(self) -> str:
+        return self.config["n8n_webhook_secret"]
+    
+    @property
+    def n8n_webhook_url(self) -> str:
+        return self.config["n8n_webhook_url"]
 
     def __str__(self) -> str:
         """String representation of current configuration"""
