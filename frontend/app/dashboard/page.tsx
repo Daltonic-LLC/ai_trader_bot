@@ -88,7 +88,7 @@ const DashboardPage: React.FC = () => {
       <Header />
       <div className='flex flex-col lg:flex-row justify-center lg:space-x-6 sm:w-11/12 mx-auto mt-10'>
         {/* Left Section: Selector */}
-        <div className="lg:w-3/12">
+        <div className="lg:w-3/12 mb-6 lg:mb-0">
           <CoinSelector
             coins={coins || []}
             selectedCoin={selectedCoin ?? null}
@@ -104,6 +104,7 @@ const DashboardPage: React.FC = () => {
             }}
           />
           <ActionButtons isCoinSelected={selectedCoin !== null} />
+          {/* <div className='pt-4'></div> */}
         </div>
         <div className="flex flex-col lg:space-x-6 space-y-4 sm:w-4/5 mx-auto">
 

@@ -2,6 +2,7 @@ import { updateWalletAddress } from '@/utils/api';
 import React, { useState } from 'react';
 import { fetchWalletAddresses } from '@/utils/api';
 import { useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 interface ProfileModalProps {
     onClose: () => void;
@@ -49,11 +50,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onSubmitAddress })
             onSubmitAddress(address);
             // Close the modal
             onClose();
+            toast.success('Wallet address updated successfully!');
         } catch (error) {
             // Display an error message if the API call fails
             console.log(error);
-
             setError('Failed to update wallet address. Please try again.');
+            toast.error('Failed to update wallet address. Please try again.');
         }
     };
 
