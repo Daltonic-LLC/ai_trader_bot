@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Coin } from '@/utils/interfaces';
 import { deposit_funds } from '@/utils/api';
+import { toast } from 'react-toastify';
 
 interface DepositModalProps {
     coin: Coin;
@@ -30,9 +31,12 @@ const DepositModal: React.FC<DepositModalProps> = ({ coin, currentBalance, onClo
                 setAmount('');
                 onDeposit(numAmount);
                 onClose();
+                toast.success(`Successfully deposited ${numAmount} ${coin.symbol}!`)
             })
             .catch((error) => {
                 setError(error.message);
+                toast.error(`Deposit failed: ${error.message}`);
+                console.error('Deposit error:', error);
             });
     };
 

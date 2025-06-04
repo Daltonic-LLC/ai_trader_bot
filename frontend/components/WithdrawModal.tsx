@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Coin } from '@/utils/interfaces';
 import { withdraw_funds } from '@/utils/api';
+import { toast } from 'react-toastify';
 
 interface WithdrawModalProps {
     coin: Coin;
@@ -34,9 +35,12 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({ coin, currentBalance, onC
                 setAmount('');
                 onWithdraw(numAmount);
                 onClose();
+                toast.success(`Successfully withdrew ${numAmount} ${coin.symbol}!`);
             })
             .catch((error) => {
                 setError(error.message);
+                toast.error(`Withdrawal failed: ${error.message}`);
+                console.error('Withdrawal error:', error);
             });
 
     };
