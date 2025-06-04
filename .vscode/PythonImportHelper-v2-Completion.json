@@ -120,11 +120,11 @@
         "documentation": {}
     },
     {
-        "label": "CoinScheduler",
-        "importPath": "app.services.coin_scheduler",
-        "description": "app.services.coin_scheduler",
+        "label": "CapitalManager",
+        "importPath": "app.services.capital_manager",
+        "description": "app.services.capital_manager",
         "isExtraImport": true,
-        "detail": "app.services.coin_scheduler",
+        "detail": "app.services.capital_manager",
         "documentation": {}
     },
     {
@@ -149,6 +149,22 @@
         "description": "app.services.coin_scheduler",
         "isExtraImport": true,
         "detail": "app.services.coin_scheduler",
+        "documentation": {}
+    },
+    {
+        "label": "CoinScheduler",
+        "importPath": "app.services.coin_scheduler",
+        "description": "app.services.coin_scheduler",
+        "isExtraImport": true,
+        "detail": "app.services.coin_scheduler",
+        "documentation": {}
+    },
+    {
+        "label": "CoinTrader",
+        "importPath": "app.trader_bot.coin_trader",
+        "description": "app.trader_bot.coin_trader",
+        "isExtraImport": true,
+        "detail": "app.trader_bot.coin_trader",
         "documentation": {}
     },
     {
