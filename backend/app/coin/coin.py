@@ -4,6 +4,8 @@ from app.services.capital_manager import CapitalManager
 from app.services.coin_scheduler import CoinScheduler
 from app.trader_bot.coin_trader import CoinTrader
 import logging
+import requests
+from config import config
 
 coin_router = APIRouter()
 
@@ -131,5 +133,30 @@ async def get_execution_log():
         return {
             "status": "Error",
             "message": f"Failed to retrieve execution log: {str(e)}",
+            "data": {},
+        }
+
+
+@coin_router.get("/n8n_webhook")
+async def n8n_webhook():
+    """Endpoint to trigger the n8n webhook."""
+    try:
+        # This endpoint can be used to trigger n8n workflows
+
+        # Adjust the headers according to the authentication method expected by your n8n webhook
+        headers = {"x-n8n-secret": config.n8n_webhook_secret}
+        response = requests.post(config.n8n_webhook_url, headers=headers)
+        response.raise_for_status()
+
+        return {
+            "status": "Success",
+            "message": "n8n webhook triggered successfully.",
+            "data": {},
+        }
+    except Exception as e:
+        logging.error(f"Error triggering n8n webhook: {str(e)}")
+        return {
+            "status": "Error",
+            "message": f"Failed to trigger n8n webhook: {str(e)}",
             "data": {},
         }

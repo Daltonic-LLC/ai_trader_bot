@@ -21,11 +21,16 @@ const CoinDetailsCard: React.FC<CoinDetailsCardProps> = ({ coin, executionLog })
                 <h2 className="text-xl font-semibold">
                     {`${coin.name}`}
                 </h2>
-                <h4 className="text-sm text-gray-300">
+                {executionLog?.next_execution ? (<h4 className="text-sm text-gray-300">
+                    Next Execution {'   '}
+                    {executionLog?.next_execution
+                        ? new Date(executionLog.next_execution).toLocaleString()
+                        : 'N/A'}
+                </h4>) : (<h4 className="text-sm text-gray-300">
                     {executionLog?.last_execution
                         ? new Date(executionLog.last_execution).toLocaleString()
                         : 'N/A'}
-                </h4>
+                </h4>)}
             </div>
             <div className="mt-4 space-y-3">
                 <div className="flex justify-between items-center text-gray-300">

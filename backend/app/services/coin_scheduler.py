@@ -14,6 +14,8 @@ from app.services.coin_stats import CoinStatsService
 from app.services.file_manager import DataCleaner
 from app.trader_bot.coin_trader import CoinTrader
 from app.services.capital_manager import CapitalManager
+import requests
+from config import config
 
 
 class CoinScheduler:
@@ -446,7 +448,8 @@ class CoinScheduler:
             raise
 
     def _trading_bot_execution(self, limit=None):
-        """Execute trading bot for configured coins."""
+        """Execute trading bot for configured coins and send report to webhook."""
+
         logging.info("Starting trading bot execution")
 
         if not self.trading_config.get("enabled", False):
@@ -466,6 +469,7 @@ class CoinScheduler:
 
             successful_trades = 0
             failed_trades = 0
+            reports = []
 
             for coin in coins_data:
                 slug = coin.get("slug")
@@ -486,6 +490,9 @@ class CoinScheduler:
                     )
 
                     report = trader.run()
+                    reports.append(
+                        f"### {coin_name.upper()} ({slug})\n```\n{report}\n```"
+                    )
 
                     logging.info(f"Trading bot completed for {coin_name} ({slug})")
                     print(f"Trading analysis completed for {coin_name.upper()}")
@@ -509,6 +516,22 @@ class CoinScheduler:
                 error_message = f"Failed trades: {failed_trades}/{total_coins}"
                 logging.warning(error_message)
                 print(error_message)
+
+            # Send markdown report to webhook endpoint
+            if reports:
+                markdown_report = "# Trading Bot Reports\n\n" + "\n\n".join(reports)
+                headers = {"x-n8n-secret": config.n8n_webhook_secret}
+                payload = {"text": markdown_report}
+                try:
+                    response = requests.post(
+                        config.n8n_webhook_url, headers=headers, json=payload
+                    )
+                    response.raise_for_status()
+                    logging.info("Trading reports sent to webhook successfully.")
+                    print("Trading reports sent to webhook successfully.")
+                except Exception as e:
+                    logging.error(f"Failed to send trading reports to webhook: {e}")
+                    print(f"Failed to send trading reports to webhook: {e}")
 
         except Exception as e:
             logging.error(f"Error during trading bot job: {e}")
