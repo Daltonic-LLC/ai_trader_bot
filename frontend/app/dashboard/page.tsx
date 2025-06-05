@@ -106,7 +106,7 @@ const DashboardPage: React.FC = () => {
           <ActionButtons isCoinSelected={selectedCoin !== null} />
           {/* <div className='pt-4'></div> */}
         </div>
-        <div className="flex flex-col lg:space-x-6 space-y-4 sm:w-4/5 mx-auto">
+        <div className="flex flex-col lg:space-x-6 space-y-4 sm:w-4/5 mx-auto w-full">
 
           <div className='flex-1 flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0 mr-0'>
             {/* Right Section: Coin Details */}
