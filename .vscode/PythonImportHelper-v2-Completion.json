@@ -1400,7 +1400,7 @@
         "kind": 6,
         "importPath": "backend.app.trader_bot.coin_trader",
         "description": "backend.app.trader_bot.coin_trader",
-        "peekOfCode": "class CoinTrader:\n    def __init__(self, coin, override, capital_manager, activities_file_path=\"data/activities/coin_reports.json\"):\n        self.coin = coin.lower()  # Ensure coin names are lowercase for consistency\n        self.override = override\n        self.capital_manager = capital_manager\n        self.activities_file_path = activities_file_path\n        self.ensure_directory_exists()\n        self.history_service = CoinHistory()\n        self.stats_service = CoinStatsService()\n        self.news_service = NewsSentimentService()",
+        "peekOfCode": "class CoinTrader:\n    def __init__(\n        self,\n        coin,\n        override,\n        capital_manager,\n        activities_file_path=\"data/activities/coin_reports.json\",\n    ):\n        self.coin = coin.lower()  # Ensure coin names are lowercase for consistency\n        self.override = override",
         "detail": "backend.app.trader_bot.coin_trader",
         "documentation": {}
     },

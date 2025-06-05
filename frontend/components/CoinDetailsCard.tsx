@@ -16,21 +16,11 @@ const CoinDetailsCard: React.FC<CoinDetailsCardProps> = ({ coin, executionLog })
     }
 
     return (
-        <div className="p-5 bg-crypto-gray rounded-xl shadow-lg border border-crypto-blue/30 hover:border-crypto-blue transition-all">
+        <div className="p-5 bg-crypto-gray rounded-xl shadow-lg border border-crypto-blue/30 hover:border-crypto-blue transition-all relative">
             <div className="flex justify-between items-center bg-gradient-to-r from-crypto-blue to-crypto-green text-white py-4 rounded-t-xl">
                 <h2 className="text-xl font-semibold">
                     {`${coin.name}`}
                 </h2>
-                {executionLog?.next_execution ? (<h4 className="text-sm text-gray-300">
-                    Next Execution {'   '}
-                    {executionLog?.next_execution
-                        ? new Date(executionLog.next_execution).toLocaleString()
-                        : 'N/A'}
-                </h4>) : (<h4 className="text-sm text-gray-300">
-                    {executionLog?.last_execution
-                        ? new Date(executionLog.last_execution).toLocaleString()
-                        : 'N/A'}
-                </h4>)}
             </div>
             <div className="mt-4 space-y-3">
                 <div className="flex justify-between items-center text-gray-300">
@@ -107,6 +97,12 @@ const CoinDetailsCard: React.FC<CoinDetailsCardProps> = ({ coin, executionLog })
                         {coin.percent_7d}
                     </span>
                 </div>
+            </div>
+
+            <div className="text-gray-400 text-xs pt-3">
+                Executed at {' '} {executionLog?.last_execution
+                    ? new Date(executionLog.last_execution).toLocaleString()
+                    : 'N/A'}
             </div>
         </div>
     );

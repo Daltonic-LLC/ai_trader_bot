@@ -64,12 +64,6 @@ const RecentTradeReportCard: React.FC<TradeReportCardProps> = ({ report, executi
                 {/* Header with coin name */}
                 <div className="flex justify-between items-center bg-gradient-to-r from-crypto-blue to-crypto-green text-white py-4 rounded-t-xl">
                     <h2 className="text-xl font-semibold">{`${coinName} Trade Report`}</h2>
-
-                    <h4 className="text-sm text-gray-300">
-                        {executionLog?.last_execution
-                            ? new Date(executionLog.last_execution).toLocaleString()
-                            : 'N/A'}
-                    </h4>
                 </div>
 
                 {/* Bullet points section */}
@@ -92,6 +86,19 @@ const RecentTradeReportCard: React.FC<TradeReportCardProps> = ({ report, executi
                     </div>
                 )}
 
+            </div>
+
+            <div className="text-gray-300 text-xs pt-3 mb-1">
+                {executionLog?.next_execution ? (<span>
+                    Next Execution {'   '}
+                    {executionLog?.next_execution
+                        ? new Date(executionLog.next_execution).toLocaleString()
+                        : 'N/A'}
+                </span>) : (<span>
+                    {executionLog?.last_execution
+                        ? new Date(executionLog.last_execution).toLocaleString()
+                        : 'N/A'}
+                </span>)}
             </div>
             {/* Scroll indicator */}
             <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-gray-400 text-xs pt-3">

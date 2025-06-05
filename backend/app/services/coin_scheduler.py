@@ -131,6 +131,52 @@ class CoinScheduler:
         self.save_execution_log(log_data)
         logging.info(f"Updated execution log for {job_id}: duration {duration:.2f}s")
 
+    def send_n8n_report(self, title, content, is_error=False):
+        """
+        Send a report to n8n webhook endpoint.
+
+        Args:
+            title (str): The title of the report
+            content (str): The content/body of the report (can be markdown)
+            is_error (bool): Whether this is an error report (affects formatting)
+
+        Returns:
+            bool: True if report was sent successfully, False otherwise
+        """
+        try:
+            # Format the report based on type
+            if is_error:
+                markdown_report = f"# 🚨 {title}\n\n**Timestamp:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n```\n{content}\n```"
+            else:
+                markdown_report = f"# {title}\n\n**Timestamp:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n{content}"
+
+            headers = {"x-n8n-secret": config.n8n_webhook_secret}
+            payload = {"text": markdown_report}
+
+            response = requests.post(
+                config.n8n_webhook_url,
+                headers=headers,
+                json=payload,
+                timeout=30,  # Add timeout to prevent hanging
+            )
+            response.raise_for_status()
+
+            log_message = f"{'Error' if is_error else 'Trading'} report sent to n8n successfully: {title}"
+            logging.info(log_message)
+            print(log_message)
+            return True
+
+        except requests.exceptions.RequestException as e:
+            error_message = f"Failed to send {'error' if is_error else 'trading'} report to n8n: {e}"
+            logging.error(error_message)
+            print(error_message)
+            return False
+        except Exception as e:
+            error_message = f"Unexpected error sending {'error' if is_error else 'trading'} report to n8n: {e}"
+            logging.error(error_message)
+            print(error_message)
+            return False
+
     def _schedule_dependent_job(
         self, delay_seconds, job_func, job_name, *args, **kwargs
     ):
@@ -159,6 +205,13 @@ class CoinScheduler:
                 error_message = f"✗ {job_name} failed: {e}"
                 logging.error(error_message)
                 print(error_message)
+
+                # Send error report to n8n
+                self.send_n8n_report(
+                    title=f"Job Execution Error: {job_name}",
+                    content=f"Job: {job_name}\nError: {str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
+                    is_error=True,
+                )
 
         # Schedule the delayed job to run in a separate thread
         self.scheduler.add_job(
@@ -200,6 +253,13 @@ class CoinScheduler:
         except Exception as e:
             logging.error(f"Error in top coins extraction: {e}")
             print(f"Error in top coins extraction: {e}")
+
+            # Send error report to n8n
+            self.send_n8n_report(
+                title="Top Coins Extraction Error",
+                content=f"Error during top coins extraction:\n{str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
+                is_error=True,
+            )
             raise
 
     def _coin_history_with_cleanup(self, limit=None):
@@ -225,6 +285,13 @@ class CoinScheduler:
         except Exception as e:
             logging.error(f"Error in coin history extraction: {e}")
             print(f"Error in coin history extraction: {e}")
+
+            # Send error report to n8n
+            self.send_n8n_report(
+                title="Coin History Extraction Error",
+                content=f"Error during coin history extraction:\n{str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
+                is_error=True,
+            )
             raise
 
     def _news_sentiment_with_dependencies(self):
@@ -264,6 +331,13 @@ class CoinScheduler:
         except Exception as e:
             logging.error(f"Error in news sentiment extraction: {e}")
             print(f"Error in news sentiment extraction: {e}")
+
+            # Send error report to n8n
+            self.send_n8n_report(
+                title="News Sentiment Extraction Error",
+                content=f"Error during news sentiment extraction:\n{str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
+                is_error=True,
+            )
             raise
 
     def _coin_prices_with_trading(self, limit=None):
@@ -290,6 +364,13 @@ class CoinScheduler:
         except Exception as e:
             logging.error(f"Error in coin prices update: {e}")
             print(f"Error in coin prices update: {e}")
+
+            # Send error report to n8n
+            self.send_n8n_report(
+                title="Coin Prices Update Error",
+                content=f"Error during coin prices update:\n{str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
+                is_error=True,
+            )
             raise
 
     # Individual job methods (unchanged from original)
@@ -470,6 +551,7 @@ class CoinScheduler:
             successful_trades = 0
             failed_trades = 0
             reports = []
+            error_reports = []
 
             for coin in coins_data:
                 slug = coin.get("slug")
@@ -489,7 +571,7 @@ class CoinScheduler:
                         capital_manager=self.capital_manager,
                     )
 
-                    report = trader.run()
+                    full_report, report = trader.run()
                     reports.append(
                         f"### {coin_name.upper()} ({slug})\n```\n{report}\n```"
                     )
@@ -501,10 +583,12 @@ class CoinScheduler:
                     successful_trades += 1
 
                 except Exception as e:
-                    logging.error(
-                        f"Error during trading bot execution for {coin_name} ({slug}): {e}"
-                    )
+                    error_msg = f"Error during trading bot execution for {coin_name} ({slug}): {e}"
+                    logging.error(error_msg)
                     print(f"Error executing trading bot for {coin_name}: {e}")
+
+                    # Collect error for reporting
+                    error_reports.append(f"**{coin_name.upper()} ({slug}):** {str(e)}")
                     failed_trades += 1
 
             total_coins = len(coins_data)
@@ -517,25 +601,37 @@ class CoinScheduler:
                 logging.warning(error_message)
                 print(error_message)
 
-            # Send markdown report to webhook endpoint
+            # Send successful trading reports to n8n webhook
             if reports:
-                markdown_report = "# Trading Bot Reports\n\n" + "\n\n".join(reports)
-                headers = {"x-n8n-secret": config.n8n_webhook_secret}
-                payload = {"text": markdown_report}
-                try:
-                    response = requests.post(
-                        config.n8n_webhook_url, headers=headers, json=payload
-                    )
-                    response.raise_for_status()
-                    logging.info("Trading reports sent to webhook successfully.")
-                    print("Trading reports sent to webhook successfully.")
-                except Exception as e:
-                    logging.error(f"Failed to send trading reports to webhook: {e}")
-                    print(f"Failed to send trading reports to webhook: {e}")
+                trading_content = "\n\n".join(reports)
+                self.send_n8n_report(
+                    title="📈 Trading Bot Reports",
+                    content=trading_content,
+                    is_error=False,
+                )
+
+            # Send error reports to n8n webhook if there were failures
+            if error_reports:
+                error_content = (
+                    f"**Failed Trades: {failed_trades}/{total_coins}**\n\n"
+                    + "\n\n".join(error_reports)
+                )
+                self.send_n8n_report(
+                    title="Trading Bot Execution Errors",
+                    content=error_content,
+                    is_error=True,
+                )
 
         except Exception as e:
             logging.error(f"Error during trading bot job: {e}")
             print(f"Error in trading bot job: {e}")
+
+            # Send critical error report to n8n
+            self.send_n8n_report(
+                title="Critical Trading Bot Error",
+                content=f"Critical error during trading bot execution:\n{str(e)}",
+                is_error=True,
+            )
             raise
 
     def configure_jobs(self):
@@ -631,9 +727,22 @@ class CoinScheduler:
                 )
                 print(f"- Override Mode: {self.trading_config.get('override', False)}")
 
+            # Send startup notification to n8n
+            startup_report = f"**Configuration:**\n- Trading Enabled: {self.trading_config.get('enabled', False)}\n- Initial Capital: ${self.trading_config.get('initial_capital', 1000.0):.2f}\n- Override Mode: {self.trading_config.get('override', False)}"
+            self.send_n8n_report(
+                title="🚀 CoinScheduler Started", content=startup_report, is_error=False
+            )
+
         except Exception as e:
             logging.error(f"Failed to start scheduler: {e}")
             print(f"Error starting scheduler: {e}")
+
+            # Send startup error to n8n
+            self.send_n8n_report(
+                title="Scheduler Startup Error",
+                content=f"Failed to start CoinScheduler:\n{str(e)}",
+                is_error=True,
+            )
             raise
 
     def run_single_cycle(self):
@@ -650,11 +759,26 @@ class CoinScheduler:
 
             if self.trading_config.get("enabled", False):
                 print("\nFinal Trading Summary:")
-                print(self.get_trading_summary())
+                trading_summary = self.get_trading_summary()
+                print(trading_summary)
+
+                # Send shutdown report to n8n
+                self.send_n8n_report(
+                    title="🛑 CoinScheduler Shutdown",
+                    content=f"**Final Trading Summary:**\n```\n{trading_summary}\n```",
+                    is_error=False,
+                )
 
         except Exception as e:
             logging.error(f"Error shutting down scheduler: {e}")
             print(f"Error shutting down scheduler: {e}")
+
+            # Send shutdown error to n8n
+            self.send_n8n_report(
+                title="Scheduler Shutdown Error",
+                content=f"Error during CoinScheduler shutdown:\n{str(e)}",
+                is_error=True,
+            )
 
 
 if __name__ == "__main__":
