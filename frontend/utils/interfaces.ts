@@ -18,35 +18,53 @@ export interface ExecutionLog {
   next_execution: string
 }
 
+// Updated interfaces to match the new API response structure
+
+export interface PortfolioBreakdown {
+  cash_portion: number
+  position_portion: number
+  total_value: number
+}
+
+export interface UserInvestment {
+  original_investment: number
+  total_deposits: number
+  total_withdrawals: number
+  net_investment: number
+  ownership_percentage: number
+  current_share_value: number
+  realized_gains: number
+  unrealized_gains: number
+  total_gains: number
+  overall_profit_loss: number
+  performance_percentage: number
+  portfolio_breakdown: PortfolioBreakdown
+}
+
+export interface CoinPerformance {
+  // Market data
+  current_price: number | string
+  price_change_24h: number | string
+  volume_24h: number | string
+  market_cap: number | string
+
+  // Global portfolio performance
+  total_deposits: number
+  total_withdrawals: number
+  net_deposits: number
+  current_capital: number
+  position_quantity: number
+  position_value: number
+  total_portfolio_value: number
+  total_realized_profits: number
+  total_unrealized_gains: number
+  total_gains: number
+  overall_performance: number
+}
+
 export interface InvestmentData {
-  user_investment: {
-    original_investment: number
-    total_deposits: number
-    total_withdrawals: number
-    net_investment: number
-    ownership_percentage: number
-    current_share_value: number
-    realized_gains: number
-    unrealized_gains: number
-    total_gains: number
-    overall_profit_loss: number
-    performance_percentage: number
-    portfolio_breakdown: {
-      cash_portion: number
-      position_portion: number
-      total_value: number
-    }
-  }
-  coin_performance: {
-    current_price: number | string
-    price_change_24h: number | string
-    volume_24h: number | string
-    market_cap: number | string
-    total_portfolio_value: number
-    total_realized_profits: number
-    total_unrealized_gains: number
-    overall_performance: number
-  }
+  user_investment: UserInvestment
+  coin_performance: CoinPerformance
   coin: string
   timestamp: string
 }

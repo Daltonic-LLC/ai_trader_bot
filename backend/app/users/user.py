@@ -333,19 +333,29 @@ async def get_investment_details(
     if details["investment"] == 0.0:
         return {"message": "No investment found for this coin"}
 
-    # Get overall coin performance summary (optional - for additional context)
+    # Get overall coin performance summary (FIXED: This was being calculated but not returned properly)
     coin_summary = capital_manager.get_coin_performance_summary(coin, current_price)
 
-    # Enhanced coin performance metrics
+    # FIXED: Enhanced coin performance metrics - now includes GLOBAL data
     coin_performance = {
+        # Market data
         "current_price": stats.get("price", "N/A"),
         "price_change_24h": stats.get("price_change_24h_percent", "N/A"),
         "volume_24h": stats.get("volume_24h", "N/A"),
         "market_cap": stats.get("market_cap", "N/A"),
-        # Additional trading performance metrics
+        # FIXED: Global portfolio performance (this was missing!)
+        "total_deposits": coin_summary["total_deposits"],  # <-- ADDED
+        "total_withdrawals": coin_summary["total_withdrawals"],  # <-- ADDED
+        "net_deposits": coin_summary["net_deposits"],  # <-- ADDED
+        "current_capital": coin_summary["current_capital"],  # <-- ADDED
+        "position_quantity": coin_summary["position_quantity"],  # <-- ADDED
+        "position_value": coin_summary["position_value"],  # <-- ADDED
         "total_portfolio_value": coin_summary["total_portfolio_value"],
-        "total_realized_profits": coin_summary["realized_profits"],
+        "total_realized_profits": coin_summary[
+            "realized_profits"
+        ],  # <-- RENAMED from "realized_profits"
         "total_unrealized_gains": coin_summary["unrealized_gains"],
+        "total_gains": coin_summary["total_gains"],  # <-- ADDED
         "overall_performance": coin_summary["performance_percentage"],
     }
 
@@ -376,7 +386,7 @@ async def get_investment_details(
     # Return comprehensive investment data
     return {
         "user_investment": user_investment,
-        "coin_performance": coin_performance,
+        "coin_performance": coin_performance,  # <-- Now includes global totals
         "coin": coin.upper(),
         "timestamp": datetime.now().isoformat(),
     }
