@@ -26,11 +26,11 @@ class CoinScheduler:
         execution_log_file="data/scheduler/execution_log.json",
         trading_config=None,
         auto_trigger=True,
-        continue_on_failure=True,  # New parameter
+        continue_on_failure=True,
     ):
         """Initialize the CoinScheduler with custom timing and dependencies."""
         self.auto_trigger = auto_trigger
-        self.continue_on_failure = continue_on_failure  # Store the flag
+        self.continue_on_failure = continue_on_failure
 
         # Set up logging
         self._setup_logging(log_file)
@@ -149,7 +149,13 @@ class CoinScheduler:
             return False
 
     def _schedule_dependent_job(
-        self, delay_seconds, job_func, job_name, next_job_info=None, *args, **kwargs
+        self,
+        delay_seconds,
+        job_func,
+        job_name,
+        next_job_info=None,
+        job_args=(),
+        job_kwargs={},
     ):
         """Schedule a job to run after a specified delay with optional next job scheduling on failure."""
 
@@ -160,10 +166,7 @@ class CoinScheduler:
             job_failed = False
 
             try:
-                if args or kwargs:
-                    job_func(*args, **kwargs)
-                else:
-                    job_func()
+                job_func(*job_args, **job_kwargs)
                 job_end_time = datetime.now(timezone.utc)
                 self.update_execution_log_with_duration(
                     job_name.lower().replace(" ", "_"),
@@ -191,27 +194,18 @@ class CoinScheduler:
                     content=f"Job: {job_name}\nError: {str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
                     is_error=True,
                 )
-
-                # If continue_on_failure is False, don't schedule next job
                 if not self.continue_on_failure:
                     return
 
-            # Schedule next job regardless of current job status if continue_on_failure is True
             if next_job_info and (not job_failed or self.continue_on_failure):
                 delay, next_func, next_name, next_next_info = next_job_info[:4]
                 next_args = next_job_info[4] if len(next_job_info) > 4 else ()
                 next_kwargs = next_job_info[5] if len(next_job_info) > 5 else {}
-
                 logging.info(
                     f"Scheduling next job: {next_name} (previous job {'failed but continuing' if job_failed else 'succeeded'})"
                 )
                 self._schedule_dependent_job(
-                    delay,
-                    next_func,
-                    next_name,
-                    next_next_info,
-                    *next_args,
-                    **next_kwargs,
+                    delay, next_func, next_name, next_next_info, next_args, next_kwargs
                 )
 
         self.scheduler.add_job(
@@ -258,10 +252,8 @@ class CoinScheduler:
             if not self.continue_on_failure:
                 raise
 
-        # Schedule next job regardless of current job status if continue_on_failure is True
         if not job_failed or self.continue_on_failure:
-            # Define the complete chain: coin_history -> data_cleanup
-            cleanup_info = (5, self._daily_data_cleaner, "Data Cleanup", None)
+            cleanup_info = (5, self._daily_data_cleaner, "Data Cleanup", None, (), {})
             history_info = (
                 5,
                 self._coin_history_with_cleanup,
@@ -270,7 +262,6 @@ class CoinScheduler:
                 (config.coin_limit,),
                 {},
             )
-
             logging.info(
                 f"Scheduling coin history job (top coins {'failed but continuing' if job_failed else 'succeeded'})"
             )
@@ -353,9 +344,7 @@ class CoinScheduler:
             if not self.continue_on_failure:
                 raise
 
-        # Schedule next job regardless of current job status if continue_on_failure is True
         if not job_failed or self.continue_on_failure:
-            # Define the chain: coin_prices -> trading_bot (if enabled)
             if self.trading_config.get("enabled", False):
                 trading_info = (
                     5,
@@ -382,7 +371,6 @@ class CoinScheduler:
                     (config.coin_limit,),
                     {},
                 )
-
             logging.info(
                 f"Scheduling coin prices job (news sentiment {'failed but continuing' if job_failed else 'succeeded'})"
             )
@@ -402,46 +390,6 @@ class CoinScheduler:
                 job_end_time,
                 "completed",
             )
-        except Exception as e:
-            job_end_time = datetime.now(timezone.utc)
-            self.update_execution_log_with_duration(
-                "coin_prices",
-                "Coin Prices Update",
-                job_start_time,
-                job_end_time,
-                "failed",
-            )
-            logging.error(f"Error in coin prices update: {e}")
-            self.send_n8n_report(
-                title="Coin Prices Update Error",
-                content=f"Error: {str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
-                is_error=True,
-            )
-            if not self.continue_on_failure:
-                raise
-
-    def _coin_prices_with_trading(self, limit=None):
-        """Original method - kept for backward compatibility."""
-        job_start_time = datetime.now(timezone.utc)
-        logging.info("Starting coin prices update")
-        try:
-            self._daily_coin_prices(limit=limit)
-            job_end_time = datetime.now(timezone.utc)
-            self.update_execution_log_with_duration(
-                "coin_prices",
-                "Coin Prices Update",
-                job_start_time,
-                job_end_time,
-                "completed",
-            )
-            if self.trading_config.get("enabled", False):
-                self._schedule_dependent_job(
-                    5,
-                    self._trading_bot_execution,
-                    "Trading Bot Execution",
-                    None,
-                    config.coin_limit,
-                )
         except Exception as e:
             job_end_time = datetime.now(timezone.utc)
             self.update_execution_log_with_duration(
@@ -772,5 +720,12 @@ if __name__ == "__main__":
     scheduler = CoinScheduler(
         trading_config=trading_config,
         auto_trigger=True,
-        continue_on_failure=True,  # Enable failure recovery
+        continue_on_failure=True,
     )
+    try:
+        scheduler.start()
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("\nShutting down scheduler...")
+        scheduler.shutdown()
