@@ -58,6 +58,7 @@ jobs:
             SECRET_KEY=${{ secrets.SECRET_KEY }}
             N8N_WEBHOOK_SECRET=${{ secrets.N8N_WEBHOOK_SECRET }}
             N8N_WEBHOOK_URL=${{ secrets.N8N_WEBHOOK_URL }}
+            COIN_LIMIT=${{ secrets.COIN_LIMIT }}
             EOF
 
       - name: Create frontend .env
@@ -70,6 +71,7 @@ jobs:
             cat << EOF > /dockerized/containers/bot_trader/frontend/.env
             NEXT_PUBLIC_BACKEND_API_URL=${{ secrets.NEXT_PUBLIC_BACKEND_API_URL }}
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+            NEXT_PUBLIC_MAX_COINS=${{ secrets.NEXT_PUBLIC_MAX_COINS }}
             EOF
 
       - name: Create root .env

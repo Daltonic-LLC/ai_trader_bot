@@ -14,6 +14,7 @@ import { fetchCoinInvestment, fetchCoinReport, fetchCoins, fetchExecutionLog } f
 import { Coin, ExecutionLog, InvestmentData } from '@/utils/interfaces';
 import React, { useEffect } from 'react';
 
+const MAX_COINS: number = Number(process.env.NEXT_PUBLIC_MAX_COINS) || 0;
 const DashboardPage: React.FC = () => {
   const [report, setReport] = React.useState<string | null>(null);
   const [lastTrade, setLastTrade] = React.useState<ExecutionLog | null>(null);
@@ -61,7 +62,7 @@ const DashboardPage: React.FC = () => {
       setInvestmentData(null);
     });
 
-  const getCoins = async () => fetchCoins(15)
+  const getCoins = async () => fetchCoins(MAX_COINS)
     .then(async (data) => {
       if (data.data.length > 0) {
         if (setCurrencies) {
@@ -134,8 +135,8 @@ const DashboardPage: React.FC = () => {
         <DepositModal
           coin={selectedCoin}
           currentBalance={
-            investmentData?.user_investment?.investment
-              ? parseFloat(investmentData.user_investment.investment.toFixed(2))
+            investmentData?.user_investment?.net_investment
+              ? parseFloat(investmentData.user_investment.net_investment.toFixed(2))
               : 0
           }
           onClose={() => setIsDepositOpen(false)}
@@ -149,8 +150,8 @@ const DashboardPage: React.FC = () => {
         <WithdrawModal
           coin={selectedCoin}
           currentBalance={
-            investmentData?.user_investment?.investment
-              ? parseFloat(investmentData.user_investment.investment.toFixed(2))
+            investmentData?.user_investment?.net_investment
+              ? parseFloat(investmentData.user_investment.net_investment.toFixed(2))
               : 0
           }
           onClose={() => setIsWithdrawOpen(false)}

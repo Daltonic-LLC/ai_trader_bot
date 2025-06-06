@@ -313,7 +313,7 @@ async def withdraw_balance(
 async def get_investment_details(
     coin: str, current_user: dict = Depends(get_current_user)
 ):
-    """Display user investment details and coin performance for a given coin."""
+    """Display comprehensive user investment details and coin performance for a given coin."""
     user_id = current_user["id"]
     coin = coin.lower()  # Ensure consistency with CapitalManager
 
@@ -326,23 +326,60 @@ async def get_investment_details(
 
     current_price = stats["price"]
 
-    # Get user investment details
+    # Get enhanced user investment details
     details = capital_manager.get_user_investment_details(user_id, coin, current_price)
 
     # If no investment, return a message
     if details["investment"] == 0.0:
         return {"message": "No investment found for this coin"}
 
-    # Compile coin performance metrics
+    # Get overall coin performance summary (optional - for additional context)
+    coin_summary = capital_manager.get_coin_performance_summary(coin, current_price)
+
+    # Enhanced coin performance metrics
     coin_performance = {
         "current_price": stats.get("price", "N/A"),
         "price_change_24h": stats.get("price_change_24h_percent", "N/A"),
         "volume_24h": stats.get("volume_24h", "N/A"),
         "market_cap": stats.get("market_cap", "N/A"),
+        # Additional trading performance metrics
+        "total_portfolio_value": coin_summary["total_portfolio_value"],
+        "total_realized_profits": coin_summary["realized_profits"],
+        "total_unrealized_gains": coin_summary["unrealized_gains"],
+        "overall_performance": coin_summary["performance_percentage"],
     }
 
-    # Return combined data
-    return {"user_investment": details, "coin_performance": coin_performance}
+    # Structure the response with enhanced user investment data
+    user_investment = {
+        # Core Investment Information
+        "original_investment": details["original_investment"],
+        "total_deposits": details["total_deposits"],
+        "total_withdrawals": details["total_withdrawals"],
+        "net_investment": details["net_investment"],
+        # Current Position & Performance
+        "ownership_percentage": details["ownership_percentage"],
+        "current_share_value": details["current_share"],
+        # Gains/Loss Breakdown
+        "realized_gains": details["realized_gains"],
+        "unrealized_gains": details["unrealized_gains"],
+        "total_gains": details["total_gains"],
+        "overall_profit_loss": details["profit_loss"],
+        "performance_percentage": details["performance_percentage"],
+        # Portfolio Breakdown
+        "portfolio_breakdown": {
+            "cash_portion": details["portfolio_breakdown"]["cash_portion"],
+            "position_portion": details["portfolio_breakdown"]["position_portion"],
+            "total_value": details["portfolio_breakdown"]["total_portfolio_value"],
+        },
+    }
+
+    # Return comprehensive investment data
+    return {
+        "user_investment": user_investment,
+        "coin_performance": coin_performance,
+        "coin": coin.upper(),
+        "timestamp": datetime.now().isoformat(),
+    }
 
 
 @auth_router.post("/wallet/add")

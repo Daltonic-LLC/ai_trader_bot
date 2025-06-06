@@ -30,6 +30,7 @@ class EnvironmentConfig:
             "jwt_secret_key": environ.get("SECRET_KEY", ""),
             "n8n_webhook_secret": environ.get("N8N_WEBHOOK_SECRET", ""),
             "n8n_webhook_url": environ.get("N8N_WEBHOOK_URL", ""),
+            "coin_limit": environ.get("COIN_LIMIT", None),
         }
 
     @property
@@ -88,14 +89,18 @@ class EnvironmentConfig:
     def get_all(self) -> Dict[str, str]:
         """Return all configuration values"""
         return self.config
-    
+
     @property
     def n8n_webhook_secret(self) -> str:
         return self.config["n8n_webhook_secret"]
-    
+
     @property
     def n8n_webhook_url(self) -> str:
         return self.config["n8n_webhook_url"]
+
+    @property
+    def coin_limit(self) -> int:
+        return int(self.config["coin_limit"] or 15)
 
     def __str__(self) -> str:
         """String representation of current configuration"""
