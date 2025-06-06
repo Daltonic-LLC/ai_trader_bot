@@ -1269,15 +1269,6 @@
         "documentation": {}
     },
     {
-        "label": "argparse",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "argparse",
-        "description": "argparse",
-        "detail": "argparse",
-        "documentation": {}
-    },
-    {
         "label": "asyncio",
         "kind": 6,
         "isExtraImport": true,
@@ -1652,29 +1643,11 @@
         "documentation": {}
     },
     {
-        "label": "parser",
-        "kind": 5,
-        "importPath": "backend.manual_trigger",
-        "description": "backend.manual_trigger",
-        "peekOfCode": "parser = argparse.ArgumentParser(\n    description=\"Manually trigger CoinScheduler jobs for testing.\"\n)\nparser.add_argument(\n    \"--job\",\n    required=True,\n    choices=[\"top_coins\", \"news_sentiment\"],\n    help=\"The job to trigger: 'top_coins' or 'news_sentiment'\",\n)\nparser.add_argument(",
-        "detail": "backend.manual_trigger",
-        "documentation": {}
-    },
-    {
-        "label": "args",
-        "kind": 5,
-        "importPath": "backend.manual_trigger",
-        "description": "backend.manual_trigger",
-        "peekOfCode": "args = parser.parse_args()\n# Configure trading settings based on the --trading flag\ntrading_config = {\"enabled\": args.trading, \"initial_capital\": 1000.0, \"override\": False}\n# Initialize and start the CoinScheduler\nscheduler = CoinScheduler(trading_config=trading_config)\nscheduler.start()\n# Record the start time to track job completion\nstart_time = datetime.now(timezone.utc)\n# Trigger the specified job and determine the final job in the chain\nif args.job == \"top_coins\":",
-        "detail": "backend.manual_trigger",
-        "documentation": {}
-    },
-    {
         "label": "trading_config",
         "kind": 5,
         "importPath": "backend.manual_trigger",
         "description": "backend.manual_trigger",
-        "peekOfCode": "trading_config = {\"enabled\": args.trading, \"initial_capital\": 1000.0, \"override\": False}\n# Initialize and start the CoinScheduler\nscheduler = CoinScheduler(trading_config=trading_config)\nscheduler.start()\n# Record the start time to track job completion\nstart_time = datetime.now(timezone.utc)\n# Trigger the specified job and determine the final job in the chain\nif args.job == \"top_coins\":\n    scheduler.trigger_top_coins_now()\n    final_job = \"data_cleanup\"  # Last job in the top_coins chain",
+        "peekOfCode": "trading_config = {\"enabled\": True, \"initial_capital\": 1000.0, \"override\": False}\n# Initialize and start the CoinScheduler\nscheduler = CoinScheduler(trading_config=trading_config)\nscheduler.start()\n# Trigger the top_coins chain\nstart_time1 = datetime.now(timezone.utc)\nscheduler.trigger_top_coins_now()\nprint(\"Triggered top_coins. Waiting for data_cleanup to complete...\")\n# Wait for the data_cleanup job (end of top_coins chain) to complete\nwhile True:",
         "detail": "backend.manual_trigger",
         "documentation": {}
     },
@@ -1683,16 +1656,34 @@
         "kind": 5,
         "importPath": "backend.manual_trigger",
         "description": "backend.manual_trigger",
-        "peekOfCode": "scheduler = CoinScheduler(trading_config=trading_config)\nscheduler.start()\n# Record the start time to track job completion\nstart_time = datetime.now(timezone.utc)\n# Trigger the specified job and determine the final job in the chain\nif args.job == \"top_coins\":\n    scheduler.trigger_top_coins_now()\n    final_job = \"data_cleanup\"  # Last job in the top_coins chain\nelif args.job == \"news_sentiment\":\n    scheduler.trigger_news_sentiment_now(force=args.force)",
+        "peekOfCode": "scheduler = CoinScheduler(trading_config=trading_config)\nscheduler.start()\n# Trigger the top_coins chain\nstart_time1 = datetime.now(timezone.utc)\nscheduler.trigger_top_coins_now()\nprint(\"Triggered top_coins. Waiting for data_cleanup to complete...\")\n# Wait for the data_cleanup job (end of top_coins chain) to complete\nwhile True:\n    log_data = scheduler.load_execution_log()\n    last_run_str = log_data.get(\"data_cleanup\", {}).get(\"last_execution\")",
         "detail": "backend.manual_trigger",
         "documentation": {}
     },
     {
-        "label": "start_time",
+        "label": "start_time1",
         "kind": 5,
         "importPath": "backend.manual_trigger",
         "description": "backend.manual_trigger",
-        "peekOfCode": "start_time = datetime.now(timezone.utc)\n# Trigger the specified job and determine the final job in the chain\nif args.job == \"top_coins\":\n    scheduler.trigger_top_coins_now()\n    final_job = \"data_cleanup\"  # Last job in the top_coins chain\nelif args.job == \"news_sentiment\":\n    scheduler.trigger_news_sentiment_now(force=args.force)\n    final_job = (\n        \"trading_bot\" if args.trading else \"coin_prices\"\n    )  # Depends on trading status",
+        "peekOfCode": "start_time1 = datetime.now(timezone.utc)\nscheduler.trigger_top_coins_now()\nprint(\"Triggered top_coins. Waiting for data_cleanup to complete...\")\n# Wait for the data_cleanup job (end of top_coins chain) to complete\nwhile True:\n    log_data = scheduler.load_execution_log()\n    last_run_str = log_data.get(\"data_cleanup\", {}).get(\"last_execution\")\n    if last_run_str:\n        last_run_time = datetime.fromisoformat(last_run_str)\n        if last_run_time > start_time1:",
+        "detail": "backend.manual_trigger",
+        "documentation": {}
+    },
+    {
+        "label": "start_time2",
+        "kind": 5,
+        "importPath": "backend.manual_trigger",
+        "description": "backend.manual_trigger",
+        "peekOfCode": "start_time2 = datetime.now(timezone.utc)\nscheduler.trigger_news_sentiment_now(force=False)\nfinal_job = \"trading_bot\" if trading_config[\"enabled\"] else \"coin_prices\"\nprint(f\"Triggered news_sentiment. Waiting for {final_job} to complete...\")\n# Wait for the final job in the news_sentiment chain to complete\nwhile True:\n    log_data = scheduler.load_execution_log()\n    last_run_str = log_data.get(final_job, {}).get(\"last_execution\")\n    if last_run_str:\n        last_run_time = datetime.fromisoformat(last_run_str)",
+        "detail": "backend.manual_trigger",
+        "documentation": {}
+    },
+    {
+        "label": "final_job",
+        "kind": 5,
+        "importPath": "backend.manual_trigger",
+        "description": "backend.manual_trigger",
+        "peekOfCode": "final_job = \"trading_bot\" if trading_config[\"enabled\"] else \"coin_prices\"\nprint(f\"Triggered news_sentiment. Waiting for {final_job} to complete...\")\n# Wait for the final job in the news_sentiment chain to complete\nwhile True:\n    log_data = scheduler.load_execution_log()\n    last_run_str = log_data.get(final_job, {}).get(\"last_execution\")\n    if last_run_str:\n        last_run_time = datetime.fromisoformat(last_run_str)\n        if last_run_time > start_time2:\n            break",
         "detail": "backend.manual_trigger",
         "documentation": {}
     },
