@@ -1404,7 +1404,7 @@
         "kind": 6,
         "importPath": "backend.app.services.coin_scheduler",
         "description": "backend.app.services.coin_scheduler",
-        "peekOfCode": "class CoinScheduler:\n    def __init__(\n        self,\n        log_file=\"scheduler.log\",\n        execution_log_file=\"data/scheduler/execution_log.json\",\n        trading_config=None,\n        auto_trigger=True,\n        continue_on_failure=True,  # New parameter\n    ):\n        \"\"\"Initialize the CoinScheduler with custom timing and dependencies.\"\"\"",
+        "peekOfCode": "class CoinScheduler:\n    def __init__(\n        self,\n        log_file=\"scheduler.log\",\n        execution_log_file=\"data/scheduler/execution_log.json\",\n        trading_config=None,\n        auto_trigger=True,\n        continue_on_failure=True,\n    ):\n        \"\"\"Initialize the CoinScheduler with custom timing and dependencies.\"\"\"",
         "detail": "backend.app.services.coin_scheduler",
         "documentation": {}
     },
