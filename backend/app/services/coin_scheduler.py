@@ -247,7 +247,7 @@ class CoinScheduler:
                 5,
                 self._coin_history_with_cleanup,
                 "Coin History with Cleanup",
-                limit=15,
+                limit=config.coin_limit,
             )
 
         except Exception as e:
@@ -308,7 +308,7 @@ class CoinScheduler:
 
         try:
             # Execute news sentiment (limited to 15 coins)
-            self._daily_news_sentiment(limit=15)
+            self._daily_news_sentiment(limit=config.coin_limit)
 
             job_end_time = datetime.now(timezone.utc)
             self.update_execution_log_with_duration(
@@ -325,7 +325,10 @@ class CoinScheduler:
 
             # 1. Coin Prices - runs immediately after news sentiment (limited to 15 coins)
             self._schedule_dependent_job(
-                5, self._coin_prices_with_trading, "Coin Prices with Trading", limit=15
+                5,
+                self._coin_prices_with_trading,
+                "Coin Prices with Trading",
+                limit=config.coin_limit,
             )
 
         except Exception as e:
@@ -358,7 +361,10 @@ class CoinScheduler:
             if self.trading_config.get("enabled", False):
                 print("Scheduling immediate trading bot execution...")
                 self._schedule_dependent_job(
-                    5, self._trading_bot_execution, "Trading Bot Execution", limit=15
+                    5,
+                    self._trading_bot_execution,
+                    "Trading Bot Execution",
+                    limit=config.coin_limit,
                 )
 
         except Exception as e:

@@ -95,7 +95,7 @@ const RecentTradeReportCard: React.FC<TradeReportCardProps> = ({ report, executi
                         ? new Date(executionLog.next_execution).toLocaleString()
                         : 'N/A'}
                 </span>) : (<span>
-                    {executionLog?.last_execution
+                    Last Executed at {'   '} {executionLog?.last_execution
                         ? new Date(executionLog.last_execution).toLocaleString()
                         : 'N/A'}
                 </span>)}

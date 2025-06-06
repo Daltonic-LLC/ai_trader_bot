@@ -34,6 +34,7 @@ class CapitalManager:
             cls._instance.user_withdrawals = {}  # {coin: {user_id: total_withdrawn}}
             cls._instance.total_deposits = {}  # {coin: total_deposits}
             cls._instance.total_withdrawals = {}  # {coin: total_withdrawals}
+            cls._instance.realized_profits = {}  # {coin: total_realized_profit}
             cls._instance.load_state()
         return cls._instance
 
@@ -49,6 +50,7 @@ class CapitalManager:
             self.user_withdrawals = state.get("user_withdrawals", {})
             self.total_deposits = state.get("total_deposits", {})
             self.total_withdrawals = state.get("total_withdrawals", {})
+            self.realized_profits = state.get("realized_profits", {})
             logging.info("Loaded trading state from database.")
         except Exception as e:
             logging.error(f"Failed to load state from MongoDB: {e}")
@@ -61,6 +63,7 @@ class CapitalManager:
             self.user_withdrawals = {}
             self.total_deposits = {}
             self.total_withdrawals = {}
+            self.realized_profits = {}
 
     def save_state(self):
         """Save the trading state to MongoDB."""
@@ -73,13 +76,13 @@ class CapitalManager:
             "user_withdrawals": self.user_withdrawals,
             "total_deposits": self.total_deposits,
             "total_withdrawals": self.total_withdrawals,
+            "realized_profits": self.realized_profits,
         }
         try:
             self.mongo_service.set_trading_state(state)
             logging.info("Saved trading state to database.")
         except Exception as e:
             logging.error(f"Failed to save state to MongoDB: {e}")
-            # Optionally, implement retry logic here
 
     def deposit(self, user_id, coin, amount):
         """Add capital to a specific coin for a user."""
@@ -102,6 +105,8 @@ class CapitalManager:
 
             if coin not in self.trade_records:
                 self.trade_records[coin] = {"trades": [], "total_profit": 0.0}
+            if coin not in self.realized_profits:
+                self.realized_profits[coin] = 0.0
 
             self.save_state()
             logging.info(
@@ -174,7 +179,7 @@ class CapitalManager:
             }
 
     def calculate_withdrawal(self, user_id, coin):
-        """Calculate the withdrawal amount based on user's ownership percentage of current capital."""
+        """Calculate the withdrawal amount based on user's ownership percentage of current total value."""
         coin = coin.lower()
         if (
             coin not in self.user_investments
@@ -193,14 +198,14 @@ class CapitalManager:
         # Calculate ownership based on original deposits
         ownership_percentage = user_total_deposits / total_deposits
 
-        # Calculate user's share of current capital (not total value)
+        # Calculate user's share of current capital (available for withdrawal)
         current_capital = self.capital.get(coin, 0.0)
         available_for_withdrawal = ownership_percentage * current_capital
 
         return available_for_withdrawal
 
     def get_user_investment_details(self, user_id, coin, current_price):
-        """Retrieve investment details for a user and a specific coin."""
+        """Retrieve comprehensive investment details for a user and a specific coin."""
         coin = coin.lower()
 
         # Check if the user has investments in this coin
@@ -213,9 +218,13 @@ class CapitalManager:
                 "ownership_percentage": 0.0,
                 "current_share": 0.0,
                 "profit_loss": 0.0,
+                "realized_gains": 0.0,
+                "unrealized_gains": 0.0,
+                "total_gains": 0.0,
+                "performance_percentage": 0.0,
             }
 
-        # Get user's total investment amount (original deposits)
+        # Get user's investment details
         user_investment = self.user_investments[coin][user_id]
         user_withdrawals = self.user_withdrawals.get(coin, {}).get(user_id, 0.0)
         total_deposits = self.total_deposits.get(coin, 0.0)
@@ -224,25 +233,55 @@ class CapitalManager:
         if total_deposits == 0:
             return {
                 "investment": user_investment,
+                "original_investment": user_investment,
+                "total_deposits": user_investment,
+                "total_withdrawals": user_withdrawals,
+                "net_investment": user_investment - user_withdrawals,
                 "ownership_percentage": 0.0,
                 "current_share": 0.0,
                 "profit_loss": 0.0,
+                "realized_gains": 0.0,
+                "unrealized_gains": 0.0,
+                "total_gains": 0.0,
+                "performance_percentage": 0.0,
             }
 
         # Calculate ownership percentage based on original deposits
         ownership_percentage = (user_investment / total_deposits) * 100
 
-        # Calculate total value including positions
+        # Calculate total portfolio value (capital + position value)
         position_value = self.positions.get(coin, 0.0) * current_price
-        total_value = self.capital.get(coin, 0.0) + position_value
+        total_portfolio_value = self.capital.get(coin, 0.0) + position_value
 
-        # Calculate user's current share
-        current_share = (ownership_percentage / 100) * total_value
+        # Calculate user's current share of total portfolio value
+        current_share = (ownership_percentage / 100) * total_portfolio_value
 
-        # Calculate net investment (what user should currently own)
+        # Calculate net investment (original investment minus withdrawals)
         net_investment = user_investment - user_withdrawals
 
-        # Calculate profit/loss: current_share vs what they should have (net_investment)
+        # Calculate user's share of realized profits
+        total_realized_profit = self.realized_profits.get(coin, 0.0)
+        user_realized_gains = (ownership_percentage / 100) * total_realized_profit
+
+        # Calculate unrealized gains (current portfolio value vs original deposits + realized profits)
+        original_total_deposits = self.total_deposits.get(coin, 0.0)
+        expected_value_without_unrealized = (
+            original_total_deposits + total_realized_profit
+        )
+        total_unrealized_gains = (
+            total_portfolio_value - expected_value_without_unrealized
+        )
+        user_unrealized_gains = (ownership_percentage / 100) * total_unrealized_gains
+
+        # Total gains = realized + unrealized
+        total_user_gains = user_realized_gains + user_unrealized_gains
+
+        # Performance percentage = total gains / net investment * 100
+        performance_percentage = (
+            (total_user_gains / net_investment * 100) if net_investment > 0 else 0.0
+        )
+
+        # Overall profit/loss = current share - net investment
         profit_loss = current_share - net_investment
 
         return {
@@ -254,6 +293,16 @@ class CapitalManager:
             "ownership_percentage": ownership_percentage,
             "current_share": current_share,
             "profit_loss": profit_loss,
+            "realized_gains": user_realized_gains,
+            "unrealized_gains": user_unrealized_gains,
+            "total_gains": total_user_gains,
+            "performance_percentage": performance_percentage,
+            "portfolio_breakdown": {
+                "cash_portion": (ownership_percentage / 100)
+                * self.capital.get(coin, 0.0),
+                "position_portion": (ownership_percentage / 100) * position_value,
+                "total_portfolio_value": total_portfolio_value,
+            },
         }
 
     def get_user_investment(self, user_id, coin):
@@ -270,6 +319,7 @@ class CapitalManager:
             if coin not in self.capital:
                 self.capital[coin] = 0.0
                 self.trade_records[coin] = {"trades": [], "total_profit": 0.0}
+                self.realized_profits[coin] = 0.0
 
             # Convert to Decimal
             quantity = Decimal(str(quantity))
@@ -341,14 +391,14 @@ class CapitalManager:
             )
             net_proceeds = base_proceeds - fee_amount
 
-            # Calculate profit
+            # Calculate profit/loss for this specific trade
             original_quantity = Decimal(str(self.positions[coin]))
             average_cost = (
                 Decimal(str(self.total_cost[coin])) / original_quantity
                 if original_quantity > 0
                 else Decimal("0")
             )
-            profit = net_proceeds - (average_cost * quantity)
+            trade_profit = net_proceeds - (average_cost * quantity)
 
             # Update capital
             capital_decimal = Decimal(str(self.capital.get(coin, 0.0)))
@@ -360,7 +410,7 @@ class CapitalManager:
             positions_decimal -= quantity
             if positions_decimal <= 0:
                 del self.positions[coin]
-                self.total_cost[coin] = 0
+                self.total_cost[coin] = 0.0
             else:
                 self.positions[coin] = float(positions_decimal)
                 cost_removed = (quantity / original_quantity) * Decimal(
@@ -369,6 +419,11 @@ class CapitalManager:
                 self.total_cost[coin] = float(
                     Decimal(str(self.total_cost[coin])) - cost_removed
                 )
+
+            # Update realized profits
+            self.realized_profits[coin] = self.realized_profits.get(coin, 0.0) + float(
+                trade_profit
+            )
 
             self.trade_records[coin]["trades"].append(
                 {
@@ -380,15 +435,15 @@ class CapitalManager:
                     "fee": float(fee_amount),
                     "fee_percentage": float(self.TRADING_FEE * 100),
                     "net_proceeds": float(net_proceeds),
-                    "profit": float(profit),
+                    "profit": float(trade_profit),
                 }
             )
-            self.trade_records[coin]["total_profit"] += float(profit)
+            self.trade_records[coin]["total_profit"] += float(trade_profit)
             self.save_state()
 
             logging.info(
                 f"Simulated SELL of {float(quantity)} {coin} at ${float(price):.2f}. "
-                f"Net proceeds: ${float(net_proceeds):.2f} (Base: ${float(base_proceeds):.2f}, Fee: ${float(fee_amount):.2f} [0.1%]), Profit: ${float(profit):.2f}"
+                f"Net proceeds: ${float(net_proceeds):.2f} (Base: ${float(base_proceeds):.2f}, Fee: ${float(fee_amount):.2f} [0.1%]), Profit: ${float(trade_profit):.2f}"
             )
             return True
 
@@ -402,6 +457,7 @@ class CapitalManager:
         self.user_withdrawals = {}
         self.total_deposits = {}
         self.total_withdrawals = {}
+        self.realized_profits = {}
         self.save_state()
 
     def get_position(self, coin):
@@ -415,3 +471,43 @@ class CapitalManager:
     def get_total_capital(self):
         """Return the total capital across all coins."""
         return sum(self.capital.values())
+
+    def get_coin_performance_summary(self, coin, current_price):
+        """Get overall performance summary for a specific coin."""
+        coin = coin.lower()
+
+        total_deposits = self.total_deposits.get(coin, 0.0)
+        total_withdrawals = self.total_withdrawals.get(coin, 0.0)
+        current_capital = self.capital.get(coin, 0.0)
+        position_quantity = self.positions.get(coin, 0.0)
+        position_value = position_quantity * current_price
+        total_portfolio_value = current_capital + position_value
+        realized_profits = self.realized_profits.get(coin, 0.0)
+
+        # Calculate unrealized gains
+        expected_value_without_unrealized = total_deposits + realized_profits
+        unrealized_gains = total_portfolio_value - expected_value_without_unrealized
+
+        # Net investment after withdrawals
+        net_deposits = total_deposits - total_withdrawals
+
+        # Total performance
+        total_gains = realized_profits + unrealized_gains
+        performance_percentage = (
+            (total_gains / total_deposits * 100) if total_deposits > 0 else 0.0
+        )
+
+        return {
+            "coin": coin.upper(),
+            "total_deposits": total_deposits,
+            "total_withdrawals": total_withdrawals,
+            "net_deposits": net_deposits,
+            "current_capital": current_capital,
+            "position_quantity": position_quantity,
+            "position_value": position_value,
+            "total_portfolio_value": total_portfolio_value,
+            "realized_profits": realized_profits,
+            "unrealized_gains": unrealized_gains,
+            "total_gains": total_gains,
+            "performance_percentage": performance_percentage,
+        }

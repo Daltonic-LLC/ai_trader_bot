@@ -11,27 +11,50 @@ const InvestmentCard: React.FC<InvestmentCardProps> = ({ data }) => {
 
     return (
         <div className="p-6 rounded-xl shadow-lg border border-crypto-blue/30 bg-[#0F172A] w-full">
-
             {/* User Investment Section */}
             <div className="mb-6">
                 <h3 className="text-xl font-semibold text-white mb-2">User Investment</h3>
                 <div className="grid grid-cols-1 gap-4">
-                    <div>
-                        <p className="text-gray-400">Investment Amount</p>
+                    <div className="flex justify-between items-center">
+                        <p className="text-gray-400">Net Investment</p>
                         <p className="text-white font-medium">
-                            ${user_investment.investment.toLocaleString('en-US', {
+                            ${user_investment.net_investment.toLocaleString('en-US', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                             })}
                         </p>
                     </div>
-                    <div>
+                    <div className="flex justify-between items-center">
                         <p className="text-gray-400">Current Share Value</p>
                         <p className="text-white font-medium">
-                            ${user_investment.current_share.toLocaleString('en-US', {
+                            ${user_investment.current_share_value.toLocaleString('en-US', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                             })}
+                        </p>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <p className="text-gray-400">Total Gains</p>
+                        <p className="text-white font-medium">
+                            ${user_investment.total_gains.toLocaleString('en-US', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            })}
+                        </p>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <p className="text-gray-400">Overall Profit/Loss</p>
+                        <p className={`font-medium ${user_investment.overall_profit_loss >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            ${Math.abs(user_investment.overall_profit_loss).toLocaleString('en-US', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            })}
+                        </p>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <p className="text-gray-400">Performance (%)</p>
+                        <p className={`font-medium ${user_investment.performance_percentage >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            {user_investment.performance_percentage.toFixed(2)}%
                         </p>
                     </div>
                 </div>
@@ -41,19 +64,19 @@ const InvestmentCard: React.FC<InvestmentCardProps> = ({ data }) => {
             <div>
                 <h3 className="text-xl font-semibold text-white mb-2">Coin Performance</h3>
                 <div className="grid grid-cols-1 gap-4">
-                    <div>
+                    <div className="flex justify-between items-center">
                         <p className="text-gray-400">Ownership Percentage</p>
                         <p className="text-white font-medium">
                             {user_investment.ownership_percentage.toFixed(2)}%
                         </p>
                     </div>
-                    <div>
+                    <div className="flex justify-between items-center">
                         <p className="text-gray-400">Profit/Loss</p>
                         <p
-                            className={`font-medium ${user_investment.profit_loss >= 0 ? 'text-green-500' : 'text-red-500'
+                            className={`font-medium ${user_investment.overall_profit_loss >= 0 ? 'text-green-500' : 'text-red-500'
                                 }`}
                         >
-                            ${Math.abs(user_investment.profit_loss).toLocaleString('en-US', {
+                            ${Math.abs(user_investment.overall_profit_loss).toLocaleString('en-US', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                             })}
