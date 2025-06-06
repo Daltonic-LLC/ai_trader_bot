@@ -26,9 +26,12 @@ class CoinScheduler:
         execution_log_file="data/scheduler/execution_log.json",
         trading_config=None,
         auto_trigger=True,
+        continue_on_failure=True,  # New parameter
     ):
         """Initialize the CoinScheduler with custom timing and dependencies."""
         self.auto_trigger = auto_trigger
+        self.continue_on_failure = continue_on_failure  # Store the flag
+
         # Set up logging
         self._setup_logging(log_file)
         logging.info("Initializing CoinScheduler with custom timing")
@@ -107,19 +110,21 @@ class CoinScheduler:
             logging.error(f"Error saving execution log: {e}")
 
     def update_execution_log_with_duration(
-        self, job_id, job_name, start_time, end_time
+        self, job_id, job_name, start_time, end_time, status="completed"
     ):
-        """Update the execution log with execution duration."""
+        """Update the execution log with execution duration and status."""
         log_data = self.load_execution_log()
         duration = (end_time - start_time).total_seconds()
         log_data[job_id] = {
             "job_name": job_name,
             "last_execution": start_time.isoformat(),
             "execution_duration": duration,
-            "status": "completed",
+            "status": status,
         }
         self.save_execution_log(log_data)
-        logging.info(f"Updated execution log for {job_id}: duration {duration:.2f}s")
+        logging.info(
+            f"Updated execution log for {job_id}: duration {duration:.2f}s, status: {status}"
+        )
 
     def send_n8n_report(self, title, content, is_error=False):
         """Send a report to n8n webhook endpoint."""
@@ -144,29 +149,69 @@ class CoinScheduler:
             return False
 
     def _schedule_dependent_job(
-        self, delay_seconds, job_func, job_name, *args, **kwargs
+        self, delay_seconds, job_func, job_name, next_job_info=None, *args, **kwargs
     ):
-        """Schedule a job to run after a specified delay."""
+        """Schedule a job to run after a specified delay with optional next job scheduling on failure."""
 
         def delayed_job():
             time.sleep(delay_seconds)
             job_start_time = datetime.now(timezone.utc)
             logging.info(f"Starting delayed job: {job_name}")
+            job_failed = False
+
             try:
                 if args or kwargs:
                     job_func(*args, **kwargs)
                 else:
                     job_func()
                 job_end_time = datetime.now(timezone.utc)
+                self.update_execution_log_with_duration(
+                    job_name.lower().replace(" ", "_"),
+                    job_name,
+                    job_start_time,
+                    job_end_time,
+                    "completed",
+                )
                 logging.info(
                     f"✓ {job_name} completed in {(job_end_time - job_start_time).total_seconds():.2f} seconds"
                 )
             except Exception as e:
+                job_end_time = datetime.now(timezone.utc)
+                job_failed = True
+                self.update_execution_log_with_duration(
+                    job_name.lower().replace(" ", "_"),
+                    job_name,
+                    job_start_time,
+                    job_end_time,
+                    "failed",
+                )
                 logging.error(f"✗ {job_name} failed: {e}")
                 self.send_n8n_report(
                     title=f"Job Execution Error: {job_name}",
                     content=f"Job: {job_name}\nError: {str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
                     is_error=True,
+                )
+
+                # If continue_on_failure is False, don't schedule next job
+                if not self.continue_on_failure:
+                    return
+
+            # Schedule next job regardless of current job status if continue_on_failure is True
+            if next_job_info and (not job_failed or self.continue_on_failure):
+                delay, next_func, next_name, next_next_info = next_job_info[:4]
+                next_args = next_job_info[4] if len(next_job_info) > 4 else ()
+                next_kwargs = next_job_info[5] if len(next_job_info) > 5 else {}
+
+                logging.info(
+                    f"Scheduling next job: {next_name} (previous job {'failed but continuing' if job_failed else 'succeeded'})"
+                )
+                self._schedule_dependent_job(
+                    delay,
+                    next_func,
+                    next_name,
+                    next_next_info,
+                    *next_args,
+                    **next_kwargs,
                 )
 
         self.scheduler.add_job(
@@ -181,48 +226,88 @@ class CoinScheduler:
         """Top coins extraction with dependent jobs scheduled."""
         job_start_time = datetime.now(timezone.utc)
         logging.info("Starting top coins extraction with dependencies")
+        job_failed = False
+
         try:
             self._daily_top_coin_list()
             job_end_time = datetime.now(timezone.utc)
             self.update_execution_log_with_duration(
-                "top_coins", "Top Coins Extraction", job_start_time, job_end_time
+                "top_coins",
+                "Top Coins Extraction",
+                job_start_time,
+                job_end_time,
+                "completed",
             )
             self._last_top_coins_run = job_end_time
-            self._schedule_dependent_job(
-                5,
-                self._coin_history_with_cleanup,
-                "Coin History with Cleanup",
-                limit=config.coin_limit,
-            )
         except Exception as e:
+            job_end_time = datetime.now(timezone.utc)
+            job_failed = True
+            self.update_execution_log_with_duration(
+                "top_coins",
+                "Top Coins Extraction",
+                job_start_time,
+                job_end_time,
+                "failed",
+            )
             logging.error(f"Error in top coins extraction: {e}")
             self.send_n8n_report(
                 title="Top Coins Extraction Error",
                 content=f"Error: {str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
                 is_error=True,
             )
-            raise
+            if not self.continue_on_failure:
+                raise
+
+        # Schedule next job regardless of current job status if continue_on_failure is True
+        if not job_failed or self.continue_on_failure:
+            # Define the complete chain: coin_history -> data_cleanup
+            cleanup_info = (5, self._daily_data_cleaner, "Data Cleanup", None)
+            history_info = (
+                5,
+                self._coin_history_with_cleanup,
+                "Coin History with Cleanup",
+                cleanup_info,
+                (config.coin_limit,),
+                {},
+            )
+
+            logging.info(
+                f"Scheduling coin history job (top coins {'failed but continuing' if job_failed else 'succeeded'})"
+            )
+            self._schedule_dependent_job(*history_info)
 
     def _coin_history_with_cleanup(self, limit=None):
-        """Coin history extraction with immediate data cleanup."""
+        """Coin history extraction - modified to be used in chain without immediate cleanup scheduling."""
         job_start_time = datetime.now(timezone.utc)
         logging.info("Starting coin history extraction")
         try:
             self._daily_coin_history(limit=limit)
             job_end_time = datetime.now(timezone.utc)
             self.update_execution_log_with_duration(
-                "coin_history", "Coin History Extraction", job_start_time, job_end_time
+                "coin_history",
+                "Coin History Extraction",
+                job_start_time,
+                job_end_time,
+                "completed",
             )
             self._last_coin_history_run = job_end_time
-            self._schedule_dependent_job(5, self._daily_data_cleaner, "Data Cleanup")
         except Exception as e:
+            job_end_time = datetime.now(timezone.utc)
+            self.update_execution_log_with_duration(
+                "coin_history",
+                "Coin History Extraction",
+                job_start_time,
+                job_end_time,
+                "failed",
+            )
             logging.error(f"Error in coin history extraction: {e}")
             self.send_n8n_report(
                 title="Coin History Extraction Error",
                 content=f"Error: {str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
                 is_error=True,
             )
-            raise
+            if not self.continue_on_failure:
+                raise
 
     def _news_sentiment_with_dependencies(self, force=False):
         """News sentiment extraction with dependent jobs, optionally forcing execution."""
@@ -236,6 +321,8 @@ class CoinScheduler:
 
         job_start_time = datetime.now(timezone.utc)
         logging.info("Starting news sentiment extraction with dependencies")
+        job_failed = False
+
         try:
             self._daily_news_sentiment(limit=config.coin_limit)
             job_end_time = datetime.now(timezone.utc)
@@ -244,48 +331,134 @@ class CoinScheduler:
                 "News Sentiment Extraction",
                 job_start_time,
                 job_end_time,
+                "completed",
             )
             self._last_news_sentiment_run = job_end_time
-            self._schedule_dependent_job(
-                5,
-                self._coin_prices_with_trading,
-                "Coin Prices with Trading",
-                limit=config.coin_limit,
-            )
         except Exception as e:
+            job_end_time = datetime.now(timezone.utc)
+            job_failed = True
+            self.update_execution_log_with_duration(
+                "news_sentiment",
+                "News Sentiment Extraction",
+                job_start_time,
+                job_end_time,
+                "failed",
+            )
             logging.error(f"Error in news sentiment extraction: {e}")
             self.send_n8n_report(
                 title="News Sentiment Extraction Error",
                 content=f"Error: {str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
                 is_error=True,
             )
-            raise
+            if not self.continue_on_failure:
+                raise
 
-    def _coin_prices_with_trading(self, limit=None):
-        """Coin prices update with immediate trading bot execution."""
+        # Schedule next job regardless of current job status if continue_on_failure is True
+        if not job_failed or self.continue_on_failure:
+            # Define the chain: coin_prices -> trading_bot (if enabled)
+            if self.trading_config.get("enabled", False):
+                trading_info = (
+                    5,
+                    self._trading_bot_execution,
+                    "Trading Bot Execution",
+                    None,
+                    (config.coin_limit,),
+                    {},
+                )
+                prices_info = (
+                    5,
+                    self._coin_prices_with_trading_chain,
+                    "Coin Prices with Trading",
+                    trading_info,
+                    (config.coin_limit,),
+                    {},
+                )
+            else:
+                prices_info = (
+                    5,
+                    self._coin_prices_with_trading_chain,
+                    "Coin Prices Update",
+                    None,
+                    (config.coin_limit,),
+                    {},
+                )
+
+            logging.info(
+                f"Scheduling coin prices job (news sentiment {'failed but continuing' if job_failed else 'succeeded'})"
+            )
+            self._schedule_dependent_job(*prices_info)
+
+    def _coin_prices_with_trading_chain(self, limit=None):
+        """Coin prices update - modified to be used in chain without immediate trading scheduling."""
         job_start_time = datetime.now(timezone.utc)
         logging.info("Starting coin prices update")
         try:
             self._daily_coin_prices(limit=limit)
             job_end_time = datetime.now(timezone.utc)
             self.update_execution_log_with_duration(
-                "coin_prices", "Coin Prices Update", job_start_time, job_end_time
+                "coin_prices",
+                "Coin Prices Update",
+                job_start_time,
+                job_end_time,
+                "completed",
             )
-            if self.trading_config.get("enabled", False):
-                self._schedule_dependent_job(
-                    5,
-                    self._trading_bot_execution,
-                    "Trading Bot Execution",
-                    limit=config.coin_limit,
-                )
         except Exception as e:
+            job_end_time = datetime.now(timezone.utc)
+            self.update_execution_log_with_duration(
+                "coin_prices",
+                "Coin Prices Update",
+                job_start_time,
+                job_end_time,
+                "failed",
+            )
             logging.error(f"Error in coin prices update: {e}")
             self.send_n8n_report(
                 title="Coin Prices Update Error",
                 content=f"Error: {str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
                 is_error=True,
             )
-            raise
+            if not self.continue_on_failure:
+                raise
+
+    def _coin_prices_with_trading(self, limit=None):
+        """Original method - kept for backward compatibility."""
+        job_start_time = datetime.now(timezone.utc)
+        logging.info("Starting coin prices update")
+        try:
+            self._daily_coin_prices(limit=limit)
+            job_end_time = datetime.now(timezone.utc)
+            self.update_execution_log_with_duration(
+                "coin_prices",
+                "Coin Prices Update",
+                job_start_time,
+                job_end_time,
+                "completed",
+            )
+            if self.trading_config.get("enabled", False):
+                self._schedule_dependent_job(
+                    5,
+                    self._trading_bot_execution,
+                    "Trading Bot Execution",
+                    None,
+                    config.coin_limit,
+                )
+        except Exception as e:
+            job_end_time = datetime.now(timezone.utc)
+            self.update_execution_log_with_duration(
+                "coin_prices",
+                "Coin Prices Update",
+                job_start_time,
+                job_end_time,
+                "failed",
+            )
+            logging.error(f"Error in coin prices update: {e}")
+            self.send_n8n_report(
+                title="Coin Prices Update Error",
+                content=f"Error: {str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
+                is_error=True,
+            )
+            if not self.continue_on_failure:
+                raise
 
     def _daily_top_coin_list(self):
         """Extract top coins and save them to a JSON file."""
@@ -372,16 +545,31 @@ class CoinScheduler:
 
     def _daily_data_cleaner(self):
         """Clean up duplicate files in the data directory."""
+        job_start_time = datetime.now(timezone.utc)
         logging.info("Starting data cleanup")
         try:
             self.cleaner.clean_timestamped_files()
+            job_end_time = datetime.now(timezone.utc)
+            self.update_execution_log_with_duration(
+                "data_cleanup",
+                "Data Cleanup",
+                job_start_time,
+                job_end_time,
+                "completed",
+            )
             logging.info("Completed data cleanup")
         except Exception as e:
+            job_end_time = datetime.now(timezone.utc)
+            self.update_execution_log_with_duration(
+                "data_cleanup", "Data Cleanup", job_start_time, job_end_time, "failed"
+            )
             logging.error(f"Error during data cleanup: {e}")
-            raise
+            if not self.continue_on_failure:
+                raise
 
     def _trading_bot_execution(self, limit=None):
         """Execute trading bot for configured coins."""
+        job_start_time = datetime.now(timezone.utc)
         logging.info("Starting trading bot execution")
         if not self.trading_config.get("enabled", False):
             logging.info("Trading bot is disabled in configuration")
@@ -407,15 +595,32 @@ class CoinScheduler:
                     capital_manager=self.capital_manager,
                 )
                 trader.run()
+            job_end_time = datetime.now(timezone.utc)
+            self.update_execution_log_with_duration(
+                "trading_bot",
+                "Trading Bot Execution",
+                job_start_time,
+                job_end_time,
+                "completed",
+            )
             logging.info("Trading bot execution completed")
         except Exception as e:
+            job_end_time = datetime.now(timezone.utc)
+            self.update_execution_log_with_duration(
+                "trading_bot",
+                "Trading Bot Execution",
+                job_start_time,
+                job_end_time,
+                "failed",
+            )
             logging.error(f"Error during trading bot job: {e}")
             self.send_n8n_report(
                 title="Critical Trading Bot Error",
                 content=f"Critical error: {str(e)}",
                 is_error=True,
             )
-            raise
+            if not self.continue_on_failure:
+                raise
 
     def configure_jobs(self):
         """Configure the scheduler with custom timing and dependencies."""
@@ -442,7 +647,7 @@ class CoinScheduler:
                 max_instances=1,
             )
         logging.info(
-            "Custom scheduler jobs configured with manual triggering and auto-start features."
+            f"Custom scheduler jobs configured with failure recovery {'enabled' if self.continue_on_failure else 'disabled'}."
         )
 
     def get_trading_summary(self):
@@ -475,7 +680,7 @@ class CoinScheduler:
             self.configure_jobs()
             self.scheduler.start()
             logging.info(
-                "Custom CoinScheduler started with auto-start and manual trigger capabilities"
+                f"Custom CoinScheduler started with failure recovery {'enabled' if self.continue_on_failure else 'disabled'}"
             )
             self.send_n8n_report(
                 title="🚀 CoinScheduler Started",
@@ -485,6 +690,7 @@ class CoinScheduler:
                     f"- Initial Capital: ${self.trading_config.get('initial_capital', 1000.0):.2f}\n"
                     f"- Override Mode: {self.trading_config.get('override', False)}\n"
                     f"- Auto-Start Enabled: {'Yes' if self.auto_trigger else 'No'}\n"
+                    f"- Continue on Failure: {'Yes' if self.continue_on_failure else 'No'}\n"
                     f"- Manual Triggering: Available"
                 ),
                 is_error=False,
@@ -543,7 +749,7 @@ class CoinScheduler:
             id=f"manual_news_sentiment_{int(time.time())}",
             max_instances=1,
             misfire_grace_time=600,
-            args=[force],  # Pass the force parameter
+            args=[force],
         )
         logging.info("Manually triggered news sentiment extraction")
 
@@ -563,11 +769,8 @@ class CoinScheduler:
 
 if __name__ == "__main__":
     trading_config = {"enabled": True, "initial_capital": 1000.0, "override": False}
-    scheduler = CoinScheduler(trading_config=trading_config, auto_trigger=True)
-    try:
-        scheduler.start()
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("\nShutting down scheduler...")
-        scheduler.shutdown()
+    scheduler = CoinScheduler(
+        trading_config=trading_config,
+        auto_trigger=True,
+        continue_on_failure=True,  # Enable failure recovery
+    )
