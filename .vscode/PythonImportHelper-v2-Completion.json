@@ -128,6 +128,14 @@
         "documentation": {}
     },
     {
+        "label": "CapitalManager",
+        "importPath": "app.services.capital_manager",
+        "description": "app.services.capital_manager",
+        "isExtraImport": true,
+        "detail": "app.services.capital_manager",
+        "documentation": {}
+    },
+    {
         "label": "CoinScheduler",
         "importPath": "app.services.coin_scheduler",
         "description": "app.services.coin_scheduler",
@@ -1205,6 +1213,14 @@
         "documentation": {}
     },
     {
+        "label": "capital_manager",
+        "importPath": "app.users.user",
+        "description": "app.users.user",
+        "isExtraImport": true,
+        "detail": "app.users.user",
+        "documentation": {}
+    },
+    {
         "label": "coin_router",
         "importPath": "app.coin.coin",
         "description": "app.coin.coin",
@@ -1780,6 +1796,24 @@
         "description": "backend.tester5",
         "peekOfCode": "def load_test_funds(user_id, coins_amounts, reset=False):\n    \"\"\"\n    Load test funds for a user across specified coins into the CapitalManager.\n    :param user_id: The ID of the user depositing the funds.\n    :param coins_amounts: A dictionary with coin names as keys and amounts as values.\n    :param reset: If True, reset the CapitalManager state before loading funds.\n    \"\"\"\n    # Get the singleton instance of CapitalManager\n    cm = CapitalManager()\n    # Optionally reset the state for a clean slate",
         "detail": "backend.tester5",
+        "documentation": {}
+    },
+    {
+        "label": "debug_api_response",
+        "kind": 2,
+        "importPath": "backend.tester6",
+        "description": "backend.tester6",
+        "peekOfCode": "def debug_api_response(capital_manager, coin=\"bitcoin\", current_price=50000):\n    \"\"\"Debug what the API endpoint actually returns\"\"\"\n    print(\"=== API RESPONSE DEBUG ===\")\n    # Test get_coin_performance_summary\n    print(\"1. Testing get_coin_performance_summary():\")\n    coin_summary = capital_manager.get_coin_performance_summary(coin, current_price)\n    print(\"Coin Summary:\")\n    for key, value in coin_summary.items():\n        if isinstance(value, float):\n            print(f\"  {key}: ${value:.2f}\")",
+        "detail": "backend.tester6",
+        "documentation": {}
+    },
+    {
+        "label": "capital_manager",
+        "kind": 5,
+        "importPath": "backend.tester6",
+        "description": "backend.tester6",
+        "peekOfCode": "capital_manager = CapitalManager()\ndebug_api_response(capital_manager, \"bitcoin\", 50000)",
+        "detail": "backend.tester6",
         "documentation": {}
     },
     {
