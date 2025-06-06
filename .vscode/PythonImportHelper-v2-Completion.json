@@ -168,6 +168,14 @@
         "documentation": {}
     },
     {
+        "label": "CoinScheduler",
+        "importPath": "app.services.coin_scheduler",
+        "description": "app.services.coin_scheduler",
+        "isExtraImport": true,
+        "detail": "app.services.coin_scheduler",
+        "documentation": {}
+    },
+    {
         "label": "CoinTrader",
         "importPath": "app.trader_bot.coin_trader",
         "description": "app.trader_bot.coin_trader",
@@ -403,6 +411,22 @@
     },
     {
         "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
         "importPath": "datetime",
         "description": "datetime",
         "isExtraImport": true,
@@ -1245,6 +1269,15 @@
         "documentation": {}
     },
     {
+        "label": "argparse",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "argparse",
+        "description": "argparse",
+        "detail": "argparse",
+        "documentation": {}
+    },
+    {
         "label": "asyncio",
         "kind": 6,
         "isExtraImport": true,
@@ -1380,7 +1413,7 @@
         "kind": 6,
         "importPath": "backend.app.services.coin_scheduler",
         "description": "backend.app.services.coin_scheduler",
-        "peekOfCode": "class CoinScheduler:\n    def __init__(\n        self,\n        log_file=\"scheduler.log\",\n        execution_log_file=\"data/scheduler/execution_log.json\",\n        trading_config=None,\n    ):\n        \"\"\"Initialize the CoinScheduler with custom timing and dependencies.\"\"\"\n        # Set up logging\n        self._setup_logging(log_file)",
+        "peekOfCode": "class CoinScheduler:\n    def __init__(\n        self,\n        log_file=\"scheduler.log\",\n        execution_log_file=\"data/scheduler/execution_log.json\",\n        trading_config=None,\n        auto_trigger=True,\n    ):\n        \"\"\"Initialize the CoinScheduler with custom timing and dependencies.\"\"\"\n        self.auto_trigger = auto_trigger",
         "detail": "backend.app.services.coin_scheduler",
         "documentation": {}
     },
@@ -1616,6 +1649,51 @@
         "description": "backend.config",
         "peekOfCode": "__all__ = [\"config\", \"EnvironmentConfig\"]",
         "detail": "backend.config",
+        "documentation": {}
+    },
+    {
+        "label": "parser",
+        "kind": 5,
+        "importPath": "backend.manual_trigger",
+        "description": "backend.manual_trigger",
+        "peekOfCode": "parser = argparse.ArgumentParser(\n    description=\"Manually trigger CoinScheduler jobs for testing.\"\n)\nparser.add_argument(\n    \"--job\",\n    required=True,\n    choices=[\"top_coins\", \"news_sentiment\"],\n    help=\"The job to trigger: 'top_coins' or 'news_sentiment'\",\n)\nparser.add_argument(",
+        "detail": "backend.manual_trigger",
+        "documentation": {}
+    },
+    {
+        "label": "args",
+        "kind": 5,
+        "importPath": "backend.manual_trigger",
+        "description": "backend.manual_trigger",
+        "peekOfCode": "args = parser.parse_args()\n# Configure trading settings based on the --trading flag\ntrading_config = {\"enabled\": args.trading, \"initial_capital\": 1000.0, \"override\": False}\n# Initialize and start the CoinScheduler\nscheduler = CoinScheduler(trading_config=trading_config)\nscheduler.start()\n# Record the start time to track job completion\nstart_time = datetime.now(timezone.utc)\n# Trigger the specified job and determine the final job in the chain\nif args.job == \"top_coins\":",
+        "detail": "backend.manual_trigger",
+        "documentation": {}
+    },
+    {
+        "label": "trading_config",
+        "kind": 5,
+        "importPath": "backend.manual_trigger",
+        "description": "backend.manual_trigger",
+        "peekOfCode": "trading_config = {\"enabled\": args.trading, \"initial_capital\": 1000.0, \"override\": False}\n# Initialize and start the CoinScheduler\nscheduler = CoinScheduler(trading_config=trading_config)\nscheduler.start()\n# Record the start time to track job completion\nstart_time = datetime.now(timezone.utc)\n# Trigger the specified job and determine the final job in the chain\nif args.job == \"top_coins\":\n    scheduler.trigger_top_coins_now()\n    final_job = \"data_cleanup\"  # Last job in the top_coins chain",
+        "detail": "backend.manual_trigger",
+        "documentation": {}
+    },
+    {
+        "label": "scheduler",
+        "kind": 5,
+        "importPath": "backend.manual_trigger",
+        "description": "backend.manual_trigger",
+        "peekOfCode": "scheduler = CoinScheduler(trading_config=trading_config)\nscheduler.start()\n# Record the start time to track job completion\nstart_time = datetime.now(timezone.utc)\n# Trigger the specified job and determine the final job in the chain\nif args.job == \"top_coins\":\n    scheduler.trigger_top_coins_now()\n    final_job = \"data_cleanup\"  # Last job in the top_coins chain\nelif args.job == \"news_sentiment\":\n    scheduler.trigger_news_sentiment_now(force=args.force)",
+        "detail": "backend.manual_trigger",
+        "documentation": {}
+    },
+    {
+        "label": "start_time",
+        "kind": 5,
+        "importPath": "backend.manual_trigger",
+        "description": "backend.manual_trigger",
+        "peekOfCode": "start_time = datetime.now(timezone.utc)\n# Trigger the specified job and determine the final job in the chain\nif args.job == \"top_coins\":\n    scheduler.trigger_top_coins_now()\n    final_job = \"data_cleanup\"  # Last job in the top_coins chain\nelif args.job == \"news_sentiment\":\n    scheduler.trigger_news_sentiment_now(force=args.force)\n    final_job = (\n        \"trading_bot\" if args.trading else \"coin_prices\"\n    )  # Depends on trading status",
+        "detail": "backend.manual_trigger",
         "documentation": {}
     },
     {
