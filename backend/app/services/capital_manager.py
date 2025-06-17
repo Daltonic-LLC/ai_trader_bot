@@ -471,6 +471,10 @@ class CapitalManager:
     def get_total_capital(self):
         """Return the total capital across all coins."""
         return sum(self.capital.values())
+    
+    def get_all_capitals(self):
+        """Return the current capital for all coins, formatted to 2 decimal places."""
+        return {coin: round(capital, 2) for coin, capital in self.capital.items()}
 
     def get_coin_performance_summary(self, coin, current_price):
         """Get overall performance summary for a specific coin."""

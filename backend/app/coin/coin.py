@@ -4,8 +4,6 @@ from app.services.capital_manager import CapitalManager
 from app.services.coin_scheduler import CoinScheduler
 from app.trader_bot.coin_trader import CoinTrader
 import logging
-import requests
-from config import config
 
 coin_router = APIRouter()
 
@@ -135,3 +133,11 @@ async def get_execution_log():
             "message": f"Failed to retrieve execution log: {str(e)}",
             "data": {},
         }
+
+@coin_router.get("/capitals")
+def get_capitals():
+    """Retrieve the current capital allocations for all coins."""
+    capital_manager = CapitalManager()  # Singleton instance
+    capital_manager.load_state()  # Ensure the latest state is loaded from the database
+    capitals = capital_manager.get_all_capitals()
+    return capitals
