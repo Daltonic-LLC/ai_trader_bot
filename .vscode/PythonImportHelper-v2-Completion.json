@@ -1440,7 +1440,7 @@
         "kind": 6,
         "importPath": "backend.app.trader_bot.coin_trader",
         "description": "backend.app.trader_bot.coin_trader",
-        "peekOfCode": "class CoinTrader:\n    def __init__(\n        self,\n        coin,\n        override,\n        capital_manager,\n        activities_file_path=\"data/activities/coin_reports.json\",\n    ):\n        self.coin = coin.lower()  # Ensure coin names are lowercase for consistency\n        self.override = override",
+        "peekOfCode": "class CoinTrader:\n    def __init__(\n        self,\n        coin,\n        override,\n        capital_manager,\n        activities_file_path=\"data/activities/coin_reports.json\",\n        skip_history_download=False,\n    ):\n        self.coin = coin.lower()  # Ensure coin names are lowercase for consistency",
         "detail": "backend.app.trader_bot.coin_trader",
         "documentation": {}
     },
@@ -1449,7 +1449,7 @@
         "kind": 6,
         "importPath": "backend.app.trader_bot.data_handler",
         "description": "backend.app.trader_bot.data_handler",
-        "peekOfCode": "class DataHandler:\n    \"\"\"Handles loading and preparation of historical data.\"\"\"\n    def __init__(self, history_service, coin, override):\n        self.history_service = history_service\n        self.coin = coin\n        self.override = override\n    def load_historical_data(self):\n        \"\"\"Loads historical data for the specified coin.\"\"\"\n        historical_file = (self.history_service.download_history(self.coin) if self.override \n                           else self.history_service.get_latest_history(self.coin))",
+        "peekOfCode": "class DataHandler:\n    \"\"\"Handles loading and preparation of historical data.\"\"\"\n    def __init__(self, history_service, coin, override, skip_download=False):\n        self.history_service = history_service\n        self.coin = coin\n        self.override = override\n        self.skip_download = skip_download  # New parameter to control download behavior\n    def load_historical_data(self):\n        \"\"\"Loads historical data for the specified coin.\"\"\"\n        if self.skip_download:",
         "detail": "backend.app.trader_bot.data_handler",
         "documentation": {}
     },

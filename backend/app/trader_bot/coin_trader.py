@@ -18,11 +18,13 @@ class CoinTrader:
         override,
         capital_manager,
         activities_file_path="data/activities/coin_reports.json",
+        skip_history_download=False,
     ):
         self.coin = coin.lower()  # Ensure coin names are lowercase for consistency
         self.override = override
         self.capital_manager = capital_manager
         self.activities_file_path = activities_file_path
+        self.skip_history_download = skip_history_download
         self.ensure_directory_exists()
         self.history_service = CoinHistory()
         self.stats_service = CoinStatsService()
@@ -33,7 +35,12 @@ class CoinTrader:
             temperature=0.1,
             timeout=60,
         )
-        self.data_handler = DataHandler(self.history_service, self.coin, self.override)
+        self.data_handler = DataHandler(
+            self.history_service,
+            self.coin,
+            self.override,
+            skip_download=self.skip_history_download,
+        )
         self.model_handler = ModelHandler()
         self.news_handler = NewsHandler(
             self.news_service, self.coin, self.override, self.llm_handler
@@ -238,9 +245,9 @@ class CoinTrader:
         stats = self.stats_service.fetch_coin_stats(self.coin)
         if stats is None or "price" not in stats or stats["price"] == "N/A":
             print(f"No valid price available for {self.coin}")
-            return "No valid price available"
-        current_price = stats["price"]
+            return "No valid price available", "No valid price available"
 
+        current_price = stats["price"]
         news_sentiment, news_text = self.news_handler.process_news()
 
         # Check stop-loss before proceeding
@@ -266,19 +273,28 @@ class CoinTrader:
             # Get recommendation from LLM
             recommendation = self.llm_handler.decide(prelim_report)
 
-            # Simulate trading based on recommendation
-            trade_details = ""
+            # Get current capital and position
+            capital = self.capital_manager.get_capital(self.coin)
             position = self.capital_manager.get_position(self.coin)
-            if recommendation == "BUY" and position == 0.0:
-                capital = self.capital_manager.get_capital(self.coin)
-                # Check if capital is below threshold
-                if capital <= self.min_capital_threshold:
-                    trade_capital = capital  # Use full capital
+
+            # Execute trade based on recommendation
+            trade_details = ""
+            if recommendation == "BUY" and capital > 0:
+                # Calculate how much to buy using a percentage of available capital
+                if (
+                    capital <= self.min_capital_threshold
+                ):  # If capital is very low, use all
+                    trade_capital = capital
                     trade_percentage_used = 1.0
                 else:
-                    trade_capital = capital * self.trade_percentage  # Use default 20%
+                    trade_capital = (
+                        capital * self.trade_percentage
+                    )  # e.g., 20% of capital
                     trade_percentage_used = self.trade_percentage
-                quantity = (trade_capital * (1 - self.trading_fee)) / current_price
+
+                # Calculate quantity to buy, accounting for trading fee
+                quantity = trade_capital / (current_price * (1 + self.trading_fee))
+
                 if self.capital_manager.simulate_buy(
                     self.coin, quantity, current_price
                 ):
@@ -286,51 +302,55 @@ class CoinTrader:
                         1 - self.stop_loss_percentage
                     )
                     trade_details = (
-                        f"Simulated BUY: {quantity:.2f} {self.coin.upper()} at ${current_price:.2f}\n"
+                        f"Simulated BUY: {quantity:.6f} {self.coin.upper()} at ${current_price:.2f}\n"
                         f"Using {trade_percentage_used*100:.0f}% of capital: ${trade_capital:.2f}\n"
                         f"Stop-Loss set at ${self.stop_loss_price:.2f}\n"
                         "Action: Manually buy on an exchange."
                     )
                     print(
-                        f"Simulated BUY: {quantity:.2f} {self.coin.upper()} with {trade_percentage_used*100:.0f}% of capital"
+                        f"Simulated BUY: {quantity:.6f} {self.coin.upper()} with {trade_percentage_used*100:.0f}% of capital"
                     )
                 else:
                     trade_details = (
-                        f"BUY failed: Insufficient capital.\n"
-                        f"Current position: {position:.2f} {self.coin.upper()}\n"
+                        f"BUY failed: Insufficient capital after fee.\n"
+                        f"Current position: {position:.6f} {self.coin.upper()}\n"
                         "Action: No trade possible."
                     )
-                    print(f"BUY failed: Insufficient capital.")
-            elif recommendation == "SELL" and position > 0.0:
+                    print("BUY failed: Insufficient capital after fee.")
+
+            elif recommendation == "SELL" and position > 0:
+                # Sell the entire position
                 if self.capital_manager.simulate_sell(
                     self.coin, position, current_price
                 ):
                     sale_value = position * current_price * (1 - self.trading_fee)
                     self.stop_loss_price = None
                     trade_details = (
-                        f"Simulated SELL: {position:.2f} {self.coin.upper()} at ${current_price:.2f}\n"
+                        f"Simulated SELL: {position:.6f} {self.coin.upper()} at ${current_price:.2f}\n"
                         f"Net proceeds: ${sale_value:.2f}\n"
                         "Action: Manually sell on an exchange."
                     )
                     print(
-                        f"Simulated SELL: {position:.2f} {self.coin.upper()} at ${current_price:.2f}"
+                        f"Simulated SELL: {position:.6f} {self.coin.upper()} at ${current_price:.2f}"
                     )
                 else:
                     trade_details = (
                         f"SELL failed: Insufficient position.\n"
-                        f"Current position: {position:.2f} {self.coin.upper()}\n"
+                        f"Current position: {position:.6f} {self.coin.upper()}\n"
                         "Action: No trade possible."
                     )
-                    print(f"SELL failed: Insufficient position.")
+                    print("SELL failed: Insufficient position.")
+
             else:
+                # HOLD or invalid recommendation
                 trade_details = (
                     f"No trade executed (Recommendation: {recommendation}).\n"
-                    f"Current position: {position:.2f} {self.coin.upper()}\n"
+                    f"Current position: {position:.6f} {self.coin.upper()}\n"
                     "Action: No manual trade required."
                 )
                 print(f"No trade executed: {recommendation}")
 
-        # Generate and return the final report
+        # Generate and save the final report
         news_text_truncated = " ".join(news_text.split()[:50]) + (
             "..." if len(news_text.split()) > 50 else ""
         )
@@ -343,4 +363,22 @@ class CoinTrader:
             trade_details,
         )
         self.save_activity(final_report)
+
+        # Record trade details for future iterations
+        trade_entry = {
+            "coin": self.coin.upper(),
+            "recommendation": recommendation,
+            "quantity": float(quantity) if "quantity" in locals() else 0.0,
+            "price": float(current_price),
+            "timestamp": datetime.now().isoformat(),
+            "details": trade_details,
+            "capital": float(capital),
+            "position": float(position),
+        }
+        self.capital_manager.trade_records.setdefault(
+            self.coin, {"trades": [], "total_profit": 0.0}
+        )
+        self.capital_manager.trade_records[self.coin]["trades"].append(trade_entry)
+        self.capital_manager.save_state()
+
         return final_report, summarized_report
