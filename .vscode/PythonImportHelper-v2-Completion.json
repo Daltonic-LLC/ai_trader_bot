@@ -217,71 +217,6 @@
         "documentation": {}
     },
     {
-        "label": "requests",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "requests",
-        "description": "requests",
-        "detail": "requests",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
         "label": "BaseModel",
         "importPath": "pydantic",
         "description": "pydantic",
@@ -904,6 +839,15 @@
         "documentation": {}
     },
     {
+        "label": "requests",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "requests",
+        "description": "requests",
+        "detail": "requests",
+        "documentation": {}
+    },
+    {
         "label": "CoinHistory",
         "importPath": "app.services.coin_history",
         "description": "app.services.coin_history",
@@ -965,6 +909,54 @@
         "description": "app.services.file_manager",
         "isExtraImport": true,
         "detail": "app.services.file_manager",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
         "documentation": {}
     },
     {
@@ -1337,6 +1329,15 @@
         "documentation": {}
     },
     {
+        "label": "get_capitals",
+        "kind": 2,
+        "importPath": "backend.app.coin.coin",
+        "description": "backend.app.coin.coin",
+        "peekOfCode": "def get_capitals():\n    \"\"\"Retrieve the current capital allocations for all coins.\"\"\"\n    capital_manager = CapitalManager()  # Singleton instance\n    capital_manager.load_state()  # Ensure the latest state is loaded from the database\n    capitals = capital_manager.get_all_capitals()\n    return capitals",
+        "detail": "backend.app.coin.coin",
+        "documentation": {}
+    },
+    {
         "label": "coin_router",
         "kind": 5,
         "importPath": "backend.app.coin.coin",
@@ -1404,7 +1405,7 @@
         "kind": 6,
         "importPath": "backend.app.services.coin_scheduler",
         "description": "backend.app.services.coin_scheduler",
-        "peekOfCode": "class CoinScheduler:\n    def __init__(\n        self,\n        log_file=\"scheduler.log\",\n        execution_log_file=\"data/scheduler/execution_log.json\",\n        trading_config=None,\n        auto_trigger=True,\n        continue_on_failure=True,\n    ):\n        \"\"\"Initialize the CoinScheduler with custom timing and dependencies.\"\"\"",
+        "peekOfCode": "class CoinScheduler:\n    def __init__(\n        self,\n        log_file=\"scheduler.log\",\n        execution_log_file=\"data/scheduler/execution_log.json\",\n        trading_config=None,\n        auto_trigger=True,\n        continue_on_failure=False,  # Changed default to False\n    ):\n        \"\"\"Initialize the CoinScheduler with custom timing and dependencies.\"\"\"",
         "detail": "backend.app.services.coin_scheduler",
         "documentation": {}
     },
