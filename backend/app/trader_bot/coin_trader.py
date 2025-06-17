@@ -18,11 +18,13 @@ class CoinTrader:
         override,
         capital_manager,
         activities_file_path="data/activities/coin_reports.json",
+        skip_history_download=False,
     ):
         self.coin = coin.lower()  # Ensure coin names are lowercase for consistency
         self.override = override
         self.capital_manager = capital_manager
         self.activities_file_path = activities_file_path
+        self.skip_history_download = skip_history_download
         self.ensure_directory_exists()
         self.history_service = CoinHistory()
         self.stats_service = CoinStatsService()
@@ -33,7 +35,12 @@ class CoinTrader:
             temperature=0.1,
             timeout=60,
         )
-        self.data_handler = DataHandler(self.history_service, self.coin, self.override)
+        self.data_handler = DataHandler(
+            self.history_service,
+            self.coin,
+            self.override,
+            skip_download=self.skip_history_download,
+        )
         self.model_handler = ModelHandler()
         self.news_handler = NewsHandler(
             self.news_service, self.coin, self.override, self.llm_handler
