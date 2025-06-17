@@ -233,6 +233,9 @@ class CoinTrader:
 
     def run(self):
         """Executes the trading process, simulates trades, updates capital, and returns the report."""
+        # Reload the latest state from the database to ensure up-to-date capital
+        self.capital_manager.load_state()
+
         # Fetch data for the specified coin
         df = self.data_handler.load_historical_data()
         df_features = self.data_handler.prepare_features(df)
@@ -273,9 +276,12 @@ class CoinTrader:
             # Get recommendation from LLM
             recommendation = self.llm_handler.decide(prelim_report)
 
-            # Get current capital and position
+            # Get current capital and position after reloading state
             capital = self.capital_manager.get_capital(self.coin)
             position = self.capital_manager.get_position(self.coin)
+
+            # Log the capital for debugging
+            print(f"Capital for {self.coin}: {capital}")
 
             # Execute trade based on recommendation
             trade_details = ""
