@@ -1,5 +1,6 @@
 import { Coin, ExecutionLog } from '@/utils/interfaces';
 import React from 'react';
+import { MdCopyAll } from "react-icons/md";
 
 interface CoinDetailsCardProps {
     coin: Coin | null;
@@ -15,12 +16,31 @@ const CoinDetailsCard: React.FC<CoinDetailsCardProps> = ({ coin, executionLog })
         );
     }
 
+    const copyAllDetails = () => {
+        const coinData = {
+            ...coin,
+            executedAt: executionLog?.last_execution
+                ? new Date(executionLog.last_execution).toLocaleString()
+                : 'N/A'
+        };
+        navigator.clipboard.writeText(JSON.stringify(coinData, null, 2));
+    };
+
     return (
         <div className="p-5 bg-crypto-gray rounded-xl shadow-lg border border-crypto-blue/30 hover:border-crypto-blue transition-all relative">
-            <div className="flex justify-between items-center bg-gradient-to-r from-crypto-blue to-crypto-green text-white py-4 rounded-t-xl">
+            <div className="flex justify-between items-center bg-gradient-to-r from-crypto-blue to-crypto-green text-white rounded-t-xl">
                 <h2 className="text-xl font-semibold">
                     {`${coin.name}`}
                 </h2>
+
+                <button
+                    type="button"
+                    className="p-2 rounded hover:bg-white/10 transition cursor-pointer"
+                    title="Copy all coin details to clipboard"
+                    onClick={copyAllDetails}
+                >
+                    <MdCopyAll className="w-5 h-5" />
+                </button>
             </div>
             <div className="mt-4 space-y-3">
                 <div className="flex justify-between items-center text-gray-300">
