@@ -1405,16 +1405,7 @@
         "kind": 6,
         "importPath": "backend.app.services.coin_scheduler",
         "description": "backend.app.services.coin_scheduler",
-        "peekOfCode": "class CoinScheduler:\n    def __init__(\n        self,\n        log_file=\"scheduler.log\",\n        execution_log_file=\"data/scheduler/execution_log.json\",\n        trading_config=None,\n        auto_trigger=True,\n        continue_on_failure=False,\n    ):\n        \"\"\"Initialize the CoinScheduler with custom timing and dependencies.",
-        "detail": "backend.app.services.coin_scheduler",
-        "documentation": {}
-    },
-    {
-        "label": "retry_on_failure",
-        "kind": 2,
-        "importPath": "backend.app.services.coin_scheduler",
-        "description": "backend.app.services.coin_scheduler",
-        "peekOfCode": "def retry_on_failure(job_name, max_retries=3, retry_delay=5):\n    \"\"\"Decorator to handle retries, logging, and reporting for job methods.\"\"\"\n    def decorator(func):\n        def wrapper(self, *args, **kwargs):\n            job_start_time = datetime.now(timezone.utc)\n            for attempt in range(1, max_retries + 1):\n                try:\n                    logging.info(f\"Starting {job_name} (attempt {attempt})\")\n                    result = func(self, *args, **kwargs)\n                    job_end_time = datetime.now(timezone.utc)",
+        "peekOfCode": "class CoinScheduler:\n    def __init__(\n        self,\n        log_file=\"scheduler.log\",\n        execution_log_file=\"data/scheduler/execution_log.json\",\n        trading_config=None,\n        auto_trigger=True,\n        continue_on_failure=False,\n    ):\n        \"\"\"Initialize the CoinScheduler with custom timing and dependencies.\"\"\"",
         "detail": "backend.app.services.coin_scheduler",
         "documentation": {}
     },
