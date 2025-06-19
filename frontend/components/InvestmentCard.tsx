@@ -1,5 +1,6 @@
 import { InvestmentData } from '@/utils/interfaces';
 import React from 'react';
+import { MdCopyAll } from "react-icons/md";
 
 interface InvestmentCardProps {
     data: InvestmentData;
@@ -19,13 +20,31 @@ const InvestmentCard: React.FC<InvestmentCardProps> = ({ data }) => {
         return value.toFixed(2);
     };
 
+    const copyAllDetails = () => {
+        navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    };
+
     return (
         <div className="p-6 rounded-xl shadow-lg border border-crypto-blue/30 bg-[#0F172A] relative w-full">
             <div className='max-h-92 overflow-y-auto'>
 
                 {/* User Investment Section */}
-                <div className="mb-6">
-                    <h3 className="text-xl font-semibold text-white mb-4">Your Investment</h3>
+                <div className="flex justify-between items-center bg-gradient-to-r from-crypto-blue to-crypto-green text-white rounded-t-xl">
+                    <h2 className="text-xl font-semibold">
+                        Your Investment
+                    </h2>
+
+                    <button
+                        type="button"
+                        className="p-2 rounded hover:bg-white/10 transition cursor-pointer"
+                        title="Copy all coin details to clipboard"
+                        onClick={copyAllDetails}
+                    >
+                        <MdCopyAll className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="mt-4">
                     <div className="grid grid-cols-1 gap-4">
                         <div className="flex justify-between items-center">
                             <p className="text-gray-400">Original Investment</p>
