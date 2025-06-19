@@ -18,67 +18,6 @@ from app.services.capital_manager import CapitalManager
 from config import config
 
 
-def retry_on_failure(job_name, max_retries=3, retry_delay=5):
-    """Decorator to handle retries, logging, and reporting for job methods."""
-
-    def decorator(func):
-        def wrapper(self, *args, **kwargs):
-            job_start_time = datetime.now(timezone.utc)
-            for attempt in range(1, max_retries + 1):
-                try:
-                    logging.info(f"Starting {job_name} (attempt {attempt})")
-                    result = func(self, *args, **kwargs)
-                    job_end_time = datetime.now(timezone.utc)
-                    self.update_execution_log_with_duration(
-                        job_name.lower().replace(" ", "_"),
-                        job_name,
-                        job_start_time,
-                        job_end_time,
-                        "completed",
-                    )
-                    logging.info(f"Completed {job_name}")
-                    self.send_n8n_report(
-                        title=f"Job Completed: {job_name}",
-                        content=(
-                            f"Job: {job_name}\n"
-                            f"Status: Success\n"
-                            f"Duration: {(job_end_time - job_start_time).total_seconds():.2f} seconds\n"
-                            f"Start Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}"
-                        ),
-                        is_error=False,
-                    )
-                    return result
-                except Exception as e:
-                    logging.error(f"Attempt {attempt} failed: {e}")
-                    self.send_n8n_report(
-                        title=f"{job_name} Retry Attempt {attempt} Failed",
-                        content=(
-                            f"Job: {job_name}\n"
-                            f"Attempt: {attempt}/{max_retries}\n"
-                            f"Error: {str(e)}\n"
-                            f"Timestamp: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
-                            f"{'Retrying in ' + str(retry_delay) + ' seconds' if attempt < max_retries else 'No more retries'}"
-                        ),
-                        is_error=True,
-                    )
-                    if attempt < max_retries:
-                        time.sleep(retry_delay)
-                    else:
-                        job_end_time = datetime.now(timezone.utc)
-                        self.update_execution_log_with_duration(
-                            job_name.lower().replace(" ", "_"),
-                            job_name,
-                            job_start_time,
-                            job_end_time,
-                            "failed",
-                        )
-                        raise
-
-        return wrapper
-
-    return decorator
-
-
 class CoinScheduler:
     def __init__(
         self,
@@ -88,15 +27,7 @@ class CoinScheduler:
         auto_trigger=True,
         continue_on_failure=False,
     ):
-        """Initialize the CoinScheduler with custom timing and dependencies.
-
-        Args:
-            log_file (str): Path to the log file.
-            execution_log_file (str): Path to the execution log JSON file.
-            trading_config (dict, optional): Configuration for trading bot.
-            auto_trigger (bool): Whether to auto-trigger jobs on start.
-            continue_on_failure (bool): Whether to continue dependent jobs on failure.
-        """
+        """Initialize the CoinScheduler with custom timing and dependencies."""
         self.auto_trigger = auto_trigger
         self.continue_on_failure = continue_on_failure
 
@@ -198,7 +129,7 @@ class CoinScheduler:
         """Send a report to n8n webhook endpoint."""
         try:
             markdown_report = (
-                f"# {' ' if is_error else ''}{title}\n\n"
+                f"# {'🚨 ' if is_error else ''}{title}\n\n"
                 f"**Timestamp:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
                 f"```\n{content}\n```"
             )
@@ -225,7 +156,7 @@ class CoinScheduler:
         job_args=(),
         job_kwargs={},
     ):
-        """Schedule a job to run after a specified delay with optional next job scheduling."""
+        """Schedule a job to run after a specified delay with optional next job scheduling on failure."""
 
         def delayed_job():
             time.sleep(delay_seconds)
@@ -235,8 +166,32 @@ class CoinScheduler:
 
             try:
                 job_func(*job_args, **job_kwargs)
+                job_end_time = datetime.now(timezone.utc)
+                duration = (job_end_time - job_start_time).total_seconds()
+                self.update_execution_log_with_duration(
+                    job_name.lower().replace(" ", "_"),
+                    job_name,
+                    job_start_time,
+                    job_end_time,
+                    "completed",
+                )
+                logging.info(f"✓ {job_name} completed in {duration:.2f} seconds")
+                # Added success report
+                self.send_n8n_report(
+                    title=f"Job Completed: {job_name}",
+                    content=f"Job: {job_name}\nStatus: Success\nDuration: {duration:.2f} seconds\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
+                    is_error=False,
+                )
             except Exception as e:
+                job_end_time = datetime.now(timezone.utc)
                 job_failed = True
+                self.update_execution_log_with_duration(
+                    job_name.lower().replace(" ", "_"),
+                    job_name,
+                    job_start_time,
+                    job_end_time,
+                    "failed",
+                )
                 logging.error(f"✗ {job_name} failed: {e}")
                 self.send_n8n_report(
                     title=f"Job Execution Error: {job_name}",
@@ -273,15 +228,40 @@ class CoinScheduler:
 
         try:
             self._daily_top_coin_list()
-            self._last_top_coins_run = datetime.now(timezone.utc)
+            job_end_time = datetime.now(timezone.utc)
+            duration = (job_end_time - job_start_time).total_seconds()
+            self.update_execution_log_with_duration(
+                "top_coins",
+                "Top Coins Extraction",
+                job_start_time,
+                job_end_time,
+                "completed",
+            )
+            self._last_top_coins_run = job_end_time
+            # Added success report
+            self.send_n8n_report(
+                title="Job Completed: Top Coins Extraction",
+                content=f"Job: Top Coins Extraction\nStatus: Success\nDuration: {duration:.2f} seconds\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
+                is_error=False,
+            )
         except Exception as e:
+            job_end_time = datetime.now(timezone.utc)
             job_failed = True
+            self.update_execution_log_with_duration(
+                "top_coins",
+                "Top Coins Extraction",
+                job_start_time,
+                job_end_time,
+                "failed",
+            )
             logging.error(f"Error in top coins extraction: {e}")
             self.send_n8n_report(
                 title="Top Coins Extraction Error",
                 content=f"Error: {str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
                 is_error=True,
             )
+            if not self.continue_on_failure:
+                return
 
         if not job_failed or self.continue_on_failure:
             cleanup_info = (5, self._daily_data_cleaner, "Data Cleanup", None, (), {})
@@ -299,22 +279,37 @@ class CoinScheduler:
             self._schedule_dependent_job(*history_info)
 
     def _coin_history_with_cleanup(self, limit=None):
-        """Coin history extraction with cleanup scheduling."""
+        """Coin history extraction - modified to be used in chain without immediate cleanup scheduling."""
         job_start_time = datetime.now(timezone.utc)
         logging.info("Starting coin history extraction")
-        job_failed = False
-
         try:
             self._daily_coin_history(limit=limit)
-            self._last_coin_history_run = datetime.now(timezone.utc)
+            job_end_time = datetime.now(timezone.utc)
+            self.update_execution_log_with_duration(
+                "coin_history",
+                "Coin History Extraction",
+                job_start_time,
+                job_end_time,
+                "completed",
+            )
+            self._last_coin_history_run = job_end_time
         except Exception as e:
-            job_failed = True
+            job_end_time = datetime.now(timezone.utc)
+            self.update_execution_log_with_duration(
+                "coin_history",
+                "Coin History Extraction",
+                job_start_time,
+                job_end_time,
+                "failed",
+            )
             logging.error(f"Error in coin history extraction: {e}")
             self.send_n8n_report(
                 title="Coin History Extraction Error",
                 content=f"Error: {str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
                 is_error=True,
             )
+            if not self.continue_on_failure:
+                return
 
     def _news_sentiment_with_dependencies(self, force=False):
         """News sentiment extraction with dependent jobs, optionally forcing execution."""
@@ -332,15 +327,40 @@ class CoinScheduler:
 
         try:
             self._daily_news_sentiment(limit=config.coin_limit)
-            self._last_news_sentiment_run = datetime.now(timezone.utc)
+            job_end_time = datetime.now(timezone.utc)
+            duration = (job_end_time - job_start_time).total_seconds()
+            self.update_execution_log_with_duration(
+                "news_sentiment",
+                "News Sentiment Extraction",
+                job_start_time,
+                job_end_time,
+                "completed",
+            )
+            self._last_news_sentiment_run = job_end_time
+            # Added success report
+            self.send_n8n_report(
+                title="Job Completed: News Sentiment Extraction",
+                content=f"Job: News Sentiment Extraction\nStatus: Success\nDuration: {duration:.2f} seconds\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
+                is_error=False,
+            )
         except Exception as e:
+            job_end_time = datetime.now(timezone.utc)
             job_failed = True
+            self.update_execution_log_with_duration(
+                "news_sentiment",
+                "News Sentiment Extraction",
+                job_start_time,
+                job_end_time,
+                "failed",
+            )
             logging.error(f"Error in news sentiment extraction: {e}")
             self.send_n8n_report(
                 title="News Sentiment Extraction Error",
                 content=f"Error: {str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
                 is_error=True,
             )
+            if not self.continue_on_failure:
+                return
 
         if not job_failed or self.continue_on_failure:
             if self.trading_config.get("enabled", False):
@@ -375,159 +395,340 @@ class CoinScheduler:
             self._schedule_dependent_job(*prices_info)
 
     def _coin_prices_with_trading_chain(self, limit=None):
-        """Coin prices update with trading chain scheduling."""
+        """Coin prices update - modified to be used in chain without immediate trading scheduling."""
         job_start_time = datetime.now(timezone.utc)
         logging.info("Starting coin prices update")
-        job_failed = False
-
         try:
             self._daily_coin_prices(limit=limit)
+            job_end_time = datetime.now(timezone.utc)
+            self.update_execution_log_with_duration(
+                "coin_prices",
+                "Coin Prices Update",
+                job_start_time,
+                job_end_time,
+                "completed",
+            )
         except Exception as e:
-            job_failed = True
+            job_end_time = datetime.now(timezone.utc)
+            self.update_execution_log_with_duration(
+                "coin_prices",
+                "Coin Prices Update",
+                job_start_time,
+                job_end_time,
+                "failed",
+            )
             logging.error(f"Error in coin prices update: {e}")
             self.send_n8n_report(
                 title="Coin Prices Update Error",
                 content=f"Error: {str(e)}\nStart Time: {job_start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}",
                 is_error=True,
             )
+            if not self.continue_on_failure:
+                return
 
-    @retry_on_failure("Top Coins Extraction")
     def _daily_top_coin_list(self):
         """Extract top coins and save them to a JSON file."""
-        top_coins = self.extractor.fetch_coin_data()
-        saved_file = self.extractor.save_to_json(top_coins)
-        logging.info(f"Saved top coins to: {saved_file}")
+        max_retries = 3
+        retry_delay = 5
+        for attempt in range(1, max_retries + 1):
+            try:
+                logging.info(f"Starting top coins extraction (attempt {attempt})")
+                top_coins = self.extractor.fetch_coin_data()
+                saved_file = self.extractor.save_to_json(top_coins)
+                logging.info(f"Saved top coins to: {saved_file}")
+                return
+            except Exception as e:
+                logging.error(f"Attempt {attempt} failed: {e}")
+                if attempt < max_retries:
+                    logging.info(f"Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    logging.error("All retry attempts failed")
+                    raise
 
-    @retry_on_failure("Coin History Extraction")
     def _daily_coin_history(self, limit=None):
         """Load top coins and extract historical data."""
-        coins_data = self.extractor.load_most_recent_data()
-        if coins_data is None:
-            logging.warning("No top coins data found for history extraction")
-            return
-        if limit is not None:
-            coins_data = coins_data[:limit]
-        for coin in coins_data:
-            slug = coin.get("slug")
-            if not slug or slug == "N/A":
-                logging.warning(
-                    f"Skipping coin with invalid slug: {coin.get('name', 'Unknown')}"
+        max_retries = 3
+        retry_delay = 5
+        for attempt in range(1, max_retries + 1):
+            try:
+                logging.info(f"Starting coin history extraction (attempt {attempt})")
+                coins_data = self.extractor.load_most_recent_data()
+                if coins_data is None:
+                    logging.warning("No top coins data found for history extraction")
+                    return
+                if limit is not None:
+                    coins_data = coins_data[:limit]
+                for coin in coins_data:
+                    slug = coin.get("slug")
+                    if not slug or slug == "N/A":
+                        logging.warning(
+                            f"Skipping coin with invalid slug: {coin.get('name', 'Unknown')}"
+                        )
+                        continue
+                    logging.info(f"Extracting history for {coin['name']} ({slug})")
+                    self.history_service.download_history(coin=slug)
+                logging.info("Completed coin history extraction")
+                return
+            except Exception as e:
+                logging.error(f"Attempt {attempt} failed: {e}")
+                self.send_n8n_report(
+                    title=f"Coin History Extraction Retry Attempt {attempt} Failed",
+                    content=(
+                        f"Job: Coin History Extraction\n"
+                        f"Attempt: {attempt}/{max_retries}\n"
+                        f"Error: {str(e)}\n"
+                        f"Timestamp: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
+                        f"{'Retrying in ' + str(retry_delay) + ' seconds' if attempt < max_retries else 'No more retries'}"
+                    ),
+                    is_error=True,
                 )
-                continue
-            logging.info(f"Extracting history for {coin['name']} ({slug})")
-            self.history_service.download_history(coin=slug)
-        logging.info("Completed coin history extraction")
+                if attempt < max_retries:
+                    logging.info(f"Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    logging.error("All retry attempts failed")
+                    raise
 
-    @retry_on_failure("News Sentiment Extraction")
     def _daily_news_sentiment(self, limit=None):
         """Load top coins and fetch news sentiment."""
-        coins_data = self.extractor.load_most_recent_data()
-        if coins_data is None:
-            logging.warning("No top coins data found for news sentiment extraction")
-            return
-        if limit is not None:
-            coins_data = coins_data[:limit]
-        for coin in coins_data:
-            slug = coin.get("slug")
-            if not slug or slug == "N/A":
-                logging.warning(
-                    f"Skipping coin with invalid slug: {coin.get('name', 'Unknown')}"
+        max_retries = 3
+        retry_delay = 5
+        for attempt in range(1, max_retries + 1):
+            try:
+                logging.info(f"Starting news sentiment extraction (attempt {attempt})")
+                coins_data = self.extractor.load_most_recent_data()
+                if coins_data is None:
+                    logging.warning(
+                        "No top coins data found for news sentiment extraction"
+                    )
+                    return
+                if limit is not None:
+                    coins_data = coins_data[:limit]
+                for coin in coins_data:
+                    slug = coin.get("slug")
+                    if not slug or slug == "N/A":
+                        logging.warning(
+                            f"Skipping coin with invalid slug: {coin.get('name', 'Unknown')}"
+                        )
+                        continue
+                    logging.info(f"Fetching news sentiment for {coin['name']} ({slug})")
+                    self.sentiment_service.fetch_news_and_sentiment(slug)
+                logging.info("Completed news sentiment extraction")
+                return
+            except Exception as e:
+                logging.error(f"Attempt {attempt} failed: {e}")
+                self.send_n8n_report(
+                    title=f"News Sentiment Extraction Retry Attempt {attempt} Failed",
+                    content=(
+                        f"Job: News Sentiment Extraction\n"
+                        f"Attempt: {attempt}/{max_retries}\n"
+                        f"Error: {str(e)}\n"
+                        f"Timestamp: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
+                        f"{'Retrying in ' + str(retry_delay) + ' seconds' if attempt < max_retries else 'No more retries'}"
+                    ),
+                    is_error=True,
                 )
-                continue
-            logging.info(f"Fetching news sentiment for {coin['name']} ({slug})")
-            self.sentiment_service.fetch_news_and_sentiment(slug)
-        logging.info("Completed news sentiment extraction")
+                if attempt < max_retries:
+                    logging.info(f"Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    logging.error("All retry attempts failed")
+                    raise
 
-    @retry_on_failure("Coin Prices Update")
     def _daily_coin_prices(self, limit=None):
         """Load top coins and fetch latest prices."""
-        coins_data = self.extractor.load_most_recent_data()
-        if coins_data is None:
-            logging.warning("No top coins data found for price updates")
-            return
-        if limit is not None:
-            coins_data = coins_data[:limit]
-        for coin in coins_data:
-            slug = coin.get("slug")
-            if not slug or slug == "N/A":
-                logging.warning(
-                    f"Skipping coin with invalid slug: {coin.get('name', 'Unknown')}"
+        max_retries = 3
+        retry_delay = 5
+        for attempt in range(1, max_retries + 1):
+            try:
+                logging.info(f"Starting coin prices update (attempt {attempt})")
+                coins_data = self.extractor.load_most_recent_data()
+                if coins_data is None:
+                    logging.warning("No top coins data found for price updates")
+                    return
+                if limit is not None:
+                    coins_data = coins_data[:limit]
+                for coin in coins_data:
+                    slug = coin.get("slug")
+                    if not slug or slug == "N/A":
+                        logging.warning(
+                            f"Skipping coin with invalid slug: {coin.get('name', 'Unknown')}"
+                        )
+                        continue
+                    logging.info(f"Fetching stats for {coin['name']} ({slug})")
+                    self.stats_service.fetch_and_save_coin_stats(slug)
+                logging.info("Completed coin prices update")
+                return
+            except Exception as e:
+                logging.error(f"Attempt {attempt} failed: {e}")
+                self.send_n8n_report(
+                    title=f"Coin Prices Update Retry Attempt {attempt} Failed",
+                    content=(
+                        f"Job: Coin Prices Update\n"
+                        f"Attempt: {attempt}/{max_retries}\n"
+                        f"Error: {str(e)}\n"
+                        f"Timestamp: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
+                        f"{'Retrying in ' + str(retry_delay) + ' seconds' if attempt < max_retries else 'No more retries'}"
+                    ),
+                    is_error=True,
                 )
-                continue
-            logging.info(f"Fetching stats for {coin['name']} ({slug})")
-            self.stats_service.fetch_and_save_coin_stats(slug)
-        logging.info("Completed coin prices update")
+                if attempt < max_retries:
+                    logging.info(f"Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    logging.error("All retry attempts failed")
+                    raise
 
-    @retry_on_failure("Data Cleanup")
     def _daily_data_cleaner(self):
         """Clean up duplicate files in the data directory."""
-        self.cleaner.clean_timestamped_files()
-        logging.info("Completed data cleanup")
+        max_retries = 3
+        retry_delay = 5
+        job_start_time = datetime.now(timezone.utc)
+        for attempt in range(1, max_retries + 1):
+            try:
+                logging.info(f"Starting data cleanup (attempt {attempt})")
+                self.cleaner.clean_timestamped_files()
+                job_end_time = datetime.now(timezone.utc)
+                self.update_execution_log_with_duration(
+                    "data_cleanup",
+                    "Data Cleanup",
+                    job_start_time,
+                    job_end_time,
+                    "completed",
+                )
+                logging.info("Completed data cleanup")
+                return
+            except Exception as e:
+                logging.error(f"Attempt {attempt} failed: {e}")
+                self.send_n8n_report(
+                    title=f"Data Cleanup Retry Attempt {attempt} Failed",
+                    content=(
+                        f"Job: Data Cleanup\n"
+                        f"Attempt: {attempt}/{max_retries}\n"
+                        f"Error: {str(e)}\n"
+                        f"Timestamp: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
+                        f"{'Retrying in ' + str(retry_delay) + ' seconds' if attempt < max_retries else 'No more retries'}"
+                    ),
+                    is_error=True,
+                )
+                if attempt < max_retries:
+                    logging.info(f"Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    logging.error("All retry attempts failed")
+                    job_end_time = datetime.now(timezone.utc)
+                    self.update_execution_log_with_duration(
+                        "data_cleanup",
+                        "Data Cleanup",
+                        job_start_time,
+                        job_end_time,
+                        "failed",
+                    )
+                    raise
 
-    @retry_on_failure("Trading Bot Execution")
     def _trading_bot_execution(self, limit=None):
         """Execute trading bot for configured coins with activities reporting."""
-        if not self.trading_config.get("enabled", False):
-            logging.info("Trading bot is disabled in configuration")
-            return
-        # Clear the coin_reports.json file at the start
-        activities_file = "data/activities/coin_reports.json"
-        os.makedirs(os.path.dirname(activities_file), exist_ok=True)
-        with open(activities_file, "w") as f:
-            json.dump([], f)
+        max_retries = 3
+        retry_delay = 5
+        job_start_time = datetime.now(timezone.utc)
+        for attempt in range(1, max_retries + 1):
+            try:
+                logging.info(f"Starting trading bot execution (attempt {attempt})")
+                if not self.trading_config.get("enabled", False):
+                    logging.info("Trading bot is disabled in configuration")
+                    return
+                # Clear the coin_reports.json file at the start
+                activities_file = "data/activities/coin_reports.json"
+                os.makedirs(os.path.dirname(activities_file), exist_ok=True)
+                with open(activities_file, "w") as f:
+                    json.dump([], f)
 
-        coins_data = self.extractor.load_most_recent_data()
-        if coins_data is None:
-            logging.warning("No top coins data found for trading bot execution")
-            return
-        if limit is not None:
-            coins_data = coins_data[:limit]
-        for coin in coins_data:
-            slug = coin.get("slug")
-            if not slug or slug == "N/A":
-                logging.warning(
-                    f"Skipping coin with invalid slug: {coin.get('name', 'Unknown')}"
-                )
-                continue
-            logging.info(f"Executing trading bot for {coin['name']} ({slug})")
-            trader = CoinTrader(
-                coin=slug,
-                override=self.trading_config.get("override", False),
-                capital_manager=self.capital_manager,
-            )
-            trader.run()
-
-        # Report trading activities
-        if os.path.exists(activities_file):
-            with open(activities_file, "r") as f:
-                activities = json.load(f)
-                if activities:
-                    summary = "Trading Activities:\n"
-                    for activity in activities:
-                        summary += (
-                            f"- {activity.get('coin', 'Unknown')}: "
-                            f"{activity.get('action', 'N/A')} "
-                            f"{activity.get('amount', 0)} at "
-                            f"{activity.get('price', 'N/A')}\n"
+                coins_data = self.extractor.load_most_recent_data()
+                if coins_data is None:
+                    logging.warning("No top coins data found for trading bot execution")
+                    return
+                if limit is not None:
+                    coins_data = coins_data[:limit]
+                for coin in coins_data:
+                    slug = coin.get("slug")
+                    if not slug or slug == "N/A":
+                        logging.warning(
+                            f"Skipping coin with invalid slug: {coin.get('name', 'Unknown')}"
                         )
-                    self.send_n8n_report(
-                        title="Trading Bot Activities",
-                        content=summary,
-                        is_error=False,
+                        continue
+                    logging.info(f"Executing trading bot for {coin['name']} ({slug})")
+                    trader = CoinTrader(
+                        coin=slug,
+                        override=self.trading_config.get("override", False),
+                        capital_manager=self.capital_manager,
                     )
+                    trader.run()
+
+                job_end_time = datetime.now(timezone.utc)
+                self.update_execution_log_with_duration(
+                    "trading_bot",
+                    "Trading Bot Execution",
+                    job_start_time,
+                    job_end_time,
+                    "completed",
+                )
+                logging.info("Trading bot execution completed")
+
+                # Added trading activities report
+                if os.path.exists(activities_file):
+                    with open(activities_file, "r") as f:
+                        activities = json.load(f)
+                        if activities:
+                            summary = "Trading Activities:\n"
+                            for activity in activities:
+                                summary += f"- {activity.get('coin', 'Unknown')}: {activity.get('action', 'N/A')} {activity.get('amount', 0)} at {activity.get('price', 'N/A')}\n"
+                            self.send_n8n_report(
+                                title="Trading Bot Activities",
+                                content=summary,
+                                is_error=False,
+                            )
+                        else:
+                            self.send_n8n_report(
+                                title="Trading Bot Activities",
+                                content="No trading activities to report",
+                                is_error=False,
+                            )
                 else:
+                    logging.warning("Trading activities file not found")
                     self.send_n8n_report(
                         title="Trading Bot Activities",
-                        content="No trading activities to report",
+                        content="Trading activities file not found",
                         is_error=False,
                     )
-        else:
-            logging.warning("Trading activities file not found")
-            self.send_n8n_report(
-                title="Trading Bot Activities",
-                content="Trading activities file not found",
-                is_error=False,
-            )
+                return
+            except Exception as e:
+                logging.error(f"Attempt {attempt} failed: {e}")
+                self.send_n8n_report(
+                    title=f"Trading Bot Execution Retry Attempt {attempt} Failed",
+                    content=(
+                        f"Job: Trading Bot Execution\n"
+                        f"Attempt: {attempt}/{max_retries}\n"
+                        f"Error: {str(e)}\n"
+                        f"Timestamp: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
+                        f"{'Retrying in ' + str(retry_delay) + ' seconds' if attempt < max_retries else 'No more retries'}"
+                    ),
+                    is_error=True,
+                )
+                if attempt < max_retries:
+                    logging.info(f"Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    logging.error("All retry attempts failed")
+                    job_end_time = datetime.now(timezone.utc)
+                    self.update_execution_log_with_duration(
+                        "trading_bot",
+                        "Trading Bot Execution",
+                        job_start_time,
+                        job_end_time,
+                        "failed",
+                    )
+                    raise
 
     def configure_jobs(self):
         """Configure the scheduler with custom timing and dependencies."""
@@ -573,15 +774,14 @@ class CoinScheduler:
                 capital = self.capital_manager.get_capital(slug)
                 position = self.capital_manager.get_position(slug)
                 summary.append(
-                    f"{coin.get('name', 'Unknown').upper()} ({slug}): "
-                    f"${capital:.2f} capital, {position:.2f} position"
+                    f"{coin.get('name', 'Unknown').upper()} ({slug}): ${capital:.2f} capital, {position:.2f} position"
                 )
             return "\n".join(summary) if summary else "No trading data available"
         except Exception as e:
             return f"Error getting trading summary: {e}"
 
     def start(self):
-        """Start the custom scheduler with an initial check if auto_trigger is True."""
+        """Start the custom scheduler with an initial check only if auto_trigger is True."""
         try:
             if self.auto_trigger:
                 self.check_and_trigger_top_coins()
@@ -591,7 +791,7 @@ class CoinScheduler:
                 f"Custom CoinScheduler started with failure recovery {'enabled' if self.continue_on_failure else 'disabled'}"
             )
             self.send_n8n_report(
-                title="CoinScheduler Started",
+                title="🚀 CoinScheduler Started",
                 content=(
                     f"**Configuration:**\n"
                     f"- Trading Enabled: {self.trading_config.get('enabled', False)}\n"
@@ -624,7 +824,7 @@ class CoinScheduler:
             if self.trading_config.get("enabled", False):
                 trading_summary = self.get_trading_summary()
                 self.send_n8n_report(
-                    title="CoinScheduler Shutdown",
+                    title="🛑 CoinScheduler Shutdown",
                     content=f"**Final Trading Summary:**\n```\n{trading_summary}\n```",
                     is_error=False,
                 )
