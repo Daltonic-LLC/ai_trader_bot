@@ -269,8 +269,8 @@ class CoinTrader:
 
         # Fetch all current statistics
         stats = self.stats_service.fetch_coin_stats(self.coin)
-        if stats is None or "price" not in stats or stats["price"] == "N/A":
-            print(f"No valid price available for {self.coin}")
+        if stats is None or not isinstance(stats, dict) or "price" not in stats or stats["price"] == "N/A":
+            print(f"No valid price available for {self.coin} (stats type: {type(stats)})")
             return "No valid price available", "No valid price available"
 
         current_price = stats["price"]
