@@ -68,15 +68,17 @@ class CoinTrader:
             os.makedirs(directory, exist_ok=True)
 
     def load_activities(self):
-        """Load existing activities from the JSON file."""
+        """Load existing activities from the JSON file, ensuring a dictionary is returned."""
         if os.path.exists(self.activities_file_path):
             try:
                 with open(self.activities_file_path, "r") as f:
-                    return json.load(f)
+                    data = json.load(f)
+                if not isinstance(data, dict):
+                    print(f"Warning: {self.activities_file_path} does not contain a dictionary (found {type(data).__name__}). Initializing empty state.")
+                    return {}
+                return data
             except (json.JSONDecodeError, IOError) as e:
-                print(
-                    f"Error loading {self.activities_file_path}: {e}. Initializing empty state."
-                )
+                print(f"Error loading {self.activities_file_path}: {e}. Initializing empty state.")
                 return {}
         else:
             return {}
