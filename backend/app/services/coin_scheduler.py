@@ -63,7 +63,11 @@ class CoinScheduler:
 
         # Execution log
         self.execution_log_file = execution_log_file
-        self.ensure_directory_exists()
+        self.ensure_directory_exists(self.execution_log_file)
+
+        # Progress tracking file
+        self.coin_progress_file = "data/scheduler/coin_progress.json"
+        self.ensure_directory_exists(self.coin_progress_file)
 
         # Shared state for job dependencies
         self._last_top_coins_run = None
@@ -78,9 +82,9 @@ class CoinScheduler:
             format="%(asctime)s - %(levelname)s - %(message)s",
         )
 
-    def ensure_directory_exists(self):
-        """Ensure the directory for the execution log file exists."""
-        directory = os.path.dirname(self.execution_log_file)
+    def ensure_directory_exists(self, file_path):
+        """Ensure the directory for the given file path exists."""
+        directory = os.path.dirname(file_path)
         if directory and not os.path.exists(directory):
             os.makedirs(directory, exist_ok=True)
             logging.info(f"Created directory: {directory}")
@@ -98,7 +102,7 @@ class CoinScheduler:
     def save_execution_log(self, log_data):
         """Save the execution log to the JSON file."""
         try:
-            self.ensure_directory_exists()
+            self.ensure_directory_exists(self.execution_log_file)
             with open(self.execution_log_file, "w") as f:
                 json.dump(log_data, f, indent=4)
             logging.info(f"Saved execution log to {self.execution_log_file}")
@@ -352,42 +356,81 @@ class CoinScheduler:
         logging.info(f"Saved top coins to: {saved_file}")
 
     def _daily_coin_history(self, limit=None):
-        """Load top coins and extract historical data."""
+        """Load top coins and extract historical data with progress tracking."""
         coins_data = self.extractor.load_most_recent_data() or []
         if limit:
             coins_data = coins_data[:limit]
+
+        progress = self._load_progress("coin_history")
+
         for coin in coins_data:
             slug = coin.get("slug")
             if slug and slug != "N/A":
-                self.history_service.download_history(coin=slug)
+                if slug in progress:
+                    logging.info(f"Skipping {slug} as it was already processed.")
+                    continue
+                try:
+                    self.history_service.download_history(coin=slug)
+                    progress[slug] = True
+                    self._save_progress("coin_history", progress)
+                except Exception as e:
+                    logging.error(f"Failed to download history for {slug}: {e}")
+                    if not self.continue_on_failure:
+                        raise
             else:
                 logging.warning(
                     f"Skipping invalid slug for {coin.get('name', 'Unknown')}"
                 )
 
     def _daily_news_sentiment(self, limit=None):
-        """Load top coins and fetch news sentiment."""
+        """Load top coins and fetch news sentiment with progress tracking."""
         coins_data = self.extractor.load_most_recent_data() or []
         if limit:
             coins_data = coins_data[:limit]
+
+        progress = self._load_progress("news_sentiment")
+
         for coin in coins_data:
             slug = coin.get("slug")
             if slug and slug != "N/A":
-                self.sentiment_service.fetch_news_and_sentiment(slug)
+                if slug in progress:
+                    logging.info(f"Skipping {slug} as it was already processed.")
+                    continue
+                try:
+                    self.sentiment_service.fetch_news_and_sentiment(slug)
+                    progress[slug] = True
+                    self._save_progress("news_sentiment", progress)
+                except Exception as e:
+                    logging.error(f"Failed to fetch news sentiment for {slug}: {e}")
+                    if not self.continue_on_failure:
+                        raise
             else:
                 logging.warning(
                     f"Skipping invalid slug for {coin.get('name', 'Unknown')}"
                 )
 
     def _daily_coin_prices(self, limit=None):
-        """Load top coins and fetch latest prices."""
+        """Load top coins and fetch latest prices with progress tracking."""
         coins_data = self.extractor.load_most_recent_data() or []
         if limit:
             coins_data = coins_data[:limit]
+
+        progress = self._load_progress("coin_prices")
+
         for coin in coins_data:
             slug = coin.get("slug")
             if slug and slug != "N/A":
-                self.stats_service.fetch_and_save_coin_stats(slug)
+                if slug in progress:
+                    logging.info(f"Skipping {slug} as it was already processed.")
+                    continue
+                try:
+                    self.stats_service.fetch_and_save_coin_stats(slug)
+                    progress[slug] = True
+                    self._save_progress("coin_prices", progress)
+                except Exception as e:
+                    logging.error(f"Failed to fetch coin stats for {slug}: {e}")
+                    if not self.continue_on_failure:
+                        raise
             else:
                 logging.warning(
                     f"Skipping invalid slug for {coin.get('name', 'Unknown')}"
@@ -405,7 +448,7 @@ class CoinScheduler:
         activities_file = "data/activities/coin_reports.json"
         os.makedirs(os.path.dirname(activities_file), exist_ok=True)
         with open(activities_file, "w") as f:
-            json.dump([], f)
+            json.dump({}, f)  # Initialize with empty dictionary
 
         coins_data = self.extractor.load_most_recent_data() or []
         if limit:
@@ -428,14 +471,10 @@ class CoinScheduler:
             with open(activities_file, "r") as f:
                 activities = json.load(f)
                 if isinstance(activities, dict):
-                    summary = "Trading Activities:\n" + (
-                        "\n".join(
-                            f"- {coin}: {data.get('report', 'N/A')}"
-                            for coin, data in activities.items()
-                        )
-                        if activities
-                        else "No trading activities to report"
-                    )
+                    summary = "Trading Activities:\n"
+                    for coin, data in activities.items():
+                        report = data.get("report", "N/A")
+                        summary += f"- {coin}: {report}\n"
                 else:
                     summary = "No trading activities to report"
                 self.send_n8n_report(
@@ -554,6 +593,28 @@ class CoinScheduler:
         ):
             logging.info("Top coins job hasn't run in 6 hours. Triggering now.")
             self.trigger_top_coins_now()
+
+    def _load_progress(self, job_type):
+        """Load progress for a specific job type from the progress file."""
+        try:
+            with open(self.coin_progress_file, "r") as f:
+                data = json.load(f)
+            return data.get(job_type, {})
+        except (json.JSONDecodeError, IOError):
+            return {}
+
+    def _save_progress(self, job_type, progress):
+        """Save progress for a specific job type to the progress file."""
+        try:
+            data = {}
+            if os.path.exists(self.coin_progress_file):
+                with open(self.coin_progress_file, "r") as f:
+                    data = json.load(f)
+            data[job_type] = progress
+            with open(self.coin_progress_file, "w") as f:
+                json.dump(data, f, indent=4)
+        except IOError as e:
+            logging.error(f"Error saving progress: {e}")
 
 
 if __name__ == "__main__":
