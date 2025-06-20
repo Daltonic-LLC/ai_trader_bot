@@ -427,14 +427,17 @@ class CoinScheduler:
         try:
             with open(activities_file, "r") as f:
                 activities = json.load(f)
-                summary = "Trading Activities:\n" + (
-                    "\n".join(
-                        f"- {a.get('coin', 'Unknown')}: {a.get('action', 'N/A')} {a.get('amount', 0)} at {a.get('price', 'N/A')}"
-                        for a in activities
+                if isinstance(activities, dict):
+                    summary = "Trading Activities:\n" + (
+                        "\n".join(
+                            f"- {coin}: {data.get('report', 'N/A')}"
+                            for coin, data in activities.items()
+                        )
+                        if activities
+                        else "No trading activities to report"
                     )
-                    if activities
-                    else "No trading activities to report"
-                )
+                else:
+                    summary = "No trading activities to report"
                 self.send_n8n_report(
                     title="Trading Bot Activities", content=summary, is_error=False
                 )
