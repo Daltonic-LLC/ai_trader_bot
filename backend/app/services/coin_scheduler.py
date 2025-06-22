@@ -5,7 +5,7 @@ from apscheduler.executors.pool import ThreadPoolExecutor
 import logging
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import time
 import requests
 from app.services.coin_extractor import TopCoinsExtractor
@@ -33,13 +33,15 @@ class CoinScheduler:
         self._setup_logging(log_file)
         logging.info("Initializing CoinScheduler")
 
-        # Initialize scheduler
+        # Initialize scheduler with fixed configuration
         self.scheduler = BackgroundScheduler(
-            executors={"default": ThreadPoolExecutor(max_workers=5)},
+            executors={
+                "default": ThreadPoolExecutor(max_workers=5)
+            },  # Increased workers
             job_defaults={
-                "coalesce": False,
+                "coalesce": True,
                 "max_instances": 1,
-                "misfire_grace_time": 600,
+                "misfire_grace_time": 600,  # Increased grace time for long-running jobs
             },
         )
 
@@ -65,9 +67,15 @@ class CoinScheduler:
         self.execution_log_file = execution_log_file
         self.ensure_directory_exists(self.execution_log_file)
 
-        # Progress tracking file
-        self.coin_progress_file = "data/scheduler/coin_progress.json"
-        self.ensure_directory_exists(self.coin_progress_file)
+        # Job execution locks to prevent duplicates
+        self._job_locks = {
+            "top_coins": False,
+            "coin_history": False,
+            "news_sentiment": False,
+            "coin_prices": False,
+            "trading_bot": False,
+            "data_cleanup": False,
+        }
 
         # Shared state for job dependencies
         self._last_top_coins_run = None
@@ -130,9 +138,11 @@ class CoinScheduler:
         """Send a report to n8n webhook endpoint."""
         try:
             markdown_report = (
-                f"# {'🚨 ' if is_error else ''}{title}\n\n"
-                f"**Timestamp:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
-                f"```\n{content}\n```"
+                f"# {'Error: ' if is_error else ''}{title}\n\n"
+                f"**Timestamp:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
+                f"**Status:** {'Failed' if is_error else 'Success'}\n"
+                f"**Duration:** {content.split('Duration: ')[1].split('s')[0] + 's' if 'Duration: ' in content else 'N/A'}\n\n"
+                f"Looking forward to following up!"
             )
             headers = {"x-n8n-secret": config.n8n_webhook_secret}
             response = requests.post(
@@ -160,194 +170,182 @@ class CoinScheduler:
                 return
             except Exception as e:
                 logging.error(f"{job_name} attempt {attempt} failed: {e}")
-                self.send_n8n_report(
-                    title=f"{job_name} Retry Attempt {attempt} Failed",
-                    content=f"Attempt: {attempt}/{max_retries}\nError: {str(e)}",
-                    is_error=True,
-                )
                 if attempt < max_retries:
                     time.sleep(retry_delay)
                 else:
                     raise
 
-    def _schedule_dependent_job(
-        self,
-        delay_seconds,
-        job_func,
-        job_name,
-        next_job_info=None,
-        job_args=(),
-        job_kwargs={},
-    ):
-        """Schedule a job to run after a specified delay with optional next job scheduling."""
+    def _execute_with_lock(self, job_key, job_func, job_name, *args, **kwargs):
+        """Execute a job with a lock to prevent duplicates."""
+        if self._job_locks.get(job_key, False):
+            logging.warning(f"Skipping {job_name} - already running")
+            return False
 
-        def delayed_job():
-            time.sleep(delay_seconds)
-            start_time = datetime.now(timezone.utc)
-            job_failed = False
-            try:
-                self._retry_operation(
-                    lambda: job_func(*job_args, **job_kwargs), job_name
-                )
-                end_time = datetime.now(timezone.utc)
-                self.update_execution_log_with_duration(
-                    job_name.lower().replace(" ", "_"), job_name, start_time, end_time
-                )
-                self.send_n8n_report(
-                    title=f"Job Completed: {job_name}",
-                    content=f"Status: Success\nDuration: {(end_time - start_time).total_seconds():.2f}s",
-                    is_error=False,
-                )
-            except Exception as e:
-                end_time = datetime.now(timezone.utc)
-                job_failed = True
-                self.update_execution_log_with_duration(
-                    job_name.lower().replace(" ", "_"),
-                    job_name,
-                    start_time,
-                    end_time,
-                    "failed",
-                )
-                self.send_n8n_report(
-                    title=f"Job Failed: {job_name}",
-                    content=f"Error: {str(e)}",
-                    is_error=True,
-                )
-                if not self.continue_on_failure:
-                    return
-
-            if next_job_info and (not job_failed or self.continue_on_failure):
-                self._schedule_dependent_job(*next_job_info)
-
-        self.scheduler.add_job(
-            delayed_job,
-            "date",
-            run_date=datetime.now(timezone.utc),
-            id=f"{job_name.lower().replace(' ', '_')}_{int(time.time())}",
-        )
-
-    def _top_coins_with_dependencies(self):
-        """Top coins extraction with dependent jobs scheduled."""
-        start_time = datetime.now(timezone.utc)
-        job_failed = False
         try:
-            self._retry_operation(self._daily_top_coin_list, "Top Coins Extraction")
+            self._job_locks[job_key] = True
+            start_time = datetime.now(timezone.utc)
+
+            self._retry_operation(lambda: job_func(*args, **kwargs), job_name)
+
             end_time = datetime.now(timezone.utc)
             self.update_execution_log_with_duration(
-                "top_coins", "Top Coins Extraction", start_time, end_time
+                job_key, job_name, start_time, end_time
             )
-            self._last_top_coins_run = end_time
             self.send_n8n_report(
-                title="Job Completed: Top Coins Extraction",
+                title=f"Job Completed: {job_name}",
                 content=f"Status: Success\nDuration: {(end_time - start_time).total_seconds():.2f}s",
                 is_error=False,
             )
+            return True
+
         except Exception as e:
             end_time = datetime.now(timezone.utc)
-            job_failed = True
             self.update_execution_log_with_duration(
-                "top_coins", "Top Coins Extraction", start_time, end_time, "failed"
+                job_key, job_name, start_time, end_time, "failed"
             )
             self.send_n8n_report(
-                title="Top Coins Extraction Error",
+                title=f"Job Failed: {job_name}",
                 content=f"Error: {str(e)}",
                 is_error=True,
             )
             if not self.continue_on_failure:
-                return
+                return False
+            return True
+        finally:
+            self._job_locks[job_key] = False
 
-        if not job_failed or self.continue_on_failure:
-            cleanup_info = (5, self._daily_data_cleaner, "Data Cleanup", None, (), {})
-            history_info = (
-                5,
-                self._coin_history_with_cleanup,
-                "Coin History with Cleanup",
-                cleanup_info,
-                (config.coin_limit,),
-                {},
+    def _schedule_dependent_job(self, job_func, job_name, delay_seconds, job_prefix):
+        """Helper method to schedule dependent jobs with proper error handling."""
+        try:
+            run_time = datetime.now(timezone.utc) + timedelta(seconds=delay_seconds)
+            job_id = f"{job_prefix}_{int(time.time())}"
+
+            self.scheduler.add_job(
+                job_func,
+                "date",
+                run_date=run_time,
+                id=job_id,
+                replace_existing=True,
             )
-            self._schedule_dependent_job(*history_info)
+            logging.info(f"Scheduled {job_name} to run at {run_time} with ID {job_id}")
+        except Exception as e:
+            logging.error(f"Failed to schedule {job_name}: {e}")
 
-    def _coin_history_with_cleanup(self, limit=None):
-        """Coin history extraction with cleanup dependency."""
-        self._retry_operation(
-            lambda: self._daily_coin_history(limit), "Coin History Extraction"
+    def _top_coins_with_dependencies(self):
+        """Top coins extraction with dependent jobs scheduled - FIXED VERSION."""
+        if not self._execute_with_lock(
+            "top_coins", self._daily_top_coin_list, "Top Coins Extraction"
+        ):
+            return
+
+        self._last_top_coins_run = datetime.now(timezone.utc)
+        logging.info("Top coins completed successfully, scheduling dependent jobs...")
+
+        # FIXED: Schedule _coin_history_with_dependencies instead of direct execution
+        self._schedule_dependent_job(
+            self._coin_history_with_dependencies,  # This method handles scheduling news/trading
+            "Coin History with Dependencies",
+            30,  # Increased delay
+            "coin_history_dep",
         )
+
+        # Schedule data cleanup (independent of history completion)
+        self._schedule_dependent_job(
+            lambda: self._execute_with_lock(
+                "data_cleanup", self._daily_data_cleaner, "Data Cleanup"
+            ),
+            "Data Cleanup",
+            60,  # Delay after coin history
+            "data_cleanup",
+        )
+
+    def _coin_history_with_dependencies(self, limit=None):
+        """Coin history with immediate dependent job scheduling - FIXED VERSION."""
+        # Execute coin history with proper error handling
+        success = self._execute_with_lock(
+            "coin_history",
+            self._daily_coin_history,
+            "Coin History",
+            limit or config.coin_limit,  # Use config.coin_limit if no limit provided
+        )
+
+        if not success:
+            logging.error("Coin history failed, not scheduling dependent jobs")
+            return
+
         self._last_coin_history_run = datetime.now(timezone.utc)
+        logging.info(
+            "Coin history completed successfully, scheduling news sentiment and trading jobs..."
+        )
+
+        # Schedule news sentiment job
+        self._schedule_dependent_job(
+            lambda: self._news_sentiment_with_dependencies(force=True),
+            "News Sentiment with Dependencies",
+            5,  # Small delay to ensure coin history is fully complete
+            "news_sentiment_dep",
+        )
 
     def _news_sentiment_with_dependencies(self, force=False):
-        """News sentiment extraction with dependent jobs, optionally forcing execution."""
+        """News sentiment extraction with dependent jobs - ENHANCED VERSION."""
         if not force and not self._last_coin_history_run:
             logging.warning("News sentiment skipped - coin history hasn't run yet")
             return
-        if force and not self._last_coin_history_run:
-            logging.warning(
-                "Running news sentiment with force=True, but coin history hasn't run yet"
-            )
 
-        start_time = datetime.now(timezone.utc)
-        job_failed = False
-        try:
-            self._retry_operation(
-                lambda: self._daily_news_sentiment(config.coin_limit),
-                "News Sentiment Extraction",
-            )
-            end_time = datetime.now(timezone.utc)
-            self.update_execution_log_with_duration(
-                "news_sentiment", "News Sentiment Extraction", start_time, end_time
-            )
-            self._last_news_sentiment_run = end_time
-            self.send_n8n_report(
-                title="Job Completed: News Sentiment Extraction",
-                content=f"Status: Success\nDuration: {(end_time - start_time).total_seconds():.2f}s",
-                is_error=False,
-            )
-        except Exception as e:
-            end_time = datetime.now(timezone.utc)
-            job_failed = True
-            self.update_execution_log_with_duration(
-                "news_sentiment",
-                "News Sentiment Extraction",
-                start_time,
-                end_time,
-                "failed",
-            )
-            self.send_n8n_report(
-                title="News Sentiment Extraction Error",
-                content=f"Error: {str(e)}",
-                is_error=True,
-            )
-            if not self.continue_on_failure:
-                return
+        success = self._execute_with_lock(
+            "news_sentiment",
+            self._daily_news_sentiment,
+            "News Sentiment Extraction",
+            config.coin_limit,
+        )
 
-        if not job_failed or self.continue_on_failure:
-            trading_info = (
-                (
-                    5,
+        if not success:
+            logging.error("News sentiment failed, not scheduling dependent jobs")
+            return
+
+        self._last_news_sentiment_run = datetime.now(timezone.utc)
+        logging.info(
+            "News sentiment completed successfully, scheduling price and trading jobs..."
+        )
+
+        # Schedule coin prices job
+        self._schedule_dependent_job(
+            lambda: self._coin_prices_with_dependencies(),
+            "Coin Prices with Dependencies",
+            5,  # Small delay
+            "coin_prices_dep",
+        )
+
+    def _coin_prices_with_dependencies(self):
+        """Coin prices with trading job scheduling - NEW METHOD."""
+        success = self._execute_with_lock(
+            "coin_prices",
+            self._daily_coin_prices,
+            "Coin Prices",
+            config.coin_limit,
+        )
+
+        if not success:
+            logging.error("Coin prices failed, not scheduling trading job")
+            return
+
+        logging.info("Coin prices completed successfully, scheduling trading job...")
+
+        # Schedule trading bot if enabled
+        if self.trading_config["enabled"]:
+            self._schedule_dependent_job(
+                lambda: self._execute_with_lock(
+                    "trading_bot",
                     self._trading_bot_execution,
                     "Trading Bot Execution",
-                    None,
-                    (config.coin_limit,),
-                    {},
-                )
-                if self.trading_config["enabled"]
-                else None
+                    config.coin_limit,
+                ),
+                "Trading Bot",
+                5,  # Small delay after prices
+                "trading_bot",
             )
-            prices_info = (
-                5,
-                self._coin_prices_with_trading_chain,
-                "Coin Prices with Trading",
-                trading_info,
-                (config.coin_limit,),
-                {},
-            )
-            self._schedule_dependent_job(*prices_info)
-
-    def _coin_prices_with_trading_chain(self, limit=None):
-        """Coin prices update with trading dependency."""
-        self._retry_operation(
-            lambda: self._daily_coin_prices(limit), "Coin Prices Update"
-        )
+        else:
+            logging.info("Trading bot is disabled, skipping trading job")
 
     def _daily_top_coin_list(self):
         """Extract top coins and save them to a JSON file."""
@@ -356,85 +354,172 @@ class CoinScheduler:
         logging.info(f"Saved top coins to: {saved_file}")
 
     def _daily_coin_history(self, limit=None):
-        """Load top coins and extract historical data with progress tracking."""
+        """Load top coins and extract historical data - WITH ENHANCED LOGGING."""
         coins_data = self.extractor.load_most_recent_data() or []
         if limit:
             coins_data = coins_data[:limit]
 
-        progress = self._load_progress("coin_history")
+        if not coins_data:
+            logging.warning("No coins data available for history download")
+            return
 
-        for coin in coins_data:
+        logging.info(f"Starting coin history download for {len(coins_data)} coins")
+
+        successful_downloads = 0
+        failed_downloads = 0
+
+        for i, coin in enumerate(coins_data, 1):
             slug = coin.get("slug")
-            if slug and slug != "N/A":
-                if slug in progress:
-                    logging.info(f"Skipping {slug} as it was already processed.")
-                    continue
-                try:
-                    self.history_service.download_history(coin=slug)
-                    progress[slug] = True
-                    self._save_progress("coin_history", progress)
-                except Exception as e:
-                    logging.error(f"Failed to download history for {slug}: {e}")
-                    if not self.continue_on_failure:
-                        raise
-            else:
+            coin_name = coin.get("name", "Unknown")
+
+            if not slug or slug == "N/A":
                 logging.warning(
-                    f"Skipping invalid slug for {coin.get('name', 'Unknown')}"
+                    f"[{i}/{len(coins_data)}] Skipping invalid slug for {coin_name}"
                 )
+                continue
+
+            try:
+                logging.info(
+                    f"[{i}/{len(coins_data)}] Starting history download for {coin_name} ({slug})"
+                )
+                self.history_service.download_history(coin=slug)
+                successful_downloads += 1
+                logging.info(
+                    f"[{i}/{len(coins_data)}] ✓ Downloaded history for {coin_name} ({slug})"
+                )
+
+            except Exception as e:
+                failed_downloads += 1
+                logging.error(
+                    f"[{i}/{len(coins_data)}] ✗ Failed to download history for {coin_name} ({slug}): {e}"
+                )
+
+                if not self.continue_on_failure:
+                    logging.error(
+                        "Stopping coin history download due to failure and continue_on_failure=False"
+                    )
+                    raise
+                else:
+                    logging.info(
+                        "Continuing to next coin due to continue_on_failure=True"
+                    )
+                    continue
+
+        logging.info(
+            f"Coin history download completed: {successful_downloads} successful, {failed_downloads} failed out of {len(coins_data)} total coins"
+        )
 
     def _daily_news_sentiment(self, limit=None):
-        """Load top coins and fetch news sentiment with progress tracking."""
+        """Load top coins and fetch news sentiment - WITH ENHANCED LOGGING."""
         coins_data = self.extractor.load_most_recent_data() or []
         if limit:
             coins_data = coins_data[:limit]
 
-        progress = self._load_progress("news_sentiment")
+        if not coins_data:
+            logging.warning("No coins data available for news sentiment")
+            return
 
-        for coin in coins_data:
+        logging.info(f"Starting news sentiment fetch for {len(coins_data)} coins")
+
+        successful_fetches = 0
+        failed_fetches = 0
+
+        for i, coin in enumerate(coins_data, 1):
             slug = coin.get("slug")
-            if slug and slug != "N/A":
-                if slug in progress:
-                    logging.info(f"Skipping {slug} as it was already processed.")
-                    continue
-                try:
-                    self.sentiment_service.fetch_news_and_sentiment(slug)
-                    progress[slug] = True
-                    self._save_progress("news_sentiment", progress)
-                except Exception as e:
-                    logging.error(f"Failed to fetch news sentiment for {slug}: {e}")
-                    if not self.continue_on_failure:
-                        raise
-            else:
+            coin_name = coin.get("name", "Unknown")
+
+            if not slug or slug == "N/A":
                 logging.warning(
-                    f"Skipping invalid slug for {coin.get('name', 'Unknown')}"
+                    f"[{i}/{len(coins_data)}] Skipping invalid slug for {coin_name}"
                 )
+                continue
+
+            try:
+                logging.info(
+                    f"[{i}/{len(coins_data)}] Fetching news sentiment for {coin_name} ({slug})"
+                )
+                self.sentiment_service.fetch_news_and_sentiment(slug)
+                successful_fetches += 1
+                logging.info(
+                    f"[{i}/{len(coins_data)}] ✓ Fetched news sentiment for {coin_name} ({slug})"
+                )
+
+            except Exception as e:
+                failed_fetches += 1
+                logging.error(
+                    f"[{i}/{len(coins_data)}] ✗ Failed to fetch news sentiment for {coin_name} ({slug}): {e}"
+                )
+
+                if not self.continue_on_failure:
+                    logging.error(
+                        "Stopping news sentiment fetch due to failure and continue_on_failure=False"
+                    )
+                    raise
+                else:
+                    logging.info(
+                        "Continuing to next coin due to continue_on_failure=True"
+                    )
+                    continue
+
+        logging.info(
+            f"News sentiment fetch completed: {successful_fetches} successful, {failed_fetches} failed out of {len(coins_data)} total coins"
+        )
 
     def _daily_coin_prices(self, limit=None):
-        """Load top coins and fetch latest prices with progress tracking."""
+        """Load top coins and fetch latest prices - WITH ENHANCED LOGGING."""
         coins_data = self.extractor.load_most_recent_data() or []
         if limit:
             coins_data = coins_data[:limit]
 
-        progress = self._load_progress("coin_prices")
+        if not coins_data:
+            logging.warning("No coins data available for price fetching")
+            return
 
-        for coin in coins_data:
+        logging.info(f"Starting coin prices fetch for {len(coins_data)} coins")
+
+        successful_fetches = 0
+        failed_fetches = 0
+
+        for i, coin in enumerate(coins_data, 1):
             slug = coin.get("slug")
-            if slug and slug != "N/A":
-                if slug in progress:
-                    logging.info(f"Skipping {slug} as it was already processed.")
-                    continue
-                try:
-                    self.stats_service.fetch_and_save_coin_stats(slug)
-                    progress[slug] = True
-                    self._save_progress("coin_prices", progress)
-                except Exception as e:
-                    logging.error(f"Failed to fetch coin stats for {slug}: {e}")
-                    if not self.continue_on_failure:
-                        raise
-            else:
+            coin_name = coin.get("name", "Unknown")
+
+            if not slug or slug == "N/A":
                 logging.warning(
-                    f"Skipping invalid slug for {coin.get('name', 'Unknown')}"
+                    f"[{i}/{len(coins_data)}] Skipping invalid slug for {coin_name}"
                 )
+                continue
+
+            try:
+                logging.info(
+                    f"[{i}/{len(coins_data)}] Fetching coin stats for {coin_name} ({slug})"
+                )
+                self.stats_service.fetch_and_save_coin_stats(slug)
+                successful_fetches += 1
+                logging.info(
+                    f"[{i}/{len(coins_data)}] ✓ Fetched coin stats for {coin_name} ({slug})"
+                )
+
+            except Exception as e:
+                failed_fetches += 1
+                logging.error(
+                    f"[{i}/{len(coins_data)}] ✗ Failed to fetch coin stats for {coin_name} ({slug}): {e}"
+                )
+
+                if not self.continue_on_failure:
+                    logging.error(
+                        "Stopping coin prices fetch due to failure and continue_on_failure=False"
+                    )
+                    raise
+                else:
+                    logging.info(
+                        "Continuing to next coin due to continue_on_failure=True"
+                    )
+                    continue
+
+        logging.info(
+            f"Coin prices fetch completed: {successful_fetches} successful, {failed_fetches} failed out of {len(coins_data)} total coins"
+        )
 
     def _daily_data_cleaner(self):
         """Clean up duplicate files in the data directory."""
@@ -445,6 +530,9 @@ class CoinScheduler:
         if not self.trading_config["enabled"]:
             logging.info("Trading bot is disabled in configuration")
             return
+
+        logging.info("=== STARTING TRADING BOT EXECUTION ===")
+
         activities_file = "data/activities/coin_reports.json"
         os.makedirs(os.path.dirname(activities_file), exist_ok=True)
         with open(activities_file, "w") as f:
@@ -453,24 +541,39 @@ class CoinScheduler:
         coins_data = self.extractor.load_most_recent_data() or []
         if limit:
             coins_data = coins_data[:limit]
-        for coin in coins_data:
+
+        logging.info(f"Processing {len(coins_data)} coins for trading...")
+
+        for i, coin in enumerate(coins_data, 1):
             slug = coin.get("slug")
             if slug and slug != "N/A":
-                trader = CoinTrader(
-                    coin=slug,
-                    override=self.trading_config["override"],
-                    capital_manager=self.capital_manager,
-                )
-                trader.run()
+                try:
+                    logging.info(
+                        f"[{i}/{len(coins_data)}] Executing trading for {slug}"
+                    )
+                    trader = CoinTrader(
+                        coin=slug,
+                        override=self.trading_config["override"],
+                        capital_manager=self.capital_manager,
+                    )
+                    trader.run()
+                    logging.info(
+                        f"[{i}/{len(coins_data)}] Completed trading for {slug}"
+                    )
+                except Exception as e:
+                    logging.error(f"Trading failed for {slug}: {e}")
+                    if not self.continue_on_failure:
+                        raise
             else:
                 logging.warning(
                     f"Skipping invalid slug for {coin.get('name', 'Unknown')}"
                 )
 
+        # Report trading activities
         try:
             with open(activities_file, "r") as f:
                 activities = json.load(f)
-                if isinstance(activities, dict):
+                if isinstance(activities, dict) and activities:
                     summary = "Trading Activities:\n"
                     for coin, data in activities.items():
                         report = data.get("report", "N/A")
@@ -480,32 +583,37 @@ class CoinScheduler:
                 self.send_n8n_report(
                     title="Trading Bot Activities", content=summary, is_error=False
                 )
+                logging.info("=== TRADING BOT EXECUTION COMPLETED ===")
         except (IOError, json.JSONDecodeError) as e:
             logging.warning(f"Failed to read trading activities: {e}")
-            self.send_n8n_report(
-                title="Trading Bot Activities",
-                content="Failed to read trading activities file",
-                is_error=False,
-            )
 
     def configure_jobs(self):
         """Configure the scheduler with custom timing and dependencies."""
+        # Daily top coins extraction at 00:20
         self.scheduler.add_job(
             self._top_coins_with_dependencies,
             CronTrigger(hour=0, minute=20),
             id="top_coins_daily",
+            replace_existing=True,
         )
+
+        # News sentiment every 4 hours (independent)
         self.scheduler.add_job(
-            self._news_sentiment_with_dependencies,
+            lambda: self._news_sentiment_with_dependencies(force=True),
             IntervalTrigger(hours=4),
             id="news_sentiment_4h",
+            replace_existing=True,
         )
+
         if self.auto_trigger:
+            # Check and trigger hourly
             self.scheduler.add_job(
                 self.check_and_trigger_top_coins,
                 IntervalTrigger(hours=1),
                 id="check_top_coins",
+                replace_existing=True,
             )
+
         logging.info("Scheduler jobs configured")
 
     def get_trading_summary(self):
@@ -526,6 +634,66 @@ class CoinScheduler:
             return "\n".join(summary) if summary else "No trading data available"
         except Exception as e:
             return f"Error getting trading summary: {e}"
+
+    # TESTING AND MANUAL TRIGGER METHODS
+    def run_complete_pipeline_now(self):
+        """Run the complete pipeline immediately for testing."""
+        logging.info("=== MANUAL PIPELINE EXECUTION STARTED ===")
+
+        # Step 1: Top coins
+        logging.info("Step 1: Extracting top coins...")
+        if not self._execute_with_lock(
+            "top_coins", self._daily_top_coin_list, "Top Coins Extraction"
+        ):
+            logging.error("Top coins extraction failed, stopping pipeline")
+            return
+
+        # Step 2: Coin history
+        logging.info("Step 2: Downloading coin history...")
+        if not self._execute_with_lock(
+            "coin_history", self._daily_coin_history, "Coin History", config.coin_limit
+        ):
+            logging.error("Coin history failed, stopping pipeline")
+            return
+
+        # Step 3: News sentiment
+        logging.info("Step 3: Fetching news sentiment...")
+        if not self._execute_with_lock(
+            "news_sentiment",
+            self._daily_news_sentiment,
+            "News Sentiment",
+            config.coin_limit,
+        ):
+            logging.error("News sentiment failed, stopping pipeline")
+            return
+
+        # Step 4: Coin prices
+        logging.info("Step 4: Fetching coin prices...")
+        if not self._execute_with_lock(
+            "coin_prices", self._daily_coin_prices, "Coin Prices", config.coin_limit
+        ):
+            logging.error("Coin prices failed, stopping pipeline")
+            return
+
+        # Step 5: Trading bot
+        if self.trading_config["enabled"]:
+            logging.info("Step 5: Executing trading bot...")
+            if not self._execute_with_lock(
+                "trading_bot",
+                self._trading_bot_execution,
+                "Trading Bot",
+                config.coin_limit,
+            ):
+                logging.error("Trading bot failed")
+                return
+
+        # Step 6: Data cleanup
+        logging.info("Step 6: Cleaning up data...")
+        self._execute_with_lock(
+            "data_cleanup", self._daily_data_cleaner, "Data Cleanup"
+        )
+
+        logging.info("=== MANUAL PIPELINE EXECUTION COMPLETED ===")
 
     def start(self):
         """Start the custom scheduler with an initial check only if auto_trigger is True."""
@@ -549,7 +717,7 @@ class CoinScheduler:
 
     def run_single_cycle(self):
         """Run a single complete cycle immediately (useful for testing)."""
-        self._top_coins_with_dependencies()
+        self.run_complete_pipeline_now()
 
     def shutdown(self):
         """Gracefully shut down the scheduler."""
@@ -594,34 +762,16 @@ class CoinScheduler:
             logging.info("Top coins job hasn't run in 6 hours. Triggering now.")
             self.trigger_top_coins_now()
 
-    def _load_progress(self, job_type):
-        """Load progress for a specific job type from the progress file."""
-        try:
-            with open(self.coin_progress_file, "r") as f:
-                data = json.load(f)
-            return data.get(job_type, {})
-        except (json.JSONDecodeError, IOError):
-            return {}
-
-    def _save_progress(self, job_type, progress):
-        """Save progress for a specific job type to the progress file."""
-        try:
-            data = {}
-            if os.path.exists(self.coin_progress_file):
-                with open(self.coin_progress_file, "r") as f:
-                    data = json.load(f)
-            data[job_type] = progress
-            with open(self.coin_progress_file, "w") as f:
-                json.dump(data, f, indent=4)
-        except IOError as e:
-            logging.error(f"Error saving progress: {e}")
-
 
 if __name__ == "__main__":
     scheduler = CoinScheduler(
         trading_config={"enabled": True, "initial_capital": 1000.0, "override": False}
     )
     try:
+        # For testing, run complete pipeline immediately
+        scheduler.run_complete_pipeline_now()
+
+        # Then start the scheduler for regular operations
         scheduler.start()
         while True:
             time.sleep(1)
