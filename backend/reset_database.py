@@ -4,7 +4,7 @@ Database Reset Script
 =====================
 This script performs a complete database reset by:
 1. Clearing all MongoDB collections (users, trading_state, investment_records)
-2. Resetting the CapitalManager singleton state
+2. Properly resetting the CapitalManager singleton state
 3. Providing detailed logging and confirmation
 
 WARNING: This is a destructive operation that will permanently delete all data!
@@ -43,6 +43,7 @@ def confirm_reset():
     print("• All investment data and balances")
     print("• All wallet addresses")
     print("• All capital manager state")
+    print("• All ownership percentages and user investments")
     print("=" * 60)
 
     confirmation = input("\nType 'RESET' to confirm deletion: ").strip()
@@ -71,10 +72,7 @@ def reset_database():
         logging.info("Initializing MongoDB service...")
         mongo_service = MongoUserService()
 
-        logging.info("Initializing Capital Manager...")
-        capital_service = CapitalManager()
-
-        # Get initial state for logging
+        # Get initial state for logging BEFORE creating CapitalManager
         try:
             all_users = mongo_service.get_all_users()
             user_count = len(all_users)
@@ -83,15 +81,41 @@ def reset_database():
             logging.warning(f"Could not count users: {e}")
             user_count = "unknown"
 
+        # Force reset the singleton first (in case it exists)
+        logging.info("Resetting CapitalManager singleton...")
+        CapitalManager.force_reset_singleton()
+
+        # Now initialize Capital Manager (this will create a fresh instance)
+        logging.info("Initializing Capital Manager...")
+        capital_service = CapitalManager()
+
         try:
             total_capital = capital_service.get_total_capital()
             all_capitals = capital_service.get_all_capitals()
             logging.info(f"Total capital across all coins: ${total_capital:.2f}")
             logging.info(f"Capital breakdown: {all_capitals}")
+
+            # Log user investments if they exist
+            if (
+                hasattr(capital_service, "user_investments")
+                and capital_service.user_investments
+            ):
+                logging.info(f"User investments: {capital_service.user_investments}")
+            if (
+                hasattr(capital_service, "total_deposits")
+                and capital_service.total_deposits
+            ):
+                logging.info(f"Total deposits: {capital_service.total_deposits}")
         except Exception as e:
             logging.warning(f"Could not get capital information: {e}")
 
-        # Perform database reset
+        # Step 1: Reset Capital Manager state first
+        logging.info("Resetting Capital Manager state...")
+        capital_service.reset_state()
+        capital_service.load_state()
+        logging.info("Successfully reset Capital Manager state")
+
+        # Step 2: Clear MongoDB collections
         logging.info("Clearing MongoDB collections...")
         success = mongo_service.clear_database(confirm=True)
 
@@ -101,10 +125,13 @@ def reset_database():
 
         logging.info("Successfully cleared MongoDB collections")
 
-        # Reset Capital Manager state
-        logging.info("Resetting Capital Manager state...")
-        capital_service.reset_state()
-        logging.info("Successfully reset Capital Manager state")
+        # Step 3: Force another singleton reset to ensure clean state
+        logging.info("Performing final singleton reset...")
+        CapitalManager.force_reset_singleton()
+
+        # Step 4: Create a fresh instance to verify reset
+        logging.info("Creating fresh CapitalManager instance for verification...")
+        fresh_capital_service = CapitalManager()
 
         # Verify reset
         logging.info("Verifying reset completion...")
@@ -117,20 +144,49 @@ def reset_database():
             logging.warning(f"⚠️ {len(remaining_users)} users still remain in database")
 
         # Check Capital Manager is reset
-        post_reset_capital = capital_service.get_total_capital()
-        post_reset_capitals = capital_service.get_all_capitals()
+        post_reset_capital = fresh_capital_service.get_total_capital()
+        post_reset_capitals = fresh_capital_service.get_all_capitals()
 
-        if post_reset_capital == 0 and len(post_reset_capitals) == 0:
-            logging.info("✅ Capital Manager state is reset")
+        # Check all the important data structures
+        verification_results = {
+            "capital": len(fresh_capital_service.capital),
+            "positions": len(fresh_capital_service.positions),
+            "user_investments": len(fresh_capital_service.user_investments),
+            "user_withdrawals": len(fresh_capital_service.user_withdrawals),
+            "total_deposits": len(fresh_capital_service.total_deposits),
+            "total_withdrawals": len(fresh_capital_service.total_withdrawals),
+            "realized_profits": len(fresh_capital_service.realized_profits),
+            "trade_records": len(fresh_capital_service.trade_records),
+        }
+
+        all_structures_empty = all(
+            count == 0 for count in verification_results.values()
+        )
+
+        if (
+            post_reset_capital == 0
+            and len(post_reset_capitals) == 0
+            and all_structures_empty
+        ):
+            logging.info("✅ Capital Manager state is completely reset")
+            logging.info("✅ All data structures are empty:")
+            for structure, count in verification_results.items():
+                logging.info(f"   - {structure}: {count} items")
         else:
-            logging.warning(
-                f"⚠️ Capital Manager may not be fully reset. Total: ${post_reset_capital:.2f}, Capitals: {post_reset_capitals}"
-            )
+            logging.warning("⚠️ Capital Manager may not be fully reset:")
+            logging.warning(f"   - Total capital: ${post_reset_capital:.2f}")
+            logging.warning(f"   - Capitals: {post_reset_capitals}")
+            for structure, count in verification_results.items():
+                if count > 0:
+                    logging.warning(f"   - {structure}: {count} items (should be 0)")
 
         return True
 
     except Exception as e:
         logging.error(f"Error during database reset: {str(e)}")
+        import traceback
+
+        logging.error(f"Full traceback: {traceback.format_exc()}")
         return False
 
 
@@ -156,6 +212,8 @@ def main():
     if success:
         print("\n✅ DATABASE RESET COMPLETED SUCCESSFULLY")
         print("All data has been permanently deleted.")
+        print("All user ownership percentages have been reset.")
+        print("The next deposit will create 100% ownership for that user.")
         logging.info("Database reset operation completed successfully")
     else:
         print("\n❌ DATABASE RESET FAILED")

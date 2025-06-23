@@ -24,19 +24,23 @@ class CapitalManager:
         """Ensure only one instance of CapitalManager exists."""
         if cls._instance is None:
             cls._instance = super(CapitalManager, cls).__new__(cls)
-            cls._instance.mongo_service = MongoUserService()
-            cls._instance.initial_capital = initial_capital
-            cls._instance.capital = {}  # Current capital per coin
-            cls._instance.positions = {}  # Quantity held per coin
-            cls._instance.total_cost = {}  # Total cost of positions per coin
-            cls._instance.trade_records = {}  # Trade history per coin
-            cls._instance.user_investments = {}  # {coin: {user_id: total_deposit}}
-            cls._instance.user_withdrawals = {}  # {coin: {user_id: total_withdrawn}}
-            cls._instance.total_deposits = {}  # {coin: total_deposits}
-            cls._instance.total_withdrawals = {}  # {coin: total_withdrawals}
-            cls._instance.realized_profits = {}  # {coin: total_realized_profit}
-            cls._instance.load_state()
+            cls._instance._initialize(initial_capital)
         return cls._instance
+
+    def _initialize(self, initial_capital):
+        """Initialize the CapitalManager instance."""
+        self.mongo_service = MongoUserService()
+        self.initial_capital = initial_capital
+        self.capital = {}  # Current capital per coin
+        self.positions = {}  # Quantity held per coin
+        self.total_cost = {}  # Total cost of positions per coin
+        self.trade_records = {}  # Trade history per coin
+        self.user_investments = {}  # {coin: {user_id: total_deposit}}
+        self.user_withdrawals = {}  # {coin: {user_id: total_withdrawn}}
+        self.total_deposits = {}  # {coin: total_deposits}
+        self.total_withdrawals = {}  # {coin: total_withdrawals}
+        self.realized_profits = {}  # {coin: total_realized_profit}
+        self.load_state()
 
     def load_state(self):
         """Load the trading state from MongoDB."""
@@ -399,17 +403,32 @@ class CapitalManager:
             return True
 
     def reset_state(self):
-        """Reset the entire state."""
-        self.capital = {}
-        self.positions = {}
-        self.total_cost = {}
-        self.trade_records = {}
-        self.user_investments = {}
-        self.user_withdrawals = {}
-        self.total_deposits = {}
-        self.total_withdrawals = {}
-        self.realized_profits = {}
-        self.save_state()
+        """Reset the entire state and clear from database."""
+        with self._lock:
+            # Reset all instance variables
+            self.capital = {}
+            self.positions = {}
+            self.total_cost = {}
+            self.trade_records = {}
+            self.user_investments = {}
+            self.user_withdrawals = {}
+            self.total_deposits = {}
+            self.total_withdrawals = {}
+            self.realized_profits = {}
+
+            # Save the empty state to database
+            self.save_state()
+
+            logging.info("CapitalManager state has been completely reset")
+
+    @classmethod
+    def force_reset_singleton(cls):
+        """Force reset the singleton instance. Use with caution!"""
+        with cls._lock:
+            if cls._instance is not None:
+                logging.info("Forcing singleton reset...")
+                cls._instance = None
+                logging.info("Singleton instance reset complete")
 
     def get_position(self, coin):
         """Return the quantity held for a coin."""
