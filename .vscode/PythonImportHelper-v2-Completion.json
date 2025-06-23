@@ -1709,7 +1709,7 @@
         "kind": 2,
         "importPath": "backend.reset_database",
         "description": "backend.reset_database",
-        "peekOfCode": "def confirm_reset():\n    \"\"\"\n    Interactive confirmation for database reset.\n    Returns True if user confirms, False otherwise.\n    \"\"\"\n    print(\"\\n\" + \"=\" * 60)\n    print(\"⚠️  DATABASE RESET WARNING ⚠️\")\n    print(\"=\" * 60)\n    print(\"This operation will PERMANENTLY DELETE ALL DATA including:\")\n    print(\"• All user accounts and profiles\")",
+        "peekOfCode": "def confirm_reset():\n    \"\"\"Interactive confirmation for database reset. Returns True if user confirms.\"\"\"\n    print(\"\\n\" + \"=\" * 60)\n    print(\"⚠️  DATABASE RESET WARNING ⚠️\")\n    print(\"=\" * 60)\n    print(\"This operation will PERMANENTLY DELETE ALL DATA including:\")\n    print(\"• All user accounts and profiles\")\n    print(\"• All trading history and records\")\n    print(\"• All investment data and balances\")\n    print(\"• All wallet addresses\")",
         "detail": "backend.reset_database",
         "documentation": {}
     },
@@ -1718,7 +1718,7 @@
         "kind": 2,
         "importPath": "backend.reset_database",
         "description": "backend.reset_database",
-        "peekOfCode": "def backup_reminder():\n    \"\"\"Remind user about backup before proceeding.\"\"\"\n    print(\"\\n📋 BACKUP REMINDER:\")\n    print(\"Have you backed up your database if needed?\")\n    backup_confirm = (\n        input(\"Type 'YES' if you have a backup or don't need one: \").strip().upper()\n    )\n    return backup_confirm == \"YES\".lower() or backup_confirm == \"YES\".upper()\ndef reset_database():\n    \"\"\"",
+        "peekOfCode": "def backup_reminder():\n    \"\"\"Remind user about backup before proceeding. Returns True if confirmed.\"\"\"\n    print(\"\\n📋 BACKUP REMINDER:\")\n    print(\"Have you backed up your database if needed?\")\n    backup_confirm = (\n        input(\"Type 'YES' if you have a backup or don't need one: \").strip().upper()\n    )\n    return backup_confirm == \"YES\"\ndef reset_database():\n    \"\"\"Perform the complete database reset operation. Returns True if successful.\"\"\"",
         "detail": "backend.reset_database",
         "documentation": {}
     },
@@ -1727,7 +1727,7 @@
         "kind": 2,
         "importPath": "backend.reset_database",
         "description": "backend.reset_database",
-        "peekOfCode": "def reset_database():\n    \"\"\"\n    Perform the complete database reset operation.\n    Returns True if successful, False otherwise.\n    \"\"\"\n    try:\n        logging.info(\"Starting database reset operation...\")\n        # Initialize services\n        logging.info(\"Initializing MongoDB service...\")\n        mongo_service = MongoUserService()",
+        "peekOfCode": "def reset_database():\n    \"\"\"Perform the complete database reset operation. Returns True if successful.\"\"\"\n    try:\n        logging.info(\"Starting database reset operation...\")\n        mongo_service = MongoUserService()\n        logging.info(\"Clearing MongoDB collections...\")\n        success = mongo_service.clear_database(confirm=True)\n        if not success:\n            logging.error(\"Failed to clear MongoDB collections\")\n            return False",
         "detail": "backend.reset_database",
         "documentation": {}
     },
@@ -1736,7 +1736,7 @@
         "kind": 2,
         "importPath": "backend.reset_database",
         "description": "backend.reset_database",
-        "peekOfCode": "def main():\n    \"\"\"Main execution function.\"\"\"\n    print(\"🔄 Database Reset Utility\")\n    print(\"=\" * 30)\n    # Safety confirmations\n    if not backup_reminder():\n        print(\"❌ Operation cancelled - backup not confirmed\")\n        return\n    if not confirm_reset():\n        print(\"❌ Operation cancelled - reset not confirmed\")",
+        "peekOfCode": "def main():\n    \"\"\"Main execution function.\"\"\"\n    print(\"🔄 Database Reset Utility\")\n    print(\"=\" * 30)\n    if not backup_reminder():\n        print(\"❌ Operation cancelled - backup not confirmed\")\n        return\n    if not confirm_reset():\n        print(\"❌ Operation cancelled - reset not confirmed\")\n        return",
         "detail": "backend.reset_database",
         "documentation": {}
     },
