@@ -17,14 +17,13 @@ from app.services.mongodb_service import MongoUserService
 from app.services.capital_manager import CapitalManager
 
 # Configure detailed logging
+log_filename = f"data/database_reset_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler(
-            f"data/database_reset_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-        ),
+        logging.FileHandler(log_filename),
     ],
 )
 

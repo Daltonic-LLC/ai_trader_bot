@@ -1741,6 +1741,15 @@
         "documentation": {}
     },
     {
+        "label": "log_filename",
+        "kind": 5,
+        "importPath": "backend.reset_database",
+        "description": "backend.reset_database",
+        "peekOfCode": "log_filename = f\"data/database_reset_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log\"\nlogging.basicConfig(\n    level=logging.INFO,\n    format=\"%(asctime)s - %(levelname)s - %(message)s\",\n    handlers=[\n        logging.StreamHandler(sys.stdout),\n        logging.FileHandler(log_filename),\n    ],\n)\ndef confirm_reset():",
+        "detail": "backend.reset_database",
+        "documentation": {}
+    },
+    {
         "label": "FastAPIServer",
         "kind": 6,
         "importPath": "backend.run",
