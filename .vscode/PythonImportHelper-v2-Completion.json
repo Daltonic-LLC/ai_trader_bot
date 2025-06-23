@@ -385,6 +385,14 @@
         "documentation": {}
     },
     {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
         "label": "timedelta",
         "importPath": "datetime",
         "description": "datetime",
@@ -1269,6 +1277,15 @@
         "documentation": {}
     },
     {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
         "label": "asyncio",
         "kind": 6,
         "isExtraImport": true,
@@ -1293,15 +1310,6 @@
         "importPath": "multiprocessing",
         "description": "multiprocessing",
         "detail": "multiprocessing",
-        "documentation": {}
-    },
-    {
-        "label": "sys",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "sys",
-        "description": "sys",
-        "detail": "sys",
         "documentation": {}
     },
     {
@@ -1697,6 +1705,42 @@
         "documentation": {}
     },
     {
+        "label": "confirm_reset",
+        "kind": 2,
+        "importPath": "backend.reset_database",
+        "description": "backend.reset_database",
+        "peekOfCode": "def confirm_reset():\n    \"\"\"\n    Interactive confirmation for database reset.\n    Returns True if user confirms, False otherwise.\n    \"\"\"\n    print(\"\\n\" + \"=\" * 60)\n    print(\"⚠️  DATABASE RESET WARNING ⚠️\")\n    print(\"=\" * 60)\n    print(\"This operation will PERMANENTLY DELETE ALL DATA including:\")\n    print(\"• All user accounts and profiles\")",
+        "detail": "backend.reset_database",
+        "documentation": {}
+    },
+    {
+        "label": "backup_reminder",
+        "kind": 2,
+        "importPath": "backend.reset_database",
+        "description": "backend.reset_database",
+        "peekOfCode": "def backup_reminder():\n    \"\"\"Remind user about backup before proceeding.\"\"\"\n    print(\"\\n📋 BACKUP REMINDER:\")\n    print(\"Have you backed up your database if needed?\")\n    backup_confirm = (\n        input(\"Type 'YES' if you have a backup or don't need one: \").strip().upper()\n    )\n    return backup_confirm == \"YES\".lower() or backup_confirm == \"YES\".upper()\ndef reset_database():\n    \"\"\"",
+        "detail": "backend.reset_database",
+        "documentation": {}
+    },
+    {
+        "label": "reset_database",
+        "kind": 2,
+        "importPath": "backend.reset_database",
+        "description": "backend.reset_database",
+        "peekOfCode": "def reset_database():\n    \"\"\"\n    Perform the complete database reset operation.\n    Returns True if successful, False otherwise.\n    \"\"\"\n    try:\n        logging.info(\"Starting database reset operation...\")\n        # Initialize services\n        logging.info(\"Initializing MongoDB service...\")\n        mongo_service = MongoUserService()",
+        "detail": "backend.reset_database",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "backend.reset_database",
+        "description": "backend.reset_database",
+        "peekOfCode": "def main():\n    \"\"\"Main execution function.\"\"\"\n    print(\"🔄 Database Reset Utility\")\n    print(\"=\" * 30)\n    # Safety confirmations\n    if not backup_reminder():\n        print(\"❌ Operation cancelled - backup not confirmed\")\n        return\n    if not confirm_reset():\n        print(\"❌ Operation cancelled - reset not confirmed\")",
+        "detail": "backend.reset_database",
+        "documentation": {}
+    },
+    {
         "label": "FastAPIServer",
         "kind": 6,
         "importPath": "backend.run",
@@ -1838,33 +1882,6 @@
         "description": "backend.tester3",
         "peekOfCode": "capital_manager = CapitalManager(initial_capital=1000.0)\n# Perform operations\n# capital_manager.deposit(\"bitcoin\", 500.0)\n# capital_manager.simulate_buy(\"bitcoin\", 0.01, 30000.0)\nprint(f\"Bitcoin position: {capital_manager.get_position('btc')}\")\nprint(f\"Bitcoin capital: {capital_manager.get_capital('btc')}\")",
         "detail": "backend.tester3",
-        "documentation": {}
-    },
-    {
-        "label": "mongo_service",
-        "kind": 5,
-        "importPath": "backend.tester4",
-        "description": "backend.tester4",
-        "peekOfCode": "mongo_service = MongoUserService()\ncapital_service = CapitalManager()\nsuccess = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
-        "detail": "backend.tester4",
-        "documentation": {}
-    },
-    {
-        "label": "capital_service",
-        "kind": 5,
-        "importPath": "backend.tester4",
-        "description": "backend.tester4",
-        "peekOfCode": "capital_service = CapitalManager()\nsuccess = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
-        "detail": "backend.tester4",
-        "documentation": {}
-    },
-    {
-        "label": "success",
-        "kind": 5,
-        "importPath": "backend.tester4",
-        "description": "backend.tester4",
-        "peekOfCode": "success = mongo_service.clear_database(confirm=True)\ncapital_service.reset_state()\nif success:\n    print(\"Database cleared successfully.\")\nelse:\n    print(\"Failed to clear database.\")",
-        "detail": "backend.tester4",
         "documentation": {}
     },
     {

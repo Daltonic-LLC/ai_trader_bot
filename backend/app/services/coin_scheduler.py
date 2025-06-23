@@ -142,7 +142,6 @@ class CoinScheduler:
                 f"**Timestamp:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
                 f"**Status:** {'Failed' if is_error else 'Success'}\n"
                 f"**Duration:** {content.split('Duration: ')[1].split('s')[0] + 's' if 'Duration: ' in content else 'N/A'}\n\n"
-                f"Looking forward to following up!"
             )
             headers = {"x-n8n-secret": config.n8n_webhook_secret}
             response = requests.post(
