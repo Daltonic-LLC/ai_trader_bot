@@ -66,10 +66,10 @@ def reset_database():
             return False
         logging.info("Successfully cleared MongoDB collections")
 
-        # Reset CapitalManager instance
-        CapitalManager._instance = None
+        # Reset CapitalManager state
         capital_service = CapitalManager()
-        logging.info("CapitalManager instance reset and recreated")
+        capital_service.reset_state()
+        logging.info("CapitalManager state reset and saved to database")
 
         # Verify state
         logging.info("Verifying reset completion...")

@@ -87,6 +87,25 @@ class CapitalManager:
         except Exception as e:
             logging.error(f"Failed to save state to MongoDB: {e}")
 
+    def reset_state(self):
+        """Reset the entire state and clear from database."""
+        with self._lock:
+            # Reset all instance variables
+            self.capital = {}
+            self.positions = {}
+            self.total_cost = {}
+            self.trade_records = {}
+            self.user_investments = {}
+            self.user_withdrawals = {}
+            self.total_deposits = {}
+            self.total_withdrawals = {}
+            self.realized_profits = {}
+
+            # Save the empty state to database
+            self.save_state()
+
+            logging.info("CapitalManager state has been completely reset")
+
     def get_total_net_investments(self, coin):
         """Calculate total net investments (deposits - withdrawals) for a coin."""
         coin = coin.lower()
@@ -440,47 +459,6 @@ class CapitalManager:
                 f"Net proceeds: ${float(net_proceeds):.2f} (Base: ${float(base_proceeds):.2f}, Fee: ${float(fee_amount):.2f} [0.05%]), Profit: ${float(trade_profit):.2f}"
             )
             return True
-
-    def reset_state(self):
-        """Reset the entire state and clear from database."""
-        with self._lock:
-            # Reset all instance variables
-            self.capital = {}
-            self.positions = {}
-            self.total_cost = {}
-            self.trade_records = {}
-            self.user_investments = {}
-            self.user_withdrawals = {}
-            self.total_deposits = {}
-            self.total_withdrawals = {}
-            self.realized_profits = {}
-
-            # Save the empty state to database
-            self.save_state()
-
-            logging.info("CapitalManager state has been completely reset")
-
-    @classmethod
-    def force_reset_singleton(cls):
-        """Force reset the singleton instance. Use with caution!"""
-        with cls._lock:
-            if cls._instance is not None:
-                logging.info("Forcing singleton reset...")
-                cls._instance = None
-                logging.info("Singleton instance reset complete")
-
-    @classmethod
-    def complete_reset(cls):
-        """Complete reset - both singleton and database state."""
-        with cls._lock:
-            # First reset the database state if instance exists
-            if cls._instance is not None:
-                cls._instance.reset_state()
-
-            # Then force reset the singleton
-            cls.force_reset_singleton()
-
-            logging.info("Complete reset performed - singleton and database cleared")
 
     def get_position(self, coin):
         """Return the quantity held for a coin."""
