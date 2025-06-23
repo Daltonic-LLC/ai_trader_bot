@@ -191,11 +191,7 @@ class CoinScheduler:
             self.update_execution_log_with_duration(
                 job_key, job_name, start_time, end_time
             )
-            self.send_n8n_report(
-                title=f"Job Completed: {job_name}",
-                content=f"Status: Success\nDuration: {(end_time - start_time).total_seconds():.2f}s",
-                is_error=False,
-            )
+            # Success notification removed
             return True
 
         except Exception as e:
@@ -393,7 +389,6 @@ class CoinScheduler:
                 logging.error(
                     f"[{i}/{len(coins_data)}] ✗ Failed to download history for {coin_name} ({slug}): {e}"
                 )
-
                 if not self.continue_on_failure:
                     logging.error(
                         "Stopping coin history download due to failure and continue_on_failure=False"
@@ -407,6 +402,13 @@ class CoinScheduler:
 
         logging.info(
             f"Coin history download completed: {successful_downloads} successful, {failed_downloads} failed out of {len(coins_data)} total coins"
+        )
+
+        # Send success notification for history job
+        self.send_n8n_report(
+            title="Coin History Job Completed",
+            content=f"Status: Success\nSuccessful downloads: {successful_downloads}\nFailed downloads: {failed_downloads}",
+            is_error=False,
         )
 
     def _daily_news_sentiment(self, limit=None):
