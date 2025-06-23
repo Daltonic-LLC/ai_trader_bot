@@ -338,7 +338,13 @@ class CoinTrader:
         current_price = stats["price"]
         news_sentiment, news_text = self.news_handler.process_news()
 
+        # CRITICAL FIX: Define capital and position early, before any conditional blocks
+        capital = self.capital_manager.get_capital(self.coin)
         position = self.capital_manager.get_position(self.coin)
+        quantity = 0.0  # Initialize quantity as well
+
+        print(f"Capital for {self.coin}: {capital}")
+
         if position > 0:
             self.highest_price = max(self.highest_price or current_price, current_price)
 
@@ -358,10 +364,6 @@ class CoinTrader:
                 trade_details=potential_trade_details,
             )
             recommendation = self.llm_handler.decide(prelim_report)
-
-            capital = self.capital_manager.get_capital(self.coin)
-            position = self.capital_manager.get_position(self.coin)
-            print(f"Capital for {self.coin}: {capital}")
 
             if time.time() - self.last_trade_time < self.cool_down:
                 print(f"Cool-down active for {self.coin}")
@@ -412,6 +414,8 @@ class CoinTrader:
                             trade_details = f"Tiered SELL: {sell_quantity:.6f} {self.coin.upper()} at ${current_price:.2f}\nNet proceeds: ${sale_value:.2f}\nAction: Manually sell on an exchange."
                             print(trade_details)
                             self.last_trade_time = time.time()
+                            # Update quantity for the trade record
+                            quantity = sell_quantity
                         else:
                             trade_details = "SELL failed: Insufficient position."
                     else:
@@ -437,7 +441,7 @@ class CoinTrader:
         trade_entry = {
             "coin": self.coin.upper(),
             "recommendation": recommendation,
-            "quantity": float(quantity) if "quantity" in locals() else 0.0,
+            "quantity": float(quantity),
             "price": float(current_price),
             "timestamp": datetime.now().isoformat(),
             "details": trade_details,
