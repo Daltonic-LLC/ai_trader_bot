@@ -31,6 +31,7 @@ class EnvironmentConfig:
             "n8n_webhook_secret": environ.get("N8N_WEBHOOK_SECRET", ""),
             "n8n_webhook_url": environ.get("N8N_WEBHOOK_URL", ""),
             "coin_limit": environ.get("COIN_LIMIT", None),
+            "port": environ.get("PORT", 8000),
         }
 
     @property
@@ -101,6 +102,11 @@ class EnvironmentConfig:
     @property
     def coin_limit(self) -> int:
         return int(self.config["coin_limit"] or 15)
+
+    @property
+    def get_port(self) -> int:
+        """Get the port for the FastAPI server"""
+        return int(self.config["port"])
 
     def __str__(self) -> str:
         """String representation of current configuration"""

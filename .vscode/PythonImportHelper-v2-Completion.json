@@ -168,14 +168,6 @@
         "documentation": {}
     },
     {
-        "label": "CoinScheduler",
-        "importPath": "app.services.coin_scheduler",
-        "description": "app.services.coin_scheduler",
-        "isExtraImport": true,
-        "detail": "app.services.coin_scheduler",
-        "documentation": {}
-    },
-    {
         "label": "CoinTrader",
         "importPath": "app.trader_bot.coin_trader",
         "description": "app.trader_bot.coin_trader",
@@ -976,6 +968,14 @@
         "documentation": {}
     },
     {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
         "label": "csv",
         "kind": 6,
         "isExtraImport": true,
@@ -1000,6 +1000,32 @@
         "importPath": "pandas",
         "description": "pandas",
         "detail": "pandas",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "psutil",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "psutil",
+        "description": "psutil",
+        "detail": "psutil",
+        "documentation": {}
+    },
+    {
+        "label": "FileSystemEventHandler",
+        "importPath": "watchdog.events",
+        "description": "watchdog.events",
+        "isExtraImport": true,
+        "detail": "watchdog.events",
         "documentation": {}
     },
     {
@@ -1277,15 +1303,6 @@
         "documentation": {}
     },
     {
-        "label": "sys",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "sys",
-        "description": "sys",
-        "detail": "sys",
-        "documentation": {}
-    },
-    {
         "label": "asyncio",
         "kind": 6,
         "isExtraImport": true,
@@ -1321,11 +1338,27 @@
         "documentation": {}
     },
     {
-        "label": "FileSystemEventHandler",
-        "importPath": "watchdog.events",
-        "description": "watchdog.events",
+        "label": "Observer",
+        "importPath": "watchdog.observers",
+        "description": "watchdog.observers",
         "isExtraImport": true,
-        "detail": "watchdog.events",
+        "detail": "watchdog.observers",
+        "documentation": {}
+    },
+    {
+        "label": "FileChangeHandler",
+        "importPath": "app.services.file_handler",
+        "description": "app.services.file_handler",
+        "isExtraImport": true,
+        "detail": "app.services.file_handler",
+        "documentation": {}
+    },
+    {
+        "label": "FileChangeHandler",
+        "importPath": "app.services.file_handler",
+        "description": "app.services.file_handler",
+        "isExtraImport": true,
+        "detail": "app.services.file_handler",
         "documentation": {}
     },
     {
@@ -1432,6 +1465,24 @@
         "description": "backend.app.services.coin_stats",
         "peekOfCode": "class CoinStatsService:\n    \"\"\"\n    A service for fetching and storing cryptocurrency statistics, such as price, market cap, and supply metrics.\n    \"\"\"\n    def __init__(self, timeout: int = 60000):\n        \"\"\"\n        Initialize the CoinStatsService.\n        Args:\n            timeout (int): Timeout in milliseconds for browser operations. Default is 60 seconds.\n        \"\"\"",
         "detail": "backend.app.services.coin_stats",
+        "documentation": {}
+    },
+    {
+        "label": "FileChangeHandler",
+        "kind": 6,
+        "importPath": "backend.app.services.file_handler",
+        "description": "backend.app.services.file_handler",
+        "peekOfCode": "class FileChangeHandler(FileSystemEventHandler):\n    \"\"\"Handles changes in specified folders with optional patterns\"\"\"\n    def __init__(\n        self,\n        observer,\n        fastapi_process,\n        folder_to_watch,\n        patterns=None,\n    ):\n        self.observer = observer",
+        "detail": "backend.app.services.file_handler",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "backend.app.services.file_handler",
+        "description": "backend.app.services.file_handler",
+        "peekOfCode": "logger = logging.getLogger(\"server\")\nclass FileChangeHandler(FileSystemEventHandler):\n    \"\"\"Handles changes in specified folders with optional patterns\"\"\"\n    def __init__(\n        self,\n        observer,\n        fastapi_process,\n        folder_to_watch,\n        patterns=None,\n    ):",
+        "detail": "backend.app.services.file_handler",
         "documentation": {}
     },
     {
@@ -1754,7 +1805,7 @@
         "kind": 6,
         "importPath": "backend.run",
         "description": "backend.run",
-        "peekOfCode": "class FastAPIServer:\n    def __init__(self):\n        self.config = uvicorn.Config(\n            \"app.main:app\",\n            host=\"0.0.0.0\",\n            port=8000,\n            reload=False,\n            loop=\"asyncio\",\n        )\n        self.server = uvicorn.Server(self.config)",
+        "peekOfCode": "class FastAPIServer:\n    def __init__(self):\n        self.config = uvicorn.Config(\n            \"app.main:app\",\n            host=\"0.0.0.0\",\n            port=config.get_port,\n            reload=False,\n            loop=\"asyncio\",\n        )\n        self.server = uvicorn.Server(self.config)",
         "detail": "backend.run",
         "documentation": {}
     },
@@ -1763,7 +1814,7 @@
         "kind": 2,
         "importPath": "backend.run",
         "description": "backend.run",
-        "peekOfCode": "def run_fastapi():\n    \"\"\"Run FastAPI server in a separate process.\"\"\"\n    server = FastAPIServer()\n    asyncio.run(server.start())\ndef run_coin_scheduler():\n    \"\"\"Run CoinScheduler in a separate process.\"\"\"\n    scheduler = CoinScheduler(log_file='scheduler.log')\n    try:\n        scheduler.start()\n        # Keep the process running",
+        "peekOfCode": "def run_fastapi():\n    \"\"\"Run FastAPI server in a separate process.\"\"\"\n    server = FastAPIServer()\n    asyncio.run(server.start())\ndef run_coin_scheduler():\n    \"\"\"Run CoinScheduler in a separate process.\"\"\"\n    scheduler = CoinScheduler(log_file=\"scheduler.log\")\n    try:\n        scheduler.start()\n        # Keep the process running",
         "detail": "backend.run",
         "documentation": {}
     },
@@ -1772,7 +1823,7 @@
         "kind": 2,
         "importPath": "backend.run",
         "description": "backend.run",
-        "peekOfCode": "def run_coin_scheduler():\n    \"\"\"Run CoinScheduler in a separate process.\"\"\"\n    scheduler = CoinScheduler(log_file='scheduler.log')\n    try:\n        scheduler.start()\n        # Keep the process running\n        while True:\n            time.sleep(60)  # Sleep to reduce CPU usage\n    except (KeyboardInterrupt, SystemExit):\n        scheduler.shutdown()",
+        "peekOfCode": "def run_coin_scheduler():\n    \"\"\"Run CoinScheduler in a separate process.\"\"\"\n    scheduler = CoinScheduler(log_file=\"scheduler.log\")\n    try:\n        scheduler.start()\n        # Keep the process running\n        while True:\n            time.sleep(60)  # Sleep to reduce CPU usage\n    except (KeyboardInterrupt, SystemExit):\n        scheduler.shutdown()",
         "detail": "backend.run",
         "documentation": {}
     },
@@ -1781,7 +1832,7 @@
         "kind": 2,
         "importPath": "backend.run",
         "description": "backend.run",
-        "peekOfCode": "def main():\n    \"\"\"Run FastAPI and CoinScheduler processes.\"\"\"\n    logger.info(\"Starting FastAPI and CoinScheduler services...\")\n    # Create processes for FastAPI and CoinScheduler\n    fastapi_process = multiprocessing.Process(target=run_fastapi)\n    scheduler_process = multiprocessing.Process(target=run_coin_scheduler)\n    # Start the processes\n    fastapi_process.start()\n    scheduler_process.start()\n    try:",
+        "peekOfCode": "def main():\n    \"\"\"Run FastAPI and CoinScheduler processes with log file watching.\"\"\"\n    if len(sys.argv) > 1:\n        folder_to_watch = os.path.abspath(sys.argv[1])\n    else:\n        folder_to_watch = os.path.abspath(\"./data\")\n    logger.info(\"Starting FastAPI and CoinScheduler services...\")\n    logger.info(f\"Watching folder: {folder_to_watch} 👀\")\n    logger.info(\"Monitoring for changes in log files...\")\n    # Create processes for FastAPI and CoinScheduler",
         "detail": "backend.run",
         "documentation": {}
     },
@@ -1790,7 +1841,7 @@
         "kind": 5,
         "importPath": "backend.run",
         "description": "backend.run",
-        "peekOfCode": "logger = logging.getLogger(\"server\")\nclass FastAPIServer:\n    def __init__(self):\n        self.config = uvicorn.Config(\n            \"app.main:app\",\n            host=\"0.0.0.0\",\n            port=8000,\n            reload=False,\n            loop=\"asyncio\",\n        )",
+        "peekOfCode": "logger = logging.getLogger(\"server\")\nclass FastAPIServer:\n    def __init__(self):\n        self.config = uvicorn.Config(\n            \"app.main:app\",\n            host=\"0.0.0.0\",\n            port=config.get_port,\n            reload=False,\n            loop=\"asyncio\",\n        )",
         "detail": "backend.run",
         "documentation": {}
     },
@@ -1799,16 +1850,7 @@
         "kind": 6,
         "importPath": "backend.run_dev",
         "description": "backend.run_dev",
-        "peekOfCode": "class FastAPIServer:\n    def __init__(self):\n        self.config = uvicorn.Config(\n            \"app.main:app\",\n            host=\"0.0.0.0\",\n            port=8000,\n            reload=True,  # Enable auto-reload for development\n            loop=\"asyncio\",\n        )\n        self.server = uvicorn.Server(self.config)",
-        "detail": "backend.run_dev",
-        "documentation": {}
-    },
-    {
-        "label": "CodeChangeHandler",
-        "kind": 6,
-        "importPath": "backend.run_dev",
-        "description": "backend.run_dev",
-        "peekOfCode": "class CodeChangeHandler(FileSystemEventHandler):\n    \"\"\"Handler to restart FastAPI process on .py file changes.\"\"\"\n    def __init__(self, fastapi_process_getter):\n        self.fastapi_process_getter = fastapi_process_getter\n        self.last_modified = time.time()\n    def on_modified(self, event):\n        if event.is_directory or not event.src_path.endswith('.py'):\n            return\n        current_time = time.time()\n        if current_time - self.last_modified < 1:  # Debounce: ignore changes within 1 second",
+        "peekOfCode": "class FastAPIServer:\n    def __init__(self):\n        self.config = uvicorn.Config(\n            \"app.main:app\",\n            host=\"0.0.0.0\",\n            port=config.get_port,\n            reload=False,  # We handle reload manually\n            loop=\"asyncio\",\n        )\n        self.server = uvicorn.Server(self.config)",
         "detail": "backend.run_dev",
         "documentation": {}
     },
@@ -1817,16 +1859,7 @@
         "kind": 2,
         "importPath": "backend.run_dev",
         "description": "backend.run_dev",
-        "peekOfCode": "def run_fastapi():\n    \"\"\"Run FastAPI server in a separate process.\"\"\"\n    server = FastAPIServer()\n    asyncio.run(server.start())\ndef run_coin_scheduler():\n    \"\"\"Run CoinScheduler in a separate process.\"\"\"\n    scheduler = CoinScheduler(log_file='scheduler.log')\n    try:\n        scheduler.start()\n        # Keep the process running",
-        "detail": "backend.run_dev",
-        "documentation": {}
-    },
-    {
-        "label": "run_coin_scheduler",
-        "kind": 2,
-        "importPath": "backend.run_dev",
-        "description": "backend.run_dev",
-        "peekOfCode": "def run_coin_scheduler():\n    \"\"\"Run CoinScheduler in a separate process.\"\"\"\n    scheduler = CoinScheduler(log_file='scheduler.log')\n    try:\n        scheduler.start()\n        # Keep the process running\n        while True:\n            time.sleep(60)  # Sleep to reduce CPU usage\n    except (KeyboardInterrupt, SystemExit):\n        scheduler.shutdown()",
+        "peekOfCode": "def run_fastapi():\n    \"\"\"Run FastAPI server in a separate process\"\"\"\n    server = FastAPIServer()\n    asyncio.run(server.start())\ndef main():\n    \"\"\"Run FastAPI with file and folder change watching for .log files\"\"\"\n    if len(sys.argv) > 1:\n        folder_to_watch = os.path.abspath(sys.argv[1])\n    else:\n        folder_to_watch = os.path.abspath(\"./data\")",
         "detail": "backend.run_dev",
         "documentation": {}
     },
@@ -1835,7 +1868,7 @@
         "kind": 2,
         "importPath": "backend.run_dev",
         "description": "backend.run_dev",
-        "peekOfCode": "def main():\n    \"\"\"Run FastAPI with auto-reload and CoinScheduler.\"\"\"\n    logger.info(\"Starting FastAPI (with auto-reload) and CoinScheduler services...\")\n    # Create processes for FastAPI and CoinScheduler\n    fastapi_process = multiprocessing.Process(target=run_fastapi)\n    scheduler_process = multiprocessing.Process(target=run_coin_scheduler)\n    # Store FastAPI process in a mutable container for the handler\n    class ProcessContainer:\n        def __init__(self, process):\n            self.current_process = process",
+        "peekOfCode": "def main():\n    \"\"\"Run FastAPI with file and folder change watching for .log files\"\"\"\n    if len(sys.argv) > 1:\n        folder_to_watch = os.path.abspath(sys.argv[1])\n    else:\n        folder_to_watch = os.path.abspath(\"./data\")\n    logger.info(f\"Watching folder: {folder_to_watch} 👀\")\n    logger.info(\"Monitoring for changes in log files...\")\n    fastapi_process = multiprocessing.Process(target=run_fastapi)\n    fastapi_process.start()",
         "detail": "backend.run_dev",
         "documentation": {}
     },
@@ -1844,7 +1877,7 @@
         "kind": 5,
         "importPath": "backend.run_dev",
         "description": "backend.run_dev",
-        "peekOfCode": "logger = logging.getLogger(\"server\")\nclass FastAPIServer:\n    def __init__(self):\n        self.config = uvicorn.Config(\n            \"app.main:app\",\n            host=\"0.0.0.0\",\n            port=8000,\n            reload=True,  # Enable auto-reload for development\n            loop=\"asyncio\",\n        )",
+        "peekOfCode": "logger = logging.getLogger(\"server\")\nclass FastAPIServer:\n    def __init__(self):\n        self.config = uvicorn.Config(\n            \"app.main:app\",\n            host=\"0.0.0.0\",\n            port=config.get_port,\n            reload=False,  # We handle reload manually\n            loop=\"asyncio\",\n        )",
         "detail": "backend.run_dev",
         "documentation": {}
     },
