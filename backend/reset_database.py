@@ -16,16 +16,31 @@ from datetime import datetime
 from app.services.mongodb_service import MongoUserService
 from app.services.capital_manager import CapitalManager
 
-# Configure detailed logging
-log_filename = f"data/database_reset_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+# Initial basic logging setup (console only)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler(log_filename),
-    ],
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
+
+
+def setup_file_logging():
+    """Set up file logging after user confirmations."""
+    log_filename = f"data/database_reset_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+
+    # Add file handler to existing logger
+    file_handler = logging.FileHandler(log_filename)
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(
+        logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    )
+
+    # Get root logger and add file handler
+    root_logger = logging.getLogger()
+    root_logger.addHandler(file_handler)
+
+    logging.info(f"Log file created: {log_filename}")
+    return log_filename
 
 
 def confirm_reset():
@@ -105,21 +120,31 @@ def main():
     """Main execution function."""
     print("🔄 Database Reset Utility")
     print("=" * 30)
+
+    # Get confirmations first (no file logging yet)
     if not backup_reminder():
         print("❌ Operation cancelled - backup not confirmed")
         return
     if not confirm_reset():
         print("❌ Operation cancelled - reset not confirmed")
         return
+
+    # Perform the reset operation FIRST (before logging)
     print("\n🚀 Starting database reset...")
     success = reset_database()
+
+    # Only create log file AFTER database is reset
+    log_filename = setup_file_logging()
+
     if success:
         print("\n✅ DATABASE RESET COMPLETED SUCCESSFULLY")
         print("All data has been permanently deleted.")
+        print(f"📄 Post-reset log saved to: {log_filename}")
         logging.info("Database reset operation completed successfully")
     else:
         print("\n❌ DATABASE RESET FAILED")
         print("Check the logs for details about what went wrong.")
+        print(f"📄 Error log saved to: {log_filename}")
         logging.error("Database reset operation failed")
         sys.exit(1)
 
@@ -129,9 +154,13 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         print("\n❌ Operation cancelled by user")
-        logging.info("Database reset cancelled by user interrupt")
+        # Only log to file if logging was set up
+        if len(logging.getLogger().handlers) > 1:
+            logging.info("Database reset cancelled by user interrupt")
         sys.exit(1)
     except Exception as e:
         print(f"\n❌ Unexpected error: {str(e)}")
-        logging.error(f"Unexpected error during database reset: {str(e)}")
+        # Only log to file if logging was set up
+        if len(logging.getLogger().handlers) > 1:
+            logging.error(f"Unexpected error during database reset: {str(e)}")
         sys.exit(1)

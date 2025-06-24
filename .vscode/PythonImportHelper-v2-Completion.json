@@ -1756,6 +1756,15 @@
         "documentation": {}
     },
     {
+        "label": "setup_file_logging",
+        "kind": 2,
+        "importPath": "backend.reset_database",
+        "description": "backend.reset_database",
+        "peekOfCode": "def setup_file_logging():\n    \"\"\"Set up file logging after user confirmations.\"\"\"\n    log_filename = f\"data/database_reset_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log\"\n    # Add file handler to existing logger\n    file_handler = logging.FileHandler(log_filename)\n    file_handler.setLevel(logging.INFO)\n    file_handler.setFormatter(\n        logging.Formatter(\"%(asctime)s - %(levelname)s - %(message)s\")\n    )\n    # Get root logger and add file handler",
+        "detail": "backend.reset_database",
+        "documentation": {}
+    },
+    {
         "label": "confirm_reset",
         "kind": 2,
         "importPath": "backend.reset_database",
@@ -1787,16 +1796,7 @@
         "kind": 2,
         "importPath": "backend.reset_database",
         "description": "backend.reset_database",
-        "peekOfCode": "def main():\n    \"\"\"Main execution function.\"\"\"\n    print(\"🔄 Database Reset Utility\")\n    print(\"=\" * 30)\n    if not backup_reminder():\n        print(\"❌ Operation cancelled - backup not confirmed\")\n        return\n    if not confirm_reset():\n        print(\"❌ Operation cancelled - reset not confirmed\")\n        return",
-        "detail": "backend.reset_database",
-        "documentation": {}
-    },
-    {
-        "label": "log_filename",
-        "kind": 5,
-        "importPath": "backend.reset_database",
-        "description": "backend.reset_database",
-        "peekOfCode": "log_filename = f\"data/database_reset_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log\"\nlogging.basicConfig(\n    level=logging.INFO,\n    format=\"%(asctime)s - %(levelname)s - %(message)s\",\n    handlers=[\n        logging.StreamHandler(sys.stdout),\n        logging.FileHandler(log_filename),\n    ],\n)\ndef confirm_reset():",
+        "peekOfCode": "def main():\n    \"\"\"Main execution function.\"\"\"\n    print(\"🔄 Database Reset Utility\")\n    print(\"=\" * 30)\n    # Get confirmations first (no file logging yet)\n    if not backup_reminder():\n        print(\"❌ Operation cancelled - backup not confirmed\")\n        return\n    if not confirm_reset():\n        print(\"❌ Operation cancelled - reset not confirmed\")",
         "detail": "backend.reset_database",
         "documentation": {}
     },
