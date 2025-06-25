@@ -426,3 +426,36 @@ async def get_wallet_addresses(
         raise HTTPException(status_code=404, detail="No wallet found for this user")
 
     return {"wallet": wallet}
+
+
+@auth_router.get("/profit_trend/{coin}")
+async def get_global_profit_trend(
+    coin: str,
+    start_date: datetime,
+    end_date: datetime,
+    # current_user: dict = Depends(get_current_user),
+):
+    """Retrieve global profit trend for a coin within a date range (admin only)."""
+    # if current_user["role"] != "admin":
+    #     raise HTTPException(status_code=403, detail="Admin access required")
+
+    trend_data = user_service.get_profit_trend(coin.lower(), start_date, end_date)
+    if not trend_data:
+        raise HTTPException(status_code=404, detail="No profit trend data found")
+
+    return trend_data
+
+@auth_router.get("/profit_trend/{coin}/user")
+async def get_user_profit_trend(
+    coin: str,
+    start_date: datetime,
+    end_date: datetime,
+    current_user: dict = Depends(get_current_user),
+):
+    """Retrieve user's profit trend for a coin within a date range."""
+    user_id = current_user["id"]
+    trend_data = user_service.get_profit_trend(coin.lower(), start_date, end_date, user_id)
+    if not trend_data:
+        raise HTTPException(status_code=404, detail="No profit trend data found")
+
+    return trend_data

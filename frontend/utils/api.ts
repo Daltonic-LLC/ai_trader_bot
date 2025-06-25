@@ -202,3 +202,84 @@ export const fetchWalletAddresses = async (coin: string) => {
     throw error
   }
 }
+
+interface ProfitTrendResponse {
+  data: Array<{ date: string; profit: number }>
+  [key: string]: unknown
+}
+
+export const fetchGlobalProfitTrend = async (
+  coin: string,
+  startDate: string | Date,
+  endDate: string | Date
+): Promise<ProfitTrendResponse> => {
+  try {
+    const _user: string = Cookies.get('bot_user') || '{}'
+    const parsedUser: { token?: { access_token?: string } } = JSON.parse(_user)
+    const token: string = parsedUser?.token?.access_token || ''
+
+    // Convert dates to ISO strings for the query parameters
+    const startDateISO: string = new Date(startDate).toISOString()
+    const endDateISO: string = new Date(endDate).toISOString()
+
+    const response: Response = await fetch(
+      `${BASE_URL}/auth/profit_trend/${coin}?start_date=${encodeURIComponent(
+        startDateISO
+      )}&end_date=${encodeURIComponent(endDateISO)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch global profit trend')
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching global profit trend:', error)
+    throw error
+  }
+}
+
+export const fetchUserProfitTrend = async (
+  coin: string,
+  startDate: string | Date,
+  endDate: string | Date
+): Promise<ProfitTrendResponse> => {
+  try {
+    const _user = Cookies.get('bot_user') || '{}'
+    const parsedUser = JSON.parse(_user)
+    const token = parsedUser?.token?.access_token || ''
+
+    // Convert dates to ISO strings for the query parameters
+    const startDateISO = new Date(startDate).toISOString()
+    const endDateISO = new Date(endDate).toISOString()
+
+    const response = await fetch(
+      `${BASE_URL}/auth/profit_trend/${coin}/user?start_date=${encodeURIComponent(
+        startDateISO
+      )}&end_date=${encodeURIComponent(endDateISO)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user profit trend')
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching user profit trend:', error)
+    throw error
+  }
+}

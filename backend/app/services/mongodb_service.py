@@ -346,3 +346,40 @@ class MongoUserService:
         except Exception as e:
             logging.error(f"Failed to clear database: {str(e)}")
             return False
+
+    def insert_profit_snapshot(self, snapshot: Dict) -> bool:
+        """Insert a profit snapshot into the database."""
+        try:
+            result = self.db.profit_snapshots.insert_one(snapshot)
+            return result.inserted_id is not None
+        except Exception as e:
+            logging.error(f"Failed to insert profit snapshot: {str(e)}")
+            return False
+
+    def get_profit_trend(
+        self,
+        coin: str,
+        start_date: datetime,
+        end_date: datetime,
+        user_id: Optional[str] = None,
+    ) -> List[Dict]:
+        """Retrieve profit trend data for a coin within a date range."""
+        query = {
+            "coin": coin.lower(),
+            "timestamp": {"$gte": start_date, "$lte": end_date},
+        }
+        projection = {"_id": 0, "timestamp": 1, "price": 1}
+        if user_id:
+            projection[f"users.{user_id}"] = 1
+        else:
+            projection["global"] = 1
+
+        try:
+            snapshots = list(
+                self.db.profit_snapshots.find(query, projection).sort("timestamp", 1)
+            )
+            return snapshots
+        except Exception as e:
+            logging.error(f"Failed to retrieve profit trend: {str(e)}")
+            return []
+

@@ -570,6 +570,9 @@ class CoinScheduler:
                     f"Skipping invalid slug for {coin.get('name', 'Unknown')}"
                 )
 
+        # Save profit snapshot after all trades are completed
+        self._save_profit_snapshot()
+
         # Report trading activities
         try:
             with open(activities_file, "r") as f:
@@ -587,6 +590,17 @@ class CoinScheduler:
                 logging.info("=== TRADING BOT EXECUTION COMPLETED ===")
         except (IOError, json.JSONDecodeError) as e:
             logging.warning(f"Failed to read trading activities: {e}")
+
+    def _save_profit_snapshot(self):
+        """Save a snapshot of current profit metrics."""
+        if not self.trading_config["enabled"]:
+            logging.info("Trading is disabled, skipping profit snapshot")
+            return
+        try:
+            self.capital_manager.save_profit_snapshot()
+            logging.info("Profit snapshot saved successfully")
+        except Exception as e:
+            logging.error(f"Failed to save profit snapshot: {str(e)}")
 
     def configure_jobs(self):
         """Configure the scheduler with custom timing and dependencies."""

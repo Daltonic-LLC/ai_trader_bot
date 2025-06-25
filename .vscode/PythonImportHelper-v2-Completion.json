@@ -441,140 +441,43 @@
         "documentation": {}
     },
     {
-        "label": "time",
-        "kind": 6,
+        "label": "CoinStatsService",
+        "importPath": "app.services.coin_stats",
+        "description": "app.services.coin_stats",
         "isExtraImport": true,
-        "importPath": "time",
-        "description": "time",
-        "detail": "time",
+        "detail": "app.services.coin_stats",
         "documentation": {}
     },
     {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
+        "label": "CoinStatsService",
+        "importPath": "app.services.coin_stats",
+        "description": "app.services.coin_stats",
         "isExtraImport": true,
-        "detail": "pathlib",
+        "detail": "app.services.coin_stats",
         "documentation": {}
     },
     {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
+        "label": "CoinStatsService",
+        "importPath": "app.services.coin_stats",
+        "description": "app.services.coin_stats",
         "isExtraImport": true,
-        "detail": "pathlib",
+        "detail": "app.services.coin_stats",
         "documentation": {}
     },
     {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
+        "label": "CoinStatsService",
+        "importPath": "app.services.coin_stats",
+        "description": "app.services.coin_stats",
         "isExtraImport": true,
-        "detail": "pathlib",
+        "detail": "app.services.coin_stats",
         "documentation": {}
     },
     {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
         "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "sync_playwright",
-        "importPath": "playwright.sync_api",
-        "description": "playwright.sync_api",
-        "isExtraImport": true,
-        "detail": "playwright.sync_api",
-        "documentation": {}
-    },
-    {
-        "label": "TimeoutError",
-        "importPath": "playwright.sync_api",
-        "description": "playwright.sync_api",
-        "isExtraImport": true,
-        "detail": "playwright.sync_api",
-        "documentation": {}
-    },
-    {
-        "label": "sync_playwright",
-        "importPath": "playwright.sync_api",
-        "description": "playwright.sync_api",
-        "isExtraImport": true,
-        "detail": "playwright.sync_api",
-        "documentation": {}
-    },
-    {
-        "label": "TimeoutError",
-        "importPath": "playwright.sync_api",
-        "description": "playwright.sync_api",
-        "isExtraImport": true,
-        "detail": "playwright.sync_api",
-        "documentation": {}
-    },
-    {
-        "label": "sync_playwright",
-        "importPath": "playwright.sync_api",
-        "description": "playwright.sync_api",
-        "isExtraImport": true,
-        "detail": "playwright.sync_api",
-        "documentation": {}
-    },
-    {
-        "label": "TimeoutError",
-        "importPath": "playwright.sync_api",
-        "description": "playwright.sync_api",
-        "isExtraImport": true,
-        "detail": "playwright.sync_api",
-        "documentation": {}
-    },
-    {
-        "label": "sync_playwright",
-        "importPath": "playwright.sync_api",
-        "description": "playwright.sync_api",
-        "isExtraImport": true,
-        "detail": "playwright.sync_api",
-        "documentation": {}
-    },
-    {
-        "label": "TimeoutError",
-        "importPath": "playwright.sync_api",
-        "description": "playwright.sync_api",
-        "isExtraImport": true,
-        "detail": "playwright.sync_api",
-        "documentation": {}
-    },
-    {
-        "label": "sync_playwright",
-        "importPath": "playwright.sync_api",
-        "description": "playwright.sync_api",
-        "isExtraImport": true,
-        "detail": "playwright.sync_api",
-        "documentation": {}
-    },
-    {
-        "label": "TimeoutError",
-        "importPath": "playwright.sync_api",
-        "description": "playwright.sync_api",
-        "isExtraImport": true,
-        "detail": "playwright.sync_api",
+        "detail": "typing",
         "documentation": {}
     },
     {
@@ -738,6 +641,143 @@
         "documentation": {}
     },
     {
+        "label": "time",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "time",
+        "description": "time",
+        "detail": "time",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "sync_playwright",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "TimeoutError",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "sync_playwright",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "TimeoutError",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "sync_playwright",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "TimeoutError",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "sync_playwright",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "TimeoutError",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "sync_playwright",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "TimeoutError",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
         "label": "json",
         "kind": 6,
         "isExtraImport": true,
@@ -885,30 +925,6 @@
         "description": "app.services.coin_news",
         "isExtraImport": true,
         "detail": "app.services.coin_news",
-        "documentation": {}
-    },
-    {
-        "label": "CoinStatsService",
-        "importPath": "app.services.coin_stats",
-        "description": "app.services.coin_stats",
-        "isExtraImport": true,
-        "detail": "app.services.coin_stats",
-        "documentation": {}
-    },
-    {
-        "label": "CoinStatsService",
-        "importPath": "app.services.coin_stats",
-        "description": "app.services.coin_stats",
-        "isExtraImport": true,
-        "detail": "app.services.coin_stats",
-        "documentation": {}
-    },
-    {
-        "label": "CoinStatsService",
-        "importPath": "app.services.coin_stats",
-        "description": "app.services.coin_stats",
-        "isExtraImport": true,
-        "detail": "app.services.coin_stats",
         "documentation": {}
     },
     {
@@ -1922,7 +1938,7 @@
         "kind": 5,
         "importPath": "backend.tester3",
         "description": "backend.tester3",
-        "peekOfCode": "capital_manager = CapitalManager(initial_capital=1000.0)\n# Perform operations\n# capital_manager.deposit(\"bitcoin\", 500.0)\n# capital_manager.simulate_buy(\"bitcoin\", 0.01, 30000.0)\nprint(f\"Bitcoin position: {capital_manager.get_position('btc')}\")\nprint(f\"Bitcoin capital: {capital_manager.get_capital('btc')}\")",
+        "peekOfCode": "capital_manager = CapitalManager(initial_capital=1000.0)\n# Perform operations\ncapital_manager.deposit(\"67ustubutywq\", \"bitcoin\", 25000.0)\n# # capital_manager.simulate_buy(\"bitcoin\", 0.01, 30000.0)\n# print(f\"Bitcoin position: {capital_manager.get_position('btc')}\")\nprint(f\"Bitcoin capital: {capital_manager.get_capital('btc')}\")",
         "detail": "backend.tester3",
         "documentation": {}
     },
