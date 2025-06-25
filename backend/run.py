@@ -6,7 +6,6 @@ import os
 import sys
 import time
 from watchdog.observers import Observer
-from app.services.coin_scheduler import CoinScheduler
 from app.services.file_handler import FileChangeHandler
 from config import config
 
@@ -40,20 +39,6 @@ def run_fastapi():
     asyncio.run(server.start())
 
 
-def run_coin_scheduler():
-    """Run CoinScheduler in a separate process."""
-    scheduler = CoinScheduler(log_file="scheduler.log")
-    try:
-        scheduler.start()
-        # Keep the process running
-        while True:
-            time.sleep(60)  # Sleep to reduce CPU usage
-    except (KeyboardInterrupt, SystemExit):
-        scheduler.shutdown()
-    except Exception as e:
-        logger.error(f"Error running CoinScheduler: {e}")
-        scheduler.shutdown()
-
 
 def main():
     """Run FastAPI and CoinScheduler processes with log file watching."""
@@ -68,11 +53,9 @@ def main():
 
     # Create processes for FastAPI and CoinScheduler
     fastapi_process = multiprocessing.Process(target=run_fastapi)
-    scheduler_process = multiprocessing.Process(target=run_coin_scheduler)
 
     # Start the processes
     fastapi_process.start()
-    scheduler_process.start()
 
     # Set up file watching for .log files
     observer = Observer()
@@ -97,7 +80,6 @@ def main():
     finally:
         # Terminate processes and stop observer
         fastapi_process.terminate()
-        scheduler_process.terminate()
         observer.stop()
         observer.join()
 

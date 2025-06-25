@@ -64,14 +64,6 @@
         "documentation": {}
     },
     {
-        "label": "TopCoinsExtractor",
-        "importPath": "app.services.coin_extractor",
-        "description": "app.services.coin_extractor",
-        "isExtraImport": true,
-        "detail": "app.services.coin_extractor",
-        "documentation": {}
-    },
-    {
         "label": "CapitalManager",
         "importPath": "app.services.capital_manager",
         "description": "app.services.capital_manager",
@@ -125,54 +117,6 @@
         "description": "app.services.capital_manager",
         "isExtraImport": true,
         "detail": "app.services.capital_manager",
-        "documentation": {}
-    },
-    {
-        "label": "CapitalManager",
-        "importPath": "app.services.capital_manager",
-        "description": "app.services.capital_manager",
-        "isExtraImport": true,
-        "detail": "app.services.capital_manager",
-        "documentation": {}
-    },
-    {
-        "label": "CoinScheduler",
-        "importPath": "app.services.coin_scheduler",
-        "description": "app.services.coin_scheduler",
-        "isExtraImport": true,
-        "detail": "app.services.coin_scheduler",
-        "documentation": {}
-    },
-    {
-        "label": "CoinScheduler",
-        "importPath": "app.services.coin_scheduler",
-        "description": "app.services.coin_scheduler",
-        "isExtraImport": true,
-        "detail": "app.services.coin_scheduler",
-        "documentation": {}
-    },
-    {
-        "label": "CoinScheduler",
-        "importPath": "app.services.coin_scheduler",
-        "description": "app.services.coin_scheduler",
-        "isExtraImport": true,
-        "detail": "app.services.coin_scheduler",
-        "documentation": {}
-    },
-    {
-        "label": "CoinScheduler",
-        "importPath": "app.services.coin_scheduler",
-        "description": "app.services.coin_scheduler",
-        "isExtraImport": true,
-        "detail": "app.services.coin_scheduler",
-        "documentation": {}
-    },
-    {
-        "label": "CoinTrader",
-        "importPath": "app.trader_bot.coin_trader",
-        "description": "app.trader_bot.coin_trader",
-        "isExtraImport": true,
-        "detail": "app.trader_bot.coin_trader",
         "documentation": {}
     },
     {
@@ -281,30 +225,6 @@
         "documentation": {}
     },
     {
-        "label": "timezone",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "timedelta",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "datetime",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
         "label": "datetime",
         "importPath": "datetime",
         "description": "datetime",
@@ -354,38 +274,6 @@
     },
     {
         "label": "datetime",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "timezone",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "datetime",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "datetime",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "timedelta",
         "importPath": "datetime",
         "description": "datetime",
         "isExtraImport": true,
@@ -782,200 +670,6 @@
         "documentation": {}
     },
     {
-        "label": "BackgroundScheduler",
-        "importPath": "apscheduler.schedulers.background",
-        "description": "apscheduler.schedulers.background",
-        "isExtraImport": true,
-        "detail": "apscheduler.schedulers.background",
-        "documentation": {}
-    },
-    {
-        "label": "BackgroundScheduler",
-        "importPath": "apscheduler.schedulers.background",
-        "description": "apscheduler.schedulers.background",
-        "isExtraImport": true,
-        "detail": "apscheduler.schedulers.background",
-        "documentation": {}
-    },
-    {
-        "label": "IntervalTrigger",
-        "importPath": "apscheduler.triggers.interval",
-        "description": "apscheduler.triggers.interval",
-        "isExtraImport": true,
-        "detail": "apscheduler.triggers.interval",
-        "documentation": {}
-    },
-    {
-        "label": "CronTrigger",
-        "importPath": "apscheduler.triggers.cron",
-        "description": "apscheduler.triggers.cron",
-        "isExtraImport": true,
-        "detail": "apscheduler.triggers.cron",
-        "documentation": {}
-    },
-    {
-        "label": "ThreadPoolExecutor",
-        "importPath": "apscheduler.executors.pool",
-        "description": "apscheduler.executors.pool",
-        "isExtraImport": true,
-        "detail": "apscheduler.executors.pool",
-        "documentation": {}
-    },
-    {
-        "label": "ThreadPoolExecutor",
-        "importPath": "apscheduler.executors.pool",
-        "description": "apscheduler.executors.pool",
-        "isExtraImport": true,
-        "detail": "apscheduler.executors.pool",
-        "documentation": {}
-    },
-    {
-        "label": "os",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "os",
-        "description": "os",
-        "detail": "os",
-        "documentation": {}
-    },
-    {
-        "label": "environ",
-        "importPath": "os",
-        "description": "os",
-        "isExtraImport": true,
-        "detail": "os",
-        "documentation": {}
-    },
-    {
-        "label": "requests",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "requests",
-        "description": "requests",
-        "detail": "requests",
-        "documentation": {}
-    },
-    {
-        "label": "CoinHistory",
-        "importPath": "app.services.coin_history",
-        "description": "app.services.coin_history",
-        "isExtraImport": true,
-        "detail": "app.services.coin_history",
-        "documentation": {}
-    },
-    {
-        "label": "CoinHistory",
-        "importPath": "app.services.coin_history",
-        "description": "app.services.coin_history",
-        "isExtraImport": true,
-        "detail": "app.services.coin_history",
-        "documentation": {}
-    },
-    {
-        "label": "NewsSentimentService",
-        "importPath": "app.services.coin_news",
-        "description": "app.services.coin_news",
-        "isExtraImport": true,
-        "detail": "app.services.coin_news",
-        "documentation": {}
-    },
-    {
-        "label": "NewsSentimentService",
-        "importPath": "app.services.coin_news",
-        "description": "app.services.coin_news",
-        "isExtraImport": true,
-        "detail": "app.services.coin_news",
-        "documentation": {}
-    },
-    {
-        "label": "CoinStatsService",
-        "importPath": "app.services.coin_stats",
-        "description": "app.services.coin_stats",
-        "isExtraImport": true,
-        "detail": "app.services.coin_stats",
-        "documentation": {}
-    },
-    {
-        "label": "CoinStatsService",
-        "importPath": "app.services.coin_stats",
-        "description": "app.services.coin_stats",
-        "isExtraImport": true,
-        "detail": "app.services.coin_stats",
-        "documentation": {}
-    },
-    {
-        "label": "CoinStatsService",
-        "importPath": "app.services.coin_stats",
-        "description": "app.services.coin_stats",
-        "isExtraImport": true,
-        "detail": "app.services.coin_stats",
-        "documentation": {}
-    },
-    {
-        "label": "DataCleaner",
-        "importPath": "app.services.file_manager",
-        "description": "app.services.file_manager",
-        "isExtraImport": true,
-        "detail": "app.services.file_manager",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
-        "label": "config",
-        "importPath": "config",
-        "description": "config",
-        "isExtraImport": true,
-        "detail": "config",
-        "documentation": {}
-    },
-    {
         "label": "csv",
         "kind": 6,
         "isExtraImport": true,
@@ -1003,6 +697,23 @@
         "documentation": {}
     },
     {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "environ",
+        "importPath": "os",
+        "description": "os",
+        "isExtraImport": true,
+        "detail": "os",
+        "documentation": {}
+    },
+    {
         "label": "sys",
         "kind": 6,
         "isExtraImport": true,
@@ -1026,6 +737,54 @@
         "description": "watchdog.events",
         "isExtraImport": true,
         "detail": "watchdog.events",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
+        "documentation": {}
+    },
+    {
+        "label": "config",
+        "importPath": "config",
+        "description": "config",
+        "isExtraImport": true,
+        "detail": "config",
         "documentation": {}
     },
     {
@@ -1154,6 +913,38 @@
         "description": "app.trader_bot.news_handler",
         "isExtraImport": true,
         "detail": "app.trader_bot.news_handler",
+        "documentation": {}
+    },
+    {
+        "label": "CoinStatsService",
+        "importPath": "app.services.coin_stats",
+        "description": "app.services.coin_stats",
+        "isExtraImport": true,
+        "detail": "app.services.coin_stats",
+        "documentation": {}
+    },
+    {
+        "label": "CoinStatsService",
+        "importPath": "app.services.coin_stats",
+        "description": "app.services.coin_stats",
+        "isExtraImport": true,
+        "detail": "app.services.coin_stats",
+        "documentation": {}
+    },
+    {
+        "label": "NewsSentimentService",
+        "importPath": "app.services.coin_news",
+        "description": "app.services.coin_news",
+        "isExtraImport": true,
+        "detail": "app.services.coin_news",
+        "documentation": {}
+    },
+    {
+        "label": "CoinHistory",
+        "importPath": "app.services.coin_history",
+        "description": "app.services.coin_history",
+        "isExtraImport": true,
+        "detail": "app.services.coin_history",
         "documentation": {}
     },
     {
@@ -1362,14 +1153,6 @@
         "documentation": {}
     },
     {
-        "label": "DateTrigger",
-        "importPath": "apscheduler.triggers.date",
-        "description": "apscheduler.triggers.date",
-        "isExtraImport": true,
-        "detail": "apscheduler.triggers.date",
-        "documentation": {}
-    },
-    {
         "label": "path",
         "importPath": "app.services.capital_manager import CapitalManager  # Adjust",
         "description": "app.services.capital_manager import CapitalManager  # Adjust",
@@ -1447,15 +1230,6 @@
         "description": "backend.app.services.coin_news",
         "peekOfCode": "class NewsSentimentService:\n    \"\"\"\n    A service for fetching community posts and calculating sentiment scores for cryptocurrencies from CoinMarketCap.\n    \"\"\"\n    def __init__(self, timeout: int = 60000):\n        \"\"\"\n        Initialize the NewsSentimentService.\n        Args:\n            timeout (int): Timeout in milliseconds for browser operations. Default is 60 seconds.\n        \"\"\"",
         "detail": "backend.app.services.coin_news",
-        "documentation": {}
-    },
-    {
-        "label": "CoinScheduler",
-        "kind": 6,
-        "importPath": "backend.app.services.coin_scheduler",
-        "description": "backend.app.services.coin_scheduler",
-        "peekOfCode": "class CoinScheduler:\n    def __init__(\n        self,\n        log_file=\"scheduler.log\",\n        execution_log_file=\"data/scheduler/execution_log.json\",\n        trading_config=None,\n        auto_trigger=True,\n        continue_on_failure=False,\n    ):\n        \"\"\"Initialize the CoinScheduler with custom timing and dependencies.\"\"\"",
-        "detail": "backend.app.services.coin_scheduler",
         "documentation": {}
     },
     {
@@ -1711,51 +1485,6 @@
         "documentation": {}
     },
     {
-        "label": "trading_config",
-        "kind": 5,
-        "importPath": "backend.manual_trigger",
-        "description": "backend.manual_trigger",
-        "peekOfCode": "trading_config = {\"enabled\": True, \"initial_capital\": 1000.0, \"override\": False}\n# Initialize and start the CoinScheduler\nscheduler = CoinScheduler(trading_config=trading_config)\nscheduler.start()\n# Trigger the top_coins chain\nstart_time1 = datetime.now(timezone.utc)\nscheduler.trigger_top_coins_now()\nprint(\"Triggered top_coins. Waiting for data_cleanup to complete...\")\n# Wait for the data_cleanup job (end of top_coins chain) to complete\nwhile True:",
-        "detail": "backend.manual_trigger",
-        "documentation": {}
-    },
-    {
-        "label": "scheduler",
-        "kind": 5,
-        "importPath": "backend.manual_trigger",
-        "description": "backend.manual_trigger",
-        "peekOfCode": "scheduler = CoinScheduler(trading_config=trading_config)\nscheduler.start()\n# Trigger the top_coins chain\nstart_time1 = datetime.now(timezone.utc)\nscheduler.trigger_top_coins_now()\nprint(\"Triggered top_coins. Waiting for data_cleanup to complete...\")\n# Wait for the data_cleanup job (end of top_coins chain) to complete\nwhile True:\n    log_data = scheduler.load_execution_log()\n    last_run_str = log_data.get(\"data_cleanup\", {}).get(\"last_execution\")",
-        "detail": "backend.manual_trigger",
-        "documentation": {}
-    },
-    {
-        "label": "start_time1",
-        "kind": 5,
-        "importPath": "backend.manual_trigger",
-        "description": "backend.manual_trigger",
-        "peekOfCode": "start_time1 = datetime.now(timezone.utc)\nscheduler.trigger_top_coins_now()\nprint(\"Triggered top_coins. Waiting for data_cleanup to complete...\")\n# Wait for the data_cleanup job (end of top_coins chain) to complete\nwhile True:\n    log_data = scheduler.load_execution_log()\n    last_run_str = log_data.get(\"data_cleanup\", {}).get(\"last_execution\")\n    if last_run_str:\n        last_run_time = datetime.fromisoformat(last_run_str)\n        if last_run_time > start_time1:",
-        "detail": "backend.manual_trigger",
-        "documentation": {}
-    },
-    {
-        "label": "start_time2",
-        "kind": 5,
-        "importPath": "backend.manual_trigger",
-        "description": "backend.manual_trigger",
-        "peekOfCode": "start_time2 = datetime.now(timezone.utc)\nscheduler.trigger_news_sentiment_now(force=False)\nfinal_job = \"trading_bot\" if trading_config[\"enabled\"] else \"coin_prices\"\nprint(f\"Triggered news_sentiment. Waiting for {final_job} to complete...\")\n# Wait for the final job in the news_sentiment chain to complete\nwhile True:\n    log_data = scheduler.load_execution_log()\n    last_run_str = log_data.get(final_job, {}).get(\"last_execution\")\n    if last_run_str:\n        last_run_time = datetime.fromisoformat(last_run_str)",
-        "detail": "backend.manual_trigger",
-        "documentation": {}
-    },
-    {
-        "label": "final_job",
-        "kind": 5,
-        "importPath": "backend.manual_trigger",
-        "description": "backend.manual_trigger",
-        "peekOfCode": "final_job = \"trading_bot\" if trading_config[\"enabled\"] else \"coin_prices\"\nprint(f\"Triggered news_sentiment. Waiting for {final_job} to complete...\")\n# Wait for the final job in the news_sentiment chain to complete\nwhile True:\n    log_data = scheduler.load_execution_log()\n    last_run_str = log_data.get(final_job, {}).get(\"last_execution\")\n    if last_run_str:\n        last_run_time = datetime.fromisoformat(last_run_str)\n        if last_run_time > start_time2:\n            break",
-        "detail": "backend.manual_trigger",
-        "documentation": {}
-    },
-    {
         "label": "setup_file_logging",
         "kind": 2,
         "importPath": "backend.reset_database",
@@ -1814,16 +1543,7 @@
         "kind": 2,
         "importPath": "backend.run",
         "description": "backend.run",
-        "peekOfCode": "def run_fastapi():\n    \"\"\"Run FastAPI server in a separate process.\"\"\"\n    server = FastAPIServer()\n    asyncio.run(server.start())\ndef run_coin_scheduler():\n    \"\"\"Run CoinScheduler in a separate process.\"\"\"\n    scheduler = CoinScheduler(log_file=\"scheduler.log\")\n    try:\n        scheduler.start()\n        # Keep the process running",
-        "detail": "backend.run",
-        "documentation": {}
-    },
-    {
-        "label": "run_coin_scheduler",
-        "kind": 2,
-        "importPath": "backend.run",
-        "description": "backend.run",
-        "peekOfCode": "def run_coin_scheduler():\n    \"\"\"Run CoinScheduler in a separate process.\"\"\"\n    scheduler = CoinScheduler(log_file=\"scheduler.log\")\n    try:\n        scheduler.start()\n        # Keep the process running\n        while True:\n            time.sleep(60)  # Sleep to reduce CPU usage\n    except (KeyboardInterrupt, SystemExit):\n        scheduler.shutdown()",
+        "peekOfCode": "def run_fastapi():\n    \"\"\"Run FastAPI server in a separate process.\"\"\"\n    server = FastAPIServer()\n    asyncio.run(server.start())\ndef main():\n    \"\"\"Run FastAPI and CoinScheduler processes with log file watching.\"\"\"\n    if len(sys.argv) > 1:\n        folder_to_watch = os.path.abspath(sys.argv[1])\n    else:\n        folder_to_watch = os.path.abspath(\"./data\")",
         "detail": "backend.run",
         "documentation": {}
     },
@@ -1879,42 +1599,6 @@
         "description": "backend.run_dev",
         "peekOfCode": "logger = logging.getLogger(\"server\")\nclass FastAPIServer:\n    def __init__(self):\n        self.config = uvicorn.Config(\n            \"app.main:app\",\n            host=\"0.0.0.0\",\n            port=config.get_port,\n            reload=False,  # We handle reload manually\n            loop=\"asyncio\",\n        )",
         "detail": "backend.run_dev",
-        "documentation": {}
-    },
-    {
-        "label": "TestCoinScheduler",
-        "kind": 6,
-        "importPath": "backend.tester2",
-        "description": "backend.tester2",
-        "peekOfCode": "class TestCoinScheduler(CoinScheduler):\n    def __init__(self, log_file='scheduler_test.log', trading_config=None):\n        super().__init__(log_file, trading_config=trading_config)\n        self.scheduler = BackgroundScheduler(\n            executors={'default': ThreadPoolExecutor(max_workers=5)},  # Allow up to 5 concurrent jobs\n            job_defaults={\n                'coalesce': False,  # Don't skip missed jobs\n                'max_instances': 1,  # Only one instance of each job at a time\n                'misfire_grace_time': 300  # Allow 5 minutes grace period for missed jobs\n            }",
-        "detail": "backend.tester2",
-        "documentation": {}
-    },
-    {
-        "label": "SequentialTestScheduler",
-        "kind": 6,
-        "importPath": "backend.tester2",
-        "description": "backend.tester2",
-        "peekOfCode": "class SequentialTestScheduler(CoinScheduler):\n    def __init__(self, log_file='scheduler_test.log', trading_config=None):\n        super().__init__(log_file, trading_config=trading_config)\n        self.scheduler = BackgroundScheduler(\n            executors={'default': ThreadPoolExecutor(max_workers=1)},\n            job_defaults={\n                'coalesce': False,\n                'max_instances': 1,\n                'misfire_grace_time': 600  # 10 minutes grace period\n            }",
-        "detail": "backend.tester2",
-        "documentation": {}
-    },
-    {
-        "label": "load_execution_durations",
-        "kind": 2,
-        "importPath": "backend.tester2",
-        "description": "backend.tester2",
-        "peekOfCode": "def load_execution_durations():\n    \"\"\"Load execution durations from execution_log.json.\"\"\"\n    if os.path.exists(EXECUTION_LOG_FILE):\n        try:\n            with open(EXECUTION_LOG_FILE, 'r') as f:\n                log_data = json.load(f)\n                return {\n                    'top_coins': log_data.get('top_coins', {}).get('execution_duration'),\n                    'coin_history': log_data.get('coin_history', {}).get('execution_duration'),\n                    'news_sentiment': log_data.get('news_sentiment', {}).get('execution_duration'),",
-        "detail": "backend.tester2",
-        "documentation": {}
-    },
-    {
-        "label": "EXECUTION_LOG_FILE",
-        "kind": 5,
-        "importPath": "backend.tester2",
-        "description": "backend.tester2",
-        "peekOfCode": "EXECUTION_LOG_FILE = 'data/scheduler/execution_log.json'\ndef load_execution_durations():\n    \"\"\"Load execution durations from execution_log.json.\"\"\"\n    if os.path.exists(EXECUTION_LOG_FILE):\n        try:\n            with open(EXECUTION_LOG_FILE, 'r') as f:\n                log_data = json.load(f)\n                return {\n                    'top_coins': log_data.get('top_coins', {}).get('execution_duration'),\n                    'coin_history': log_data.get('coin_history', {}).get('execution_duration'),",
-        "detail": "backend.tester2",
         "documentation": {}
     },
     {
