@@ -9,9 +9,8 @@ import Header from '@/components/Header';
 import InvestmentCard from '@/components/InvestmentCard';
 import RecentTradeReportCard from '@/components/RecentTradeReport';
 import WithdrawModal from '@/components/WithdrawModal';
-import { useGlobalContext } from '@/contexts/GlobalContext';
 import { Coin, ExecutionLog, InvestmentData } from '@/utils/interfaces';
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Fake data matching the provided interfaces
 const fakeCoins: Coin[] = [
@@ -59,8 +58,6 @@ const fakeReports: { [key: string]: string } = {
   bitcoin: "Report for BITCOIN:\n        - Current Price: $105949.99\n        - 24h Price Change: 1.94%\n        - 24h Low: $103712.61\n        - 24h High: $106316.83\n        - 24h Volume: $56,690,000,000.00\n        - Market Cap: $2,100,000,000,000.00\n        - Predicted Close: $65911.22\n        - News Sentiment: 0.40\n        - News Text: $BTC 🚀 Bitcoin Breaks Above $105K! 🚨 JUST IN: BlackRock buys 2,113 $BTC worth $222 million, pushing total holdings to a staggering 685,000 Bitcoin. $BTC Dominance Faces Critical Rejection Zone! BREAKING : Trump said Iran and Israel agree to a ceasefire. $BTC testing key value area low. 📢 #TRUMP Media...\n        - Recommendation: BUY\n- Current Capital: $5.97\nTrade Details:\nSimulated BUY: 0.000084 BITCOIN at $105949.99\nAction: Manually buy on an exchange.",
   ethereum: "Report for ETHEREUM:\n        - Current Price: $2441.17\n        - 24h Price Change: 3.79%\n        - 24h Low: $2338.83\n        - 24h High: $2481.22\n        - 24h Volume: $23,670,000,000.00\n        - Market Cap: $294,690,000,000.00\n        - Predicted Close: $2499.81\n        - News Sentiment: 0.20\n        - News Text: 🚨 CMC News: Ethereum Whales Open $100 Million Leveraged Positions Amid Global Uncertainty. ETH: Percent Supply in Profit $ETH Outlook 🔵 Ethereum developers issue proposal to halve block slot time to boost transaction speed Analyzing Ethereum’s 8% rebound - Will Q3 push ETH to $3K? I'm bullish on $ETH Ethereum...\n        - Recommendation: SELL\n- Current Capital: $74.02\nTrade Details:\nHOLD: Profit margin 1.15% below tier thresholds."
 };
-
-
 
 const fakeInvestmentDatas: { [key: string]: InvestmentData } = {
   bitcoin: {
@@ -146,21 +143,14 @@ const fakeInvestmentDatas: { [key: string]: InvestmentData } = {
 const MAX_COINS: number = Number(process.env.NEXT_PUBLIC_MAX_COINS) || 0;
 
 const DashboardPage: React.FC = () => {
-  const [report, setReport] = React.useState<string | null>(null);
-  const [lastTrade, setLastTrade] = React.useState<ExecutionLog | null>(null);
-  const [lastReport, setLastReport] = React.useState<ExecutionLog | null>(null);
-  const [investmentData, setInvestmentData] = React.useState<InvestmentData | null>(null);
-
-  const {
-    isDepositOpen,
-    setIsDepositOpen,
-    isWithdrawOpen,
-    setIsWithdrawOpen,
-    setCurrencies,
-    setSelectedCoin,
-    currencies: coins,
-    selectedCoin
-  } = useGlobalContext();
+  const [report, setReport] = useState<string | null>(null);
+  const [lastTrade, setLastTrade] = useState<ExecutionLog | null>(null);
+  const [lastReport, setLastReport] = useState<ExecutionLog | null>(null);
+  const [investmentData, setInvestmentData] = useState<InvestmentData | null>(null);
+  const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const [currencies, setCurrencies] = useState<Coin[]>([]);
+  const [selectedCoin, setSelectedCoin] = useState<Coin | null>(null);
 
   const getExecutionLog = async () => {
     const log = {
@@ -188,14 +178,11 @@ const DashboardPage: React.FC = () => {
   const getCoins = async () => {
     const data = { data: fakeCoins.slice(0, MAX_COINS || fakeCoins.length) };
     if (data.data.length > 0) {
-      if (setCurrencies) {
-        setCurrencies(data.data as Coin[]);
-      }
-      if (setSelectedCoin) {
-        setSelectedCoin(data.data[0] as Coin);
-        await getCoinReport(data.data[0].slug);
-        await getCoinInvestment(data.data[0].slug);
-      }
+      setCurrencies(data.data);
+      const firstCoin = data.data[0];
+      setSelectedCoin(firstCoin);
+      await getCoinReport(firstCoin.slug);
+      await getCoinInvestment(firstCoin.slug);
     }
   };
 
@@ -211,25 +198,27 @@ const DashboardPage: React.FC = () => {
         {/* Left Section: Selector */}
         <div className="lg:w-3/12 mb-6 lg:mb-0">
           <CoinSelector
-            coins={coins || []}
-            selectedCoin={selectedCoin ?? null}
-            onCoinChange={(coin: Coin | null) => {
+            coins={currencies}
+            selectedCoin={selectedCoin}
+            onCoinChange={async (coin: Coin | null) => {
               if (coin) {
-                getCoinReport(coin.slug);
-                getCoinInvestment(coin.slug);
-              }
-              if (setSelectedCoin) {
+                await getCoinReport(coin.slug);
+                await getCoinInvestment(coin.slug);
                 setSelectedCoin(coin);
               }
             }}
           />
-          <ActionButtons isCoinSelected={selectedCoin !== null} />
+          <ActionButtons
+            isCoinSelected={selectedCoin !== null}
+            onDepositClick={() => setIsDepositOpen(true)}
+            onWithdrawClick={() => setIsWithdrawOpen(true)}
+          />
         </div>
         <div className="flex flex-col lg:space-x-6 space-y-4 sm:w-4/5 mx-auto w-full">
           <div className='flex-1 flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0 mr-0'>
             {/* Right Section: Coin Details */}
             <div className="flex-1 lg:mt-0">
-              <CoinDetailsCard coin={selectedCoin ?? null} executionLog={lastTrade || null} />
+              <CoinDetailsCard coin={selectedCoin} executionLog={lastTrade} />
             </div>
             {investmentData && investmentData.user_investment && (
               <div className="lg:w-5/12">
@@ -238,12 +227,12 @@ const DashboardPage: React.FC = () => {
             )}
           </div>
           <div className='flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0'>
-            <RecentTradeReportCard report={report || ''} executionLog={lastReport || null} />
+            <RecentTradeReportCard report={report || ''} executionLog={lastReport} />
           </div>
         </div>
       </div>
 
-      {isDepositOpen && selectedCoin && setIsDepositOpen && (
+      {isDepositOpen && selectedCoin && (
         <DepositModal
           coin={selectedCoin}
           currentBalance={
@@ -258,7 +247,7 @@ const DashboardPage: React.FC = () => {
         />
       )}
 
-      {isWithdrawOpen && selectedCoin && setIsWithdrawOpen && (
+      {isWithdrawOpen && selectedCoin && (
         <WithdrawModal
           coin={selectedCoin}
           currentBalance={
