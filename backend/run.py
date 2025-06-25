@@ -6,8 +6,6 @@ import os
 import sys
 import time
 from watchdog.observers import Observer
-from app.services.file_handler import FileChangeHandler
-from config import config
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -20,7 +18,7 @@ class FastAPIServer:
         self.config = uvicorn.Config(
             "app.main:app",
             host="0.0.0.0",
-            port=config.get_port,
+            port=8000,
             reload=False,
             loop="asyncio",
         )
@@ -37,7 +35,6 @@ def run_fastapi():
     """Run FastAPI server in a separate process."""
     server = FastAPIServer()
     asyncio.run(server.start())
-
 
 
 def main():
@@ -60,16 +57,7 @@ def main():
     # Set up file watching for .log files
     observer = Observer()
 
-    # Handler for log file changes in specified folder (only .log files)
-    log_handler = FileChangeHandler(
-        observer,
-        fastapi_process,  # You might want to pass both processes or handle differently
-        folder_to_watch=folder_to_watch,
-        patterns=[".log"],
-    )
-
     # Schedule the log file handler
-    observer.schedule(log_handler, path=folder_to_watch, recursive=True)
     observer.start()
 
     try:
@@ -87,5 +75,3 @@ def main():
 if __name__ == "__main__":
     multiprocessing.freeze_support()
     main()
-
-

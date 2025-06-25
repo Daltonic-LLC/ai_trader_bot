@@ -5,8 +5,6 @@ import multiprocessing
 import os
 import sys
 from watchdog.observers import Observer
-from config import config
-from app.services.file_handler import FileChangeHandler
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -19,7 +17,7 @@ class FastAPIServer:
         self.config = uvicorn.Config(
             "app.main:app",
             host="0.0.0.0",
-            port=config.get_port,
+            port=8000,
             reload=False,  # We handle reload manually
             loop="asyncio",
         )
@@ -53,25 +51,8 @@ def main():
 
     observer = Observer()
 
-    # Handler for log file changes (watching .log files in current directory)
-    log_handler = FileChangeHandler(
-        observer,
-        fastapi_process,
-        folder_to_watch=".",
-        patterns=[".py"],
-    )
-
-    # Handler for log file changes in specified folder
-    folder_log_handler = FileChangeHandler(
-        observer,
-        fastapi_process,
-        folder_to_watch=folder_to_watch,
-        patterns=[".log"],
-    )
 
     # Schedule both handlers
-    observer.schedule(log_handler, path=".", recursive=True)
-    observer.schedule(folder_log_handler, path=folder_to_watch, recursive=True)
     observer.start()
 
     try:
