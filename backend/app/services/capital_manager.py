@@ -3,6 +3,8 @@ from datetime import datetime
 import logging
 from threading import Lock
 from app.services.mongodb_service import MongoUserService
+from app.services.coin_stats import CoinStatsService
+from typing import Optional
 
 # Configure basic logging
 logging.basicConfig(
@@ -540,3 +542,50 @@ class CapitalManager:
             "total_trades": total_trades,
             "total_fees_paid": total_fees_paid,
         }
+
+    def get_current_price(self, coin: str) -> Optional[float]:
+        """Fetch the current price of the coin using CoinStatsService."""
+        stats = CoinStatsService().fetch_coin_stats(coin)
+        if stats and "price" in stats:
+            return stats["price"]
+        return None
+
+    
+    def save_profit_snapshot(self):
+        """Save a snapshot of current profit metrics for all coins (global only)."""
+        with self._lock:
+            for coin in self.capital.keys():
+                try:
+                    # Fetch current price
+                    current_price = self.get_current_price(coin)
+                    if current_price is None:
+                        logging.warning(f"Could not fetch current price for {coin}")
+                        continue
+
+                    # Calculate global metrics only
+                    global_metrics = self.get_coin_performance_summary(
+                        coin, current_price
+                    )
+
+                    # Create snapshot document with only global data and UTC timestamp
+                    snapshot = {
+                        "timestamp": datetime.utcnow(),  # Changed to UTC time
+                        "coin": coin,
+                        "price": current_price,
+                        "global": {
+                            "realized_profits": global_metrics["realized_profits"],
+                            "unrealized_gains": global_metrics["unrealized_gains"],
+                            "total_gains": global_metrics["total_gains"],
+                            "performance_percentage": global_metrics["performance_percentage"],
+                            "total_portfolio_value": global_metrics["total_portfolio_value"],
+                            "current_capital": global_metrics["current_capital"],
+                            "position_value": global_metrics["position_value"],
+                            "total_net_investments": global_metrics["total_net_investments"],
+                        },
+                    }
+
+                    # Save to MongoDB
+                    self.mongo_service.insert_profit_snapshot(snapshot)
+                    logging.info(f"Saved global profit snapshot for {coin}")
+                except Exception as e:
+                    logging.error(f"Failed to save profit snapshot for {coin}: {str(e)}")

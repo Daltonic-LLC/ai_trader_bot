@@ -202,3 +202,31 @@ export const fetchWalletAddresses = async (coin: string) => {
     throw error
   }
 }
+
+export const fetchProfitTrend = async (coin: string, days: number = 30) => {
+  try {
+    const _user = Cookies.get('bot_user')!
+    const parsedUser = JSON.parse(_user) || {}
+    const token = parsedUser?.token?.access_token || ''
+
+    const response = await fetch(
+      `${BASE_URL}/auth/profit_trend/${coin}?days=${days}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error('Failed to retrieve profit trend data')
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching profit trend data:', error)
+    throw error
+  }
+}

@@ -135,8 +135,8 @@ class SequentialTestScheduler(CoinScheduler):
         current_time = base_time
         
         jobs_config = [
-            # ('top_coins', 'Top Coins Extraction', self._daily_top_coin_list, {}),
-            # ('coin_history', 'Coin History Extraction', self._daily_coin_history, {'limit': 1}),
+            ('top_coins', 'Top Coins Extraction', self._daily_top_coin_list, {}),
+            ('coin_history', 'Coin History Extraction', self._daily_coin_history, {'limit': 1}),
             ('news_sentiment', 'News Sentiment Extraction', self._daily_news_sentiment, {'limit': 1}),
             ('coin_prices', 'Coin Prices Update', self._daily_coin_prices, {'limit': 1}),
             ('data_cleanup', 'Data Cleanup', self._daily_data_cleaner, {})

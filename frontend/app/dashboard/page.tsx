@@ -7,11 +7,12 @@ import CoinSelector from '@/components/CoinSelector';
 import DepositModal from '@/components/DepositeModal';
 import Header from '@/components/Header';
 import InvestmentCard from '@/components/InvestmentCard';
+import ProfitTrendChart from '@/components/ProfitTrendChart';
 import RecentTradeReportCard from '@/components/RecentTradeReport';
 import WithdrawModal from '@/components/WithdrawModal';
 import { useGlobalContext } from '@/contexts/GlobalContext';
-import { fetchCoinInvestment, fetchCoinReport, fetchCoins, fetchExecutionLog } from '@/utils/api';
-import { Coin, ExecutionLog, InvestmentData } from '@/utils/interfaces';
+import { fetchCoinInvestment, fetchCoinReport, fetchCoins, fetchExecutionLog, fetchProfitTrend } from '@/utils/api';
+import { Coin, ExecutionLog, InvestmentData, PortfolioData } from '@/utils/interfaces';
 import React, { useEffect } from 'react';
 
 const MAX_COINS: number = Number(process.env.NEXT_PUBLIC_MAX_COINS) || 0;
@@ -19,6 +20,7 @@ const DashboardPage: React.FC = () => {
   const [report, setReport] = React.useState<string | null>(null);
   const [lastTrade, setLastTrade] = React.useState<ExecutionLog | null>(null);
   const [lastReport, setLastReport] = React.useState<ExecutionLog | null>(null);
+  const [portfolioData, setPortfolioData] = React.useState<PortfolioData[] | null>(null);
   const [investmentData, setInvestmentData] = React.useState<InvestmentData | null>(null);
 
   const {
@@ -50,6 +52,18 @@ const DashboardPage: React.FC = () => {
     }
   }
 
+  const getProfitTrend = async (coin: string) => fetchProfitTrend(coin)
+    .then((data) => {
+      if (data && Object.keys(data).length > 0) {
+
+        setPortfolioData(data);
+      }
+    })
+    .catch((error) => {
+      console.error('Error fetching coin profit trend:', error);
+      setPortfolioData(null);
+    });
+
   const getCoinInvestment = async (coin: string) => fetchCoinInvestment(coin)
     .then((data) => {
       if (data && Object.keys(data).length > 0) {
@@ -71,6 +85,7 @@ const DashboardPage: React.FC = () => {
         if (setSelectedCoin) {
           setSelectedCoin(data.data[0] as Coin);
           await getCoinReport(data.data[0].slug)
+          await getProfitTrend(data.data[0].slug);
           await getCoinInvestment(data.data[0].slug);
         }
       }
@@ -97,6 +112,7 @@ const DashboardPage: React.FC = () => {
               if (coin) {
                 getCoinReport(coin.slug);
                 getCoinInvestment(coin.slug)
+                getProfitTrend(coin.slug)
               }
 
               if (setSelectedCoin) {
@@ -121,6 +137,12 @@ const DashboardPage: React.FC = () => {
               </div>
             }
           </div>
+
+          {portfolioData && portfolioData.length > 0 &&
+            <div className='flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0 mr-0'>
+              <ProfitTrendChart data={portfolioData} coin={selectedCoin ?? null} executionLog={lastTrade || null} />
+            </div>
+          }
 
           <div className='flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0'>
             <RecentTradeReportCard

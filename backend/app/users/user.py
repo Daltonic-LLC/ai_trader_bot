@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.security import OAuth2AuthorizationCodeBearer
 from typing import Optional, Dict
 from google.oauth2 import id_token
@@ -426,3 +426,52 @@ async def get_wallet_addresses(
         raise HTTPException(status_code=404, detail="No wallet found for this user")
 
     return {"wallet": wallet}
+
+
+from fastapi import Query, Depends
+from datetime import datetime, timedelta
+from typing import List, Dict, Any
+
+
+@auth_router.get("/profit_trend/{coin}")
+async def get_global_profit_trend(
+    coin: str,
+    days: int = Query(..., gt=0),  # Require days > 0
+    current_user: dict = Depends(get_current_user),
+) -> List[Dict[str, Any]]:
+    """
+    Retrieve global profit trend for a coin for the last N days.
+    If no data is found, returns a list with one default record containing zero values.
+
+    Args:
+        coin: The coin symbol (e.g., 'btc', 'eth') or full name (e.g., 'bitcoin', 'ethereum')
+        days: Number of days to look back (e.g., 30 for 1 month, 90 for 3 months)
+    """
+    # Calculate date range
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=days)
+
+    # Query the trend data
+    trend_data = user_service.get_profit_trend(coin.lower(), start_date, end_date)
+
+    # Check if no data was found
+    if not trend_data:
+        # Define a default record with zero values
+        default_record = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "price": 0,
+            "global": {
+                "realized_profits": 0,
+                "unrealized_gains": 0,
+                "total_gains": 0,
+                "performance_percentage": 0,
+                "total_portfolio_value": 0,
+                "current_capital": 0,
+                "position_value": 0,
+                "total_net_investments": 0,
+            },
+        }
+        return [default_record]  # Return list with one default record
+
+    # Return actual data if available
+    return trend_data
