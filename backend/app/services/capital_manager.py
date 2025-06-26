@@ -545,7 +545,7 @@ class CapitalManager:
 
     def get_current_price(self, coin: str) -> Optional[float]:
         """Fetch the current price of the coin using CoinStatsService."""
-        stats = CoinStatsService().fetch_coin_stats(coin)
+        stats = CoinStatsService().get_latest_stats(coin)
         if stats and "price" in stats:
             return stats["price"]
         return None
