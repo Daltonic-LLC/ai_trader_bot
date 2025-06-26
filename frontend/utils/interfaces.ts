@@ -68,3 +68,18 @@ export interface InvestmentData {
   coin: string
   timestamp: string
 }
+
+export interface PortfolioData {
+  timestamp: string
+  price: number
+  global: {
+    realized_profits: number
+    unrealized_gains: number
+    total_gains: number
+    performance_percentage: number
+    total_portfolio_value: number
+    current_capital: number
+    position_value: number
+    total_net_investments: number
+  }
+}
