@@ -550,8 +550,9 @@ class CapitalManager:
             return stats["price"]
         return None
 
+    
     def save_profit_snapshot(self):
-        """Save a snapshot of current profit metrics for all coins."""
+        """Save a snapshot of current profit metrics for all coins (global only)."""
         with self._lock:
             for coin in self.capital.keys():
                 try:
@@ -561,46 +562,30 @@ class CapitalManager:
                         logging.warning(f"Could not fetch current price for {coin}")
                         continue
 
-                    # Calculate global metrics
+                    # Calculate global metrics only
                     global_metrics = self.get_coin_performance_summary(
                         coin, current_price
                     )
 
-                    # Get users invested in this coin
-                    users = self.user_investments.get(coin, {}).keys()
-                    user_metrics = {}
-                    for user_id in users:
-                        details = self.get_user_investment_details(
-                            user_id, coin, current_price
-                        )
-                        user_metrics[user_id] = {
-                            "realized_gains": details["realized_gains"],
-                            "unrealized_gains": details["unrealized_gains"],
-                            "total_gains": details["total_gains"],
-                            "performance_percentage": details["performance_percentage"],
-                        }
-
-                    # Create snapshot document
+                    # Create snapshot document with only global data and UTC timestamp
                     snapshot = {
-                        "timestamp": datetime.now(),
+                        "timestamp": datetime.utcnow(),  # Changed to UTC time
                         "coin": coin,
                         "price": current_price,
                         "global": {
                             "realized_profits": global_metrics["realized_profits"],
                             "unrealized_gains": global_metrics["unrealized_gains"],
                             "total_gains": global_metrics["total_gains"],
-                            "performance_percentage": global_metrics[
-                                "performance_percentage"
-                            ],
+                            "performance_percentage": global_metrics["performance_percentage"],
+                            "total_portfolio_value": global_metrics["total_portfolio_value"],
+                            "current_capital": global_metrics["current_capital"],
+                            "position_value": global_metrics["position_value"],
+                            "total_net_investments": global_metrics["total_net_investments"],
                         },
-                        "users": user_metrics,
                     }
 
                     # Save to MongoDB
                     self.mongo_service.insert_profit_snapshot(snapshot)
-                    logging.info(f"Saved profit snapshot for {coin}")
+                    logging.info(f"Saved global profit snapshot for {coin}")
                 except Exception as e:
-                    logging.error(
-                        f"Failed to save profit snapshot for {coin}: {str(e)}"
-                    )
-
+                    logging.error(f"Failed to save profit snapshot for {coin}: {str(e)}")

@@ -361,18 +361,15 @@ class MongoUserService:
         coin: str,
         start_date: datetime,
         end_date: datetime,
-        user_id: Optional[str] = None,
     ) -> List[Dict]:
         """Retrieve profit trend data for a coin within a date range."""
         query = {
             "coin": coin.lower(),
             "timestamp": {"$gte": start_date, "$lte": end_date},
         }
-        projection = {"_id": 0, "timestamp": 1, "price": 1}
-        if user_id:
-            projection[f"users.{user_id}"] = 1
-        else:
-            projection["global"] = 1
+        projection = {"_id": 0, "timestamp": 1, "price": 1, "global": 1}
+
+        print(f"Querying profit trend with: {query} and projection: {projection}")
 
         try:
             snapshots = list(
@@ -382,4 +379,3 @@ class MongoUserService:
         except Exception as e:
             logging.error(f"Failed to retrieve profit trend: {str(e)}")
             return []
-
