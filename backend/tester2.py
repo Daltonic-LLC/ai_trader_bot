@@ -135,16 +135,16 @@ class SequentialTestScheduler(CoinScheduler):
         current_time = base_time
         
         jobs_config = [
-            ('top_coins', 'Top Coins Extraction', self._daily_top_coin_list, {}),
-            ('coin_history', 'Coin History Extraction', self._daily_coin_history, {'limit': 1}),
-            ('news_sentiment', 'News Sentiment Extraction', self._daily_news_sentiment, {'limit': 1}),
-            ('coin_prices', 'Coin Prices Update', self._daily_coin_prices, {'limit': 1}),
-            ('data_cleanup', 'Data Cleanup', self._daily_data_cleaner, {})
+            # ('top_coins', 'Top Coins Extraction', self._daily_top_coin_list, {}),
+            # ('coin_history', 'Coin History Extraction', self._daily_coin_history, {'limit': 1}),
+            # ('news_sentiment', 'News Sentiment Extraction', self._daily_news_sentiment, {'limit': 1}),
+            # ('coin_prices', 'Coin Prices Update', self._daily_coin_prices, {'limit': 1}),
+            # ('data_cleanup', 'Data Cleanup', self._daily_data_cleaner, {})
         ]
         
         # Add trading bot job if trading is enabled
         if self.trading_config.get('enabled', False):
-            jobs_config.append(('trading_bot', 'Trading Bot Execution', self._trading_bot_execution, {'limit': 1}))
+            jobs_config.append(('trading_bot', 'Trading Bot Execution', self._trading_bot_execution, {'limit': 2}))
         
         for job_id, job_name, job_func, job_kwargs in jobs_config:
             self.scheduler.add_job(
