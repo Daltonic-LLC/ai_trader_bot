@@ -323,32 +323,73 @@ class CapitalManager:
         }
 
     def get_user_investment_details(self, user_id, coin, current_price):
-        """Get detailed investment info for a user."""
+        """Get detailed investment info for a user, including all attributes expected by the application."""
         coin = coin.lower()
+        # Case when user has no investment
         if not self._user_has_investment(user_id, coin):
             return {
                 "investment": 0.0,
+                "original_investment": 0.0,
+                "total_deposits": 0.0,
+                "total_withdrawals": 0.0,
+                "net_investment": 0.0,
                 "ownership_percentage": 0.0,
                 "current_share": 0.0,
+                "profit_loss": 0.0,
+                "realized_gains": 0.0,
+                "unrealized_gains": 0.0,
+                "total_gains": 0.0,
+                "performance_percentage": 0.0,
+                "portfolio_breakdown": {
+                    "cash_portion": 0.0,
+                    "position_portion": 0.0,
+                    "total_portfolio_value": 0.0,
+                },
             }
 
-        net_investment = self.get_user_investment(user_id, coin)
+        # Retrieve investment details
+        original_investment = self.user_investments[coin].get(user_id, 0.0)
+        total_withdrawals = self.user_withdrawals.get(coin, {}).get(user_id, 0.0)
+        net_investment = original_investment - total_withdrawals
+
+        # Calculate ownership and performance
         ownership_pct = self.get_user_ownership_percentage(user_id, coin)
         perf_summary = self.get_coin_performance_summary(coin, current_price)
-        current_share = (ownership_pct / 100) * perf_summary["total_value"]
+
+        # Compute user-specific values
+        total_portfolio_value = perf_summary["total_value"]
+        current_share = (ownership_pct / 100) * total_portfolio_value
         realized_gains = (ownership_pct / 100) * perf_summary["realized_profits"]
         unrealized_gains = (ownership_pct / 100) * perf_summary["unrealized_gains"]
         total_gains = realized_gains + unrealized_gains
         perf_pct = (total_gains / net_investment * 100) if net_investment > 0 else 0.0
+        profit_loss = current_share - net_investment
+
+        # Calculate portfolio breakdown
+        position_value = (
+            self.positions.get(coin, 0.0) * current_price
+        )  # Assuming positions is available
+        cash_portion = (ownership_pct / 100) * self.capital.get(coin, 0.0)
+        position_portion = (ownership_pct / 100) * position_value
 
         return {
             "investment": net_investment,
+            "original_investment": original_investment,
+            "total_deposits": original_investment,
+            "total_withdrawals": total_withdrawals,
+            "net_investment": net_investment,
             "ownership_percentage": ownership_pct,
             "current_share": current_share,
+            "profit_loss": profit_loss,
             "realized_gains": realized_gains,
             "unrealized_gains": unrealized_gains,
             "total_gains": total_gains,
             "performance_percentage": perf_pct,
+            "portfolio_breakdown": {
+                "cash_portion": cash_portion,
+                "position_portion": position_portion,
+                "total_portfolio_value": total_portfolio_value,
+            },
         }
 
     # --- Utility Methods ---
