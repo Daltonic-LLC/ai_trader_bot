@@ -41,19 +41,20 @@ const ProfitTrendChart: React.FC<ProfitTrendCardProps> = ({
     // Get the latest data point for current metrics 
     const latestData = data[data.length - 1];
     const { global } = latestData;
+    
 
-    // Prepare chart data
+    // Prepare chart data with finite number checks
     const chartData = data.map(item => ({
         time: new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         fullTime: new Date(item.timestamp).toLocaleString(),
-        totalGains: item.global.total_gains,
-        performancePercentage: item.global.performance_percentage * 100,
-        portfolioValue: item.global.total_portfolio_value,
-        price: item.price
+        totalGains: isFinite(item.global?.total_gains) ? item.global.total_gains : 0,
+        performancePercentage: isFinite(item.global?.performance_percentage) ? (item.global.performance_percentage * 100) : 0,
+        portfolioValue: isFinite(item.global?.total_portfolio_value) ? item.global.total_portfolio_value : 0,
+        price: isFinite(item.price) ? item.price : 0
     }));
 
-    // Determine trend direction
-    const isPositive = global.total_gains >= 0;
+    // Determine trend direction with finite check
+    const isPositive = isFinite(global?.total_gains) && global.total_gains >= 0;
     const trendColor = isPositive ? 'text-crypto-green' : 'text-red-500';
     const trendIcon = isPositive ? MdTrendingUp : MdTrendingDown;
 
@@ -104,12 +105,12 @@ const ProfitTrendChart: React.FC<ProfitTrendCardProps> = ({
     const copyPnLData = () => {
         const summaryData = {
             currentMetrics: {
-                totalGains: global.total_gains,
-                performancePercentage: global.performance_percentage,
-                portfolioValue: global.total_portfolio_value,
-                positionValue: global.position_value,
-                currentCapital: global.current_capital,
-                totalInvestments: global.total_net_investments
+                totalGains: isFinite(global?.total_gains) ? global.total_gains : 0,
+                performancePercentage: isFinite(global?.performance_percentage) ? global.performance_percentage : 0,
+                portfolioValue: isFinite(global?.total_portfolio_value) ? global.total_portfolio_value : 0,
+                positionValue: isFinite(global?.position_value) ? global.position_value : 0,
+                currentCapital: isFinite(global?.current_capital) ? global.current_capital : 0,
+                totalInvestments: isFinite(global?.total_net_investments) ? global.total_net_investments : 0
             },
             historicalData: data,
             generatedAt: new Date().toISOString()
@@ -141,19 +142,19 @@ const ProfitTrendChart: React.FC<ProfitTrendCardProps> = ({
                     <div className="flex justify-between items-center">
                         <span className="text-gray-300">Total P&L</span>
                         <span className={`font-bold text-lg ${trendColor}`}>
-                            {formatCurrency(global.total_gains)}
+                            {formatCurrency(isFinite(global?.total_gains) ? global.total_gains : 0)}
                         </span>
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-gray-300">Performance</span>
                         <span className={`font-medium ${trendColor}`}>
-                            {formatPercentage(global.performance_percentage * 100)}
+                            {formatPercentage(isFinite(global?.performance_percentage) ? global.performance_percentage * 100 : 0)}
                         </span>
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-gray-300">Portfolio Value</span>
                         <span className="text-white font-medium">
-                            {formatCurrency(global.total_portfolio_value)}
+                            {formatCurrency(isFinite(global?.total_portfolio_value) ? global.total_portfolio_value : 0)}
                         </span>
                     </div>
                 </div>
@@ -161,19 +162,19 @@ const ProfitTrendChart: React.FC<ProfitTrendCardProps> = ({
                     <div className="flex justify-between items-center">
                         <span className="text-gray-300">Position Value</span>
                         <span className="text-white font-medium">
-                            {formatCurrency(global.position_value)}
+                            {formatCurrency(isFinite(global?.position_value) ? global.position_value : 0)}
                         </span>
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-gray-300">Available Capital</span>
                         <span className="text-white font-medium">
-                            {formatCurrency(global.current_capital)}
+                            {formatCurrency(isFinite(global?.current_capital) ? global.current_capital : 0)}
                         </span>
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-gray-300">Total Invested</span>
                         <span className="text-white font-medium">
-                            {formatCurrency(global.total_net_investments)}
+                            {formatCurrency(isFinite(global?.total_net_investments) ? global.total_net_investments : 0)}
                         </span>
                     </div>
                 </div>
@@ -215,12 +216,11 @@ const ProfitTrendChart: React.FC<ProfitTrendCardProps> = ({
                         : 'N/A'}
                 </span>
                 <span>
-                    {coin?.symbol}: {formatCurrency(latestData.price)}
+                    {coin?.symbol}: {formatCurrency(isFinite(latestData.price) ? latestData.price : 0)}
                 </span>
             </div>
         </div>
     );
 };
-
 
 export default ProfitTrendChart;
