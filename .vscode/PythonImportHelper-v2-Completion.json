@@ -1489,7 +1489,7 @@
         "kind": 6,
         "importPath": "backend.app.services.capital_manager",
         "description": "backend.app.services.capital_manager",
-        "peekOfCode": "class CapitalManager:\n    \"\"\"A singleton class to manage trading capital, positions, and trade records.\"\"\"\n    _instance = None\n    _lock = Lock()  # Lock for thread safety\n    # Fee constants - Optimized to 0.05%\n    TRADING_FEE = 0.0005  # 0.05% trading fee for buy/sell orders\n    WITHDRAWAL_FEE = 0.0005  # 0.05% withdrawal fee\n    def __new__(cls, initial_capital=1000.0):\n        \"\"\"Ensure only one instance of CapitalManager exists.\"\"\"\n        if cls._instance is None:",
+        "peekOfCode": "class CapitalManager:\n    \"\"\"A singleton class to manage trading capital, positions, and user investments for multiple coins.\n    Uses Decimal for precise financial calculations and MongoDB for state persistence.\n    \"\"\"\n    _instance = None\n    _lock = Lock()  # Thread safety lock\n    # Fee constants\n    TRADING_FEE = 0.0005  # 0.05% fee for buy/sell trades\n    WITHDRAWAL_FEE = 0.0005  # 0.05% fee for withdrawals\n    def __new__(cls, initial_capital=1000.0):",
         "detail": "backend.app.services.capital_manager",
         "documentation": {}
     },
@@ -1534,7 +1534,7 @@
         "kind": 6,
         "importPath": "backend.app.services.coin_scheduler",
         "description": "backend.app.services.coin_scheduler",
-        "peekOfCode": "class CoinScheduler:\n    def __init__(\n        self,\n        log_file=\"scheduler.log\",\n        execution_log_file=\"data/scheduler/execution_log.json\",\n        trading_config=None,\n        auto_trigger=True,\n        continue_on_failure=False,\n    ):\n        \"\"\"Initialize the CoinScheduler with custom timing and dependencies.\"\"\"",
+        "peekOfCode": "class CoinScheduler:\n    def __init__(\n        self,\n        log_file=\"scheduler.log\",\n        execution_log_file=\"data/scheduler/execution_log.json\",\n        trading_config=None,\n        auto_trigger=True,\n        continue_on_failure=False,\n    ):\n        self.auto_trigger = auto_trigger",
         "detail": "backend.app.services.coin_scheduler",
         "documentation": {}
     },
