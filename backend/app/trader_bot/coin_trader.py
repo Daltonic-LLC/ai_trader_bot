@@ -10,6 +10,7 @@ import os
 import json
 from datetime import datetime
 import time
+import pandas as pd
 
 
 class CoinTrader:
@@ -47,16 +48,18 @@ class CoinTrader:
             self.news_service, self.coin, self.override, self.llm_handler
         )
         self.trading_fee = 0.001
-        self.stop_loss_percentage = 0.015
+        self.stop_loss_percentage = 0.015  # Fallback if ATR unavailable
         self.trade_percentage = 0.6
         self.min_capital_threshold = 10.0
-        self.stop_loss_price = None
+        self.trailing_stop = None  # Replaced stop_loss_price with trailing_stop
         self.highest_price = None
         self.last_trade_time = 0
         self.last_sell_time = 0
         self.cool_down = 900
         self.profit_target = 0.03
-        self.sell_of_after_days = 3
+        self.sell_off_after_days = 5
+        self.atr_period = 14  # Period for ATR calculation
+        self.atr_multiplier = 2.0  # Multiplier for ATR-based stop-loss
 
     ### Utility Methods
     def withdraw(self, user_id):
@@ -138,16 +141,6 @@ class CoinTrader:
             return capital * 0.6
         return capital * 0.4
 
-    def tiered_sell_strategy(self, position, current_price, profit_margin):
-        """Decide sell quantity based on profit margin."""
-        if profit_margin >= 0.05:
-            return position * 0.5
-        elif profit_margin >= 0.03:
-            return position * 0.3
-        elif profit_margin >= 0.01:
-            return position * 0.1
-        return 0
-
     def calculate_market_volatility(self, df, periods=30):
         """Calculate volatility from recent price changes."""
         if len(df) < periods:
@@ -156,36 +149,64 @@ class CoinTrader:
         returns = recent_df["close"].pct_change().dropna()
         return returns.std()
 
-    def dynamic_stop_loss(self, current_price, avg_cost, volatility):
-        """Adjust stop-loss based on volatility."""
-        base_stop = self.stop_loss_percentage
-        if volatility > 0.1:
-            return avg_cost * (1 - (base_stop * 1.5))
-        elif volatility < 0.05:
-            return avg_cost * (1 - (base_stop * 0.8))
-        return avg_cost * (1 - base_stop)
+    def calculate_atr(self, df, periods=14):
+        """Calculate Average True Range (ATR) for stop-loss adjustment."""
+        if len(df) < periods:
+            return None
+        df = df.copy()  # Avoid modifying the original DataFrame
+        df["high_low"] = df["high"] - df["low"]
+        df["high_prev_close"] = abs(df["high"] - df["close"].shift(1))
+        df["low_prev_close"] = abs(df["low"] - df["close"].shift(1))
+        df["true_range"] = df[["high_low", "high_prev_close", "low_prev_close"]].max(
+            axis=1
+        )
+        atr = df["true_range"].rolling(window=periods).mean().iloc[-1]
+        return atr
+
+    def tiered_sell_strategy(self, position, current_price, profit_margin, df):
+        """Decide sell quantity based on volatility-adjusted profit margins."""
+        volatility = self.calculate_market_volatility(df)
+        if volatility > 0.1:  # High volatility
+            if profit_margin >= 0.03:
+                return position * 0.5
+            elif profit_margin >= 0.02:
+                return position * 0.3
+            elif profit_margin >= 0.01:
+                return position * 0.1
+        elif volatility < 0.05:  # Low volatility
+            if profit_margin >= 0.07:
+                return position * 0.5
+            elif profit_margin >= 0.05:
+                return position * 0.3
+            elif profit_margin >= 0.03:
+                return position * 0.1
+        else:  # Medium volatility
+            if profit_margin >= 0.05:
+                return position * 0.5
+            elif profit_margin >= 0.03:
+                return position * 0.3
+            elif profit_margin >= 0.01:
+                return position * 0.1
+        return 0
 
     def check_stop_loss(self, current_price):
-        """Check if stop-loss triggers and simulate a sell."""
+        """Check if ATR-based trailing stop-loss triggers and simulate a sell."""
         position = self.capital_manager.get_position(self.coin)
-        if position <= 0 or (
-            self.stop_loss_price is None and self.highest_price is None
-        ):
+        if position <= 0 or self.highest_price is None:
             return None
 
         df = self.data_handler.load_historical_data()
-        volatility = self.calculate_market_volatility(df)
-        avg_cost = (
-            self.capital_manager.total_cost.get(self.coin, 0) / position
-            if position > 0
-            else 0
-        )
-        dynamic_stop_price = self.dynamic_stop_loss(current_price, avg_cost, volatility)
+        atr = self.calculate_atr(df, self.atr_period)
+        if atr is None:
+            # Fallback to percentage-based stop-loss
+            trailing_stop = self.highest_price * (1 - self.stop_loss_percentage)
+        else:
+            new_trailing_stop = self.highest_price - (atr * self.atr_multiplier)
+            if self.trailing_stop is None or new_trailing_stop > self.trailing_stop:
+                self.trailing_stop = new_trailing_stop
+            trailing_stop = self.trailing_stop
 
-        if current_price <= dynamic_stop_price or (
-            self.highest_price
-            and current_price <= self.highest_price * (1 - self.stop_loss_percentage)
-        ):
+        if current_price <= trailing_stop:
             sell_quantity = position * 0.5
             if self.capital_manager.simulate_sell(
                 self.coin, sell_quantity, current_price
@@ -193,7 +214,7 @@ class CoinTrader:
                 sale_value = sell_quantity * current_price * (1 - self.trading_fee)
                 self.last_sell_time = time.time()
                 self.last_trade_time = time.time()
-                return f"Stop-loss triggered: Sold {sell_quantity:.6f} {self.coin.upper()} at ${current_price:.2f}\nNet proceeds: ${sale_value:.2f}"
+                return f"Trailing stop-loss triggered: Sold {sell_quantity:.6f} {self.coin.upper()} at ${current_price:.2f}\nNet proceeds: ${sale_value:.2f}"
         return None
 
     def generate_potential_trade_details(self, stats, predicted_close):
@@ -207,7 +228,9 @@ class CoinTrader:
             trade_capital = capital * self.trade_percentage
             quantity = trade_capital / current_price * (1 - self.trading_fee)
             if quantity > 0:
-                stop_loss_price = current_price * (1 - self.stop_loss_percentage)
+                stop_loss_price = current_price * (
+                    1 - self.stop_loss_percentage
+                )  # Display purposes only
                 potential_sale_value = (
                     quantity * predicted_close * (1 - self.trading_fee)
                 )
@@ -216,7 +239,7 @@ class CoinTrader:
                     f"Potential BUY:\n"
                     f"- Quantity: {quantity:.2f} {self.coin.upper()} at ${current_price:.2f}\n"
                     f"- Capital Used: ${trade_capital:.2f}\n"
-                    f"- Stop-Loss: ${stop_loss_price:.2f}\n"
+                    f"- Stop-Loss: ${stop_loss_price:.2f} (initial, adjusts with ATR)\n"
                     f"- Potential Profit: ${potential_profit:.2f}"
                 )
             else:
@@ -234,13 +257,18 @@ class CoinTrader:
 
     ### Trade Execution Methods
     def execute_buy(self, capital, current_price, signal_strength):
-        """Execute a buy trade."""
+        """Execute a buy trade and set initial ATR-based trailing stop."""
         trade_capital = self.calculate_position_size(
             capital, current_price, signal_strength
         )
         quantity = trade_capital / (current_price * (1 + self.trading_fee))
         if self.capital_manager.simulate_buy(self.coin, quantity, current_price):
-            self.stop_loss_price = current_price * (1 - self.stop_loss_percentage)
+            df = self.data_handler.load_historical_data()
+            atr = self.calculate_atr(df, self.atr_period)
+            if atr is not None:
+                self.trailing_stop = current_price - (atr * self.atr_multiplier)
+            else:
+                self.trailing_stop = current_price * (1 - self.stop_loss_percentage)
             self.highest_price = current_price
             self.last_trade_time = time.time()
             return (
@@ -249,10 +277,10 @@ class CoinTrader:
             )
         return "BUY failed: Insufficient capital.", 0.0
 
-    def execute_sell(self, position, current_price, profit_margin):
-        """Execute a sell trade."""
+    def execute_sell(self, position, current_price, profit_margin, df):
+        """Execute a sell trade based on volatility-adjusted tiered strategy."""
         sell_quantity = self.tiered_sell_strategy(
-            position, current_price, profit_margin
+            position, current_price, profit_margin, df
         )
         if sell_quantity > 0 and self.capital_manager.simulate_sell(
             self.coin, sell_quantity, current_price
@@ -270,7 +298,7 @@ class CoinTrader:
         """Perform a periodic sell if time threshold is met."""
         if (
             position > 0
-            and time.time() - self.last_sell_time > self.sell_of_after_days * 24 * 3600
+            and time.time() - self.last_sell_time > self.sell_off_after_days * 24 * 3600
         ):
             sell_quantity = position * 0.1
             if self.capital_manager.simulate_sell(
@@ -286,9 +314,9 @@ class CoinTrader:
         return "", 0.0
 
     def execute_trade(
-        self, recommendation, current_price, predicted_close, news_sentiment
+        self, recommendation, current_price, predicted_close, news_sentiment, df
     ):
-        """Execute trade based on recommendation."""
+        """Execute trade based on recommendation with volatility considerations."""
         capital = self.capital_manager.get_capital(self.coin)
         position = self.capital_manager.get_position(self.coin)
 
@@ -310,7 +338,7 @@ class CoinTrader:
             )
             profit_margin = (current_price - avg_cost) / avg_cost if avg_cost > 0 else 0
             trade_details, quantity = self.execute_sell(
-                position, current_price, profit_margin
+                position, current_price, profit_margin, df
             )
         else:
             trade_details, quantity = (
@@ -362,7 +390,7 @@ class CoinTrader:
 
     ### Main Execution
     def run(self):
-        """Execute the trading process."""
+        """Execute the trading process with ATR-based stop-loss and volatility-adjusted sells."""
         self.capital_manager.load_state()
 
         df_features = self.load_and_prepare_data()
@@ -382,9 +410,12 @@ class CoinTrader:
 
         stop_loss_result = self.check_stop_loss(current_price)
         if stop_loss_result:
-            trade_details, quantity = stop_loss_result, 0.0  # Quantity not tracked here
+            trade_details, quantity = stop_loss_result, 0.0
             recommendation = "SELL (Stop-Loss)"
         else:
+            df = (
+                self.data_handler.load_historical_data()
+            )  # Load raw data for volatility calculations
             potential_trade_details = self.generate_potential_trade_details(
                 stats, predicted_close
             )
@@ -397,7 +428,7 @@ class CoinTrader:
             )
             recommendation = self.llm_handler.decide(prelim_report)
             trade_details, quantity = self.execute_trade(
-                recommendation, current_price, predicted_close, news_sentiment
+                recommendation, current_price, predicted_close, news_sentiment, df
             )
 
         news_text_truncated = " ".join(news_text.split()[:50]) + (
