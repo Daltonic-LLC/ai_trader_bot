@@ -298,14 +298,24 @@ class CapitalManager:
         unrealized = total_value - (net_investments + realized)
         total_gains = realized + unrealized
         perf_pct = (total_gains / net_investments * 100) if net_investments > 0 else 0.0
+        # Calculate net_deposits
+        net_deposits = self.total_deposits.get(coin, 0.0) - self.total_withdrawals.get(
+            coin, 0.0
+        )
 
         return {
+            "coin": coin.upper(),  # Restored from old version
             "total_deposits": self.total_deposits.get(coin, 0.0),
             "total_withdrawals": self.total_withdrawals.get(coin, 0.0),
-            "net_investments": net_investments,
+            "net_deposits": net_deposits,  # Restored to fix KeyError
+            "net_investments": net_investments,  # Equivalent to total_net_investments
             "current_capital": self.capital.get(coin, 0.0),
+            "position_quantity": self.positions.get(
+                coin, 0.0
+            ),  # Restored from old version
             "position_value": position_value,
-            "total_value": total_value,
+            "total_portfolio_value": total_value,  # Added alias for consistency
+            "total_value": total_value,  # Keep new version's key
             "realized_profits": realized,
             "unrealized_gains": unrealized,
             "total_gains": total_gains,
