@@ -1,11 +1,13 @@
 .env
-backend/.env
+frontend/node_modules
+frontend/.next
 frontend/.env
 ai_dev
 __pycache__
 .vscode
 .idea
 .git
+backend/.env
 backend/data/
 backend/data/*
 backend/data/**/*

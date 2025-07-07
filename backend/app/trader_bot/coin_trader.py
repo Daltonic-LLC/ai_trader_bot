@@ -47,14 +47,18 @@ class CoinTrader:
             self.news_service, self.coin, self.override, self.llm_handler
         )
         self.trading_fee = 0.001  # 0.1% fee per trade
-        self.stop_loss_percentage = 0.025  # 2.5% stop-loss
+        self.stop_loss_percentage = 0.015  # Tightened to 1.5% stop-loss
         self.trade_percentage = 0.6  # Use 60% of capital per trade
         self.min_capital_threshold = 10.0  # Use full capital if below $10
         self.stop_loss_price = None  # Track stop-loss price after a buy
         self.highest_price = None  # Track highest price for trailing stop
         self.last_trade_time = 0  # Track last trade time for cool-down
+        self.last_sell_time = 0  # Track last sell time for periodic sells
         self.cool_down = 900  # 15-minute cool-down in seconds
         self.profit_target = 0.03  # 3% profit target
+        self.sell_of_after_days = 3  # Sell after 3 days
+
+
 
     def withdraw(self, user_id):
         """Withdraw the user's share of the capital for this coin."""
@@ -123,9 +127,7 @@ class CoinTrader:
         recommendation=None,
         trade_details=None,
     ):
-        """Generates a trading report with optional recommendation and trade details.
-        Returns a tuple: (full_report, summary_report)
-        """
+        """Generates a trading report with optional recommendation and trade details."""
         price = stats.get("price", "N/A")
         price_str = f"${price:.2f}" if isinstance(price, float) else price
 
@@ -158,7 +160,7 @@ class CoinTrader:
         - 24h High: {high_24h_str}
         - 24h Volume: {volume_24h_str}
         - Market Cap: {market_cap_str}
-        - Predicted Close: ${predicted_close:.2f}
+        - Predicted Close: ${ predicted_close:.2f}
         - News Sentiment: {news_sentiment:.2f}
         - News Text: {news_text}
         """
@@ -202,11 +204,11 @@ class CoinTrader:
                 potential_profit = potential_sale_value - trade_capital
                 trade_details += (
                     f"Potential BUY:\n"
-                    + f"- Quantity: {quantity:.2f} {self.coin.upper()} at ${current_price:.2f}\n"
-                    + f"- Using {self.trade_percentage*100:.0f}% of capital: ${trade_capital:.2f}\n"
-                    + f"- Stop-Loss: ${stop_loss_price:.2f} (-{self.stop_loss_percentage*100:.1f}%)\n"
-                    + f"- Potential Sale at ${predicted_close:.2f}: ${potential_sale_value:.2f}\n"
-                    + f"- Potential Profit: ${potential_profit:.2f} ({(potential_profit/trade_capital)*100:.2f}%)\n"
+                    f"- Quantity: {quantity:.2f} {self.coin.upper()} at ${current_price:.2f}\n"
+                    f"- Using {self.trade_percentage*100:.0f}% of capital: ${trade_capital:.2f}\n"
+                    f"- Stop-Loss: ${stop_loss_price:.2f} (-{self.stop_loss_percentage*100:.1f}%)\n"
+                    f"- Potential Sale at ${predicted_close:.2f}: ${potential_sale_value:.2f}\n"
+                    f"- Potential Profit: ${potential_profit:.2f} ({(potential_profit/trade_capital)*100:.2f}%)\n"
                 )
             else:
                 trade_details += "Potential BUY: Insufficient capital to buy.\n"
@@ -215,8 +217,8 @@ class CoinTrader:
             sale_value = position * current_price * (1 - self.trading_fee)
             trade_details += (
                 f"Potential SELL:\n"
-                + f"- Quantity: {position:.2f} {self.coin.upper()} at ${current_price:.2f}\n"
-                + f"- Net Proceeds: ${sale_value:.2f}\n"
+                f"- Quantity: {position:.2f} {self.coin.upper()} at ${current_price:.2f}\n"
+                f"- Net Proceeds: ${sale_value:.2f}\n"
             )
 
         if not trade_details:
@@ -225,7 +227,7 @@ class CoinTrader:
         return trade_details.strip()
 
     def calculate_position_size(self, capital, current_price, signal_strength):
-        """Dynamic position sizing based on signal strength"""
+        """Dynamic position sizing based on signal strength."""
         if signal_strength > 0.8:  # Strong signal
             return capital * 0.8
         elif signal_strength > 0.6:  # Medium signal
@@ -234,28 +236,28 @@ class CoinTrader:
             return capital * 0.4
 
     def tiered_sell_strategy(self, position, current_price, profit_margin):
-        """Implement tiered selling for better profit taking"""
-        if profit_margin >= 0.08:  # 8% profit
-            return position * 0.7  # Sell 70%
-        elif profit_margin >= 0.05:  # 5% profit
+        """Adjusted tiered selling to realize profits more frequently."""
+        if profit_margin >= 0.05:  # 5% profit
             return position * 0.5  # Sell 50%
         elif profit_margin >= 0.03:  # 3% profit
-            return position * 0.25  # Sell 25%
+            return position * 0.3  # Sell 30%
+        elif profit_margin >= 0.01:  # 1% profit
+            return position * 0.1  # Sell 10%
         else:
             return 0  # Hold
 
     def dynamic_stop_loss(self, current_price, avg_cost, volatility):
-        """Adjust stop-loss based on market volatility"""
-        base_stop = 0.025  # 2.5%
+        """Adjust stop-loss based on market volatility using tightened base stop."""
+        base_stop = self.stop_loss_percentage  # Use 1.5% from init
         if volatility > 0.1:  # High volatility
-            return avg_cost * (1 - (base_stop * 1.5))  # 3.75% stop
+            return avg_cost * (1 - (base_stop * 1.5))  # 2.25% stop
         elif volatility < 0.05:  # Low volatility
-            return avg_cost * (1 - (base_stop * 0.8))  # 2% stop
+            return avg_cost * (1 - (base_stop * 0.8))  # 1.2% stop
         else:
-            return avg_cost * (1 - base_stop)  # 2.5% stop
+            return avg_cost * (1 - base_stop)  # 1.5% stop
 
     def calculate_signal_strength(self, news_sentiment, predicted_close, current_price):
-        """Calculate signal strength based on news sentiment and predicted price movement"""
+        """Calculate signal strength based on news sentiment and predicted price movement."""
         price_signal = (predicted_close - current_price) / current_price
         if price_signal > 0.05 and news_sentiment > 0.5:
             return 0.9  # Strong signal
@@ -265,7 +267,7 @@ class CoinTrader:
             return 0.5  # Weak signal
 
     def calculate_market_volatility(self, df, periods=30):
-        """Calculate market volatility based on recent price changes"""
+        """Calculate market volatility based on recent price changes."""
         if len(df) < periods:
             return 0.05  # Default volatility
         recent_df = df.tail(periods)
@@ -297,9 +299,10 @@ class CoinTrader:
                 self.coin, sell_quantity, current_price
             ):
                 sale_value = sell_quantity * current_price * (1 - self.trading_fee)
+                self.last_sell_time = time.time()  # Update last sell time
                 return f"Dynamic stop-loss: Sold {sell_quantity:.6f} {self.coin.upper()} at ${current_price:.2f}\nNet proceeds: ${sale_value:.2f}"
 
-        # Trailing stop-loss (retained from original)
+        # Trailing stop-loss
         if self.highest_price and current_price <= self.highest_price * (
             1 - self.stop_loss_percentage
         ):
@@ -308,12 +311,13 @@ class CoinTrader:
                 self.coin, sell_quantity, current_price
             ):
                 sale_value = sell_quantity * current_price * (1 - self.trading_fee)
+                self.last_sell_time = time.time()  # Update last sell time
                 return f"Trailing stop-loss triggered: Sold {sell_quantity:.6f} {self.coin.upper()} at ${current_price:.2f}\nNet proceeds: ${sale_value:.2f}"
 
         return None
 
     def run(self):
-        """Executes the trading process with improved logic for smarter decisions."""
+        """Executes the trading process with logic to realize profits more frequently."""
         self.capital_manager.load_state()
 
         df = self.data_handler.load_historical_data()
@@ -338,10 +342,9 @@ class CoinTrader:
         current_price = stats["price"]
         news_sentiment, news_text = self.news_handler.process_news()
 
-        # CRITICAL FIX: Define capital and position early, before any conditional blocks
         capital = self.capital_manager.get_capital(self.coin)
         position = self.capital_manager.get_position(self.coin)
-        quantity = 0.0  # Initialize quantity as well
+        quantity = 0.0  # Initialize quantity
 
         print(f"Capital for {self.coin}: {capital}")
 
@@ -411,10 +414,10 @@ class CoinTrader:
                             sale_value = (
                                 sell_quantity * current_price * (1 - self.trading_fee)
                             )
-                            trade_details = f"Tiered SELL: {sell_quantity:.6f} {self.coin.upper()} at ${current_price:.2f}\nNet proceeds: ${sale_value:.2f}\nAction: Manually sell on an exchange."
+                            trade_details = f"Tiered SELL: Sold {sell_quantity:.6f} {self.coin.upper()} at ${current_price:.2f}\nNet proceeds: ${sale_value:.2f}\nAction: Manually sell on an exchange."
                             print(trade_details)
                             self.last_trade_time = time.time()
-                            # Update quantity for the trade record
+                            self.last_sell_time = time.time()  # Update last sell time
                             quantity = sell_quantity
                         else:
                             trade_details = "SELL failed: Insufficient position."
@@ -424,6 +427,23 @@ class CoinTrader:
                     trade_details = (
                         f"No trade executed (Recommendation: {recommendation})."
                     )
+
+            # Periodic sell check if no sell occurred
+            if (
+                "SELL" not in recommendation
+                and position > 0
+                and time.time() - self.last_sell_time > self.sell_of_after_days * 24 * 3600
+            ):
+                sell_quantity = position * 0.1  # Sell 10% periodically
+                if self.capital_manager.simulate_sell(
+                    self.coin, sell_quantity, current_price
+                ):
+                    sale_value = sell_quantity * current_price * (1 - self.trading_fee)
+                    trade_details += f"\nPeriodic SELL: Sold {sell_quantity:.6f} {self.coin.upper()} at ${current_price:.2f}\nNet proceeds: ${sale_value:.2f}"
+                    self.last_sell_time = time.time()
+                    self.last_trade_time = time.time()
+                    recommendation = "SELL (Periodic)"
+                    quantity = sell_quantity
 
         news_text_truncated = " ".join(news_text.split()[:50]) + (
             "..." if len(news_text.split()) > 50 else ""
