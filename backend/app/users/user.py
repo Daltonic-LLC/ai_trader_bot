@@ -329,49 +329,46 @@ async def get_investment_details(
     # Get enhanced user investment details
     details = capital_manager.get_user_investment_details(user_id, coin, current_price)
 
-    # If no investment, return a message
-    if details["investment"] == 0.0:
+    # FIXED: Use the correct key "net_investment" instead of "investment"
+    if details["net_investment"] == 0.0:
         return {"message": "No investment found for this coin"}
 
-    # Get overall coin performance summary (FIXED: This was being calculated but not returned properly)
+    # Get overall coin performance summary
     coin_summary = capital_manager.get_coin_performance_summary(coin, current_price)
 
-    # FIXED: Enhanced coin performance metrics - now includes GLOBAL data
+    # Enhanced coin performance metrics
     coin_performance = {
         # Market data
         "current_price": stats.get("price", "N/A"),
         "price_change_24h": stats.get("price_change_24h_percent", "N/A"),
         "volume_24h": stats.get("volume_24h", "N/A"),
         "market_cap": stats.get("market_cap", "N/A"),
-        # FIXED: Global portfolio performance (this was missing!)
-        "total_deposits": coin_summary["total_deposits"],  # <-- ADDED
-        "total_withdrawals": coin_summary["total_withdrawals"],  # <-- ADDED
-        "net_deposits": coin_summary["net_deposits"],  # <-- ADDED
-        "current_capital": coin_summary["current_capital"],  # <-- ADDED
-        "position_quantity": coin_summary["position_quantity"],  # <-- ADDED
-        "position_value": coin_summary["position_value"],  # <-- ADDED
+        # Global portfolio performance
+        "total_deposits": coin_summary["total_deposits"],
+        "total_withdrawals": coin_summary["total_withdrawals"],
+        "net_deposits": coin_summary["net_deposits"],
+        "current_capital": coin_summary["current_capital"],
+        "position_quantity": coin_summary["position_quantity"],
+        "position_value": coin_summary["position_value"],
         "total_portfolio_value": coin_summary["total_portfolio_value"],
-        "total_realized_profits": coin_summary[
-            "realized_profits"
-        ],  # <-- RENAMED from "realized_profits"
+        "total_realized_profits": coin_summary["realized_profits"],
         "total_unrealized_gains": coin_summary["unrealized_gains"],
-        "total_gains": coin_summary["total_gains"],  # <-- ADDED
+        "total_gains": coin_summary["total_gains"],
         "overall_performance": coin_summary["performance_percentage"],
     }
 
-    # Structure the response with enhanced user investment data
+    # FIXED: Structure the response using the correct keys from get_user_investment_details
     user_investment = {
         # Core Investment Information
-        "original_investment": details["original_investment"],
         "total_deposits": details["total_deposits"],
         "total_withdrawals": details["total_withdrawals"],
         "net_investment": details["net_investment"],
         # Current Position & Performance
         "ownership_percentage": details["ownership_percentage"],
-        "current_share_value": details["current_share"],
+        "current_share_value": details["current_share_value"],
         # Gains/Loss Breakdown
-        "realized_gains": details["realized_gains"],
-        "unrealized_gains": details["unrealized_gains"],
+        "realized_gains_share": details["realized_gains_share"],
+        "unrealized_gains_share": details["unrealized_gains_share"],
         "total_gains": details["total_gains"],
         "overall_profit_loss": details["profit_loss"],
         "performance_percentage": details["performance_percentage"],
@@ -381,12 +378,16 @@ async def get_investment_details(
             "position_portion": details["portfolio_breakdown"]["position_portion"],
             "total_value": details["portfolio_breakdown"]["total_portfolio_value"],
         },
+        # Additional fields
+        "fees_paid_share": details["fees_paid_share"],
+        "fee_impact_percentage": details["fee_impact_percentage"],
+        "has_active_investment": details["has_active_investment"],
     }
 
     # Return comprehensive investment data
     return {
         "user_investment": user_investment,
-        "coin_performance": coin_performance,  # <-- Now includes global totals
+        "coin_performance": coin_performance,
         "coin": coin.upper(),
         "timestamp": datetime.now().isoformat(),
     }

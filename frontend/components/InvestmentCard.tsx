@@ -9,14 +9,20 @@ interface InvestmentCardProps {
 const InvestmentCard: React.FC<InvestmentCardProps> = ({ data }) => {
     const { user_investment, coin_performance } = data;
 
-    const formatCurrency = (value: number) => {
+    const formatCurrency = (value: number | undefined | null) => {
+        if (value === undefined || value === null || isNaN(value)) {
+            return '0.00';
+        }
         return value.toLocaleString('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
         });
     };
 
-    const formatPercentage = (value: number) => {
+    const formatPercentage = (value: number | undefined | null) => {
+        if (value === undefined || value === null || isNaN(value)) {
+            return '0.00';
+        }
         return value.toFixed(2);
     };
 
@@ -49,74 +55,74 @@ const InvestmentCard: React.FC<InvestmentCardProps> = ({ data }) => {
                         <div className="flex justify-between items-center">
                             <p className="text-gray-400">Original Investment</p>
                             <p className="text-white font-medium">
-                                ${formatCurrency(user_investment.original_investment)}
+                                ${formatCurrency(user_investment?.original_investment)}
                             </p>
                         </div>
                         <div className="flex justify-between items-center">
                             <p className="text-gray-400">Total Deposits</p>
                             <p className="text-white font-medium">
-                                ${formatCurrency(user_investment.total_deposits)}
+                                ${formatCurrency(user_investment?.total_deposits)}
                             </p>
                         </div>
                         <div className="flex justify-between items-center">
                             <p className="text-gray-400">Total Withdrawals</p>
                             <p className="text-white font-medium">
-                                ${formatCurrency(user_investment.total_withdrawals)}
+                                ${formatCurrency(user_investment?.total_withdrawals)}
                             </p>
                         </div>
                         <div className="flex justify-between items-center">
                             <p className="text-gray-400">Net Investment</p>
                             <p className="text-white font-medium">
-                                ${formatCurrency(user_investment.net_investment)}
+                                ${formatCurrency(user_investment?.net_investment)}
                             </p>
                         </div>
                         <div className="flex justify-between items-center">
                             <p className="text-gray-400">Current Share Value</p>
                             <p className="text-white font-medium">
-                                ${formatCurrency(user_investment.current_share_value)}
+                                ${formatCurrency(user_investment?.current_share_value)}
                             </p>
                         </div>
                         <div className="flex justify-between items-center">
                             <p className="text-gray-400">Ownership Percentage</p>
                             <p className="text-white font-medium">
-                                {formatPercentage(user_investment.ownership_percentage)}%
+                                {formatPercentage(user_investment?.ownership_percentage)}%
                             </p>
                         </div>
                         <div className="flex justify-between items-center">
                             <p className="text-gray-400">Realized Gains</p>
                             <p className="text-white font-medium">
-                                ${formatCurrency(user_investment.realized_gains)}
+                                ${formatCurrency(user_investment?.realized_gains)}
                             </p>
                         </div>
                         <div className="flex justify-between items-center">
                             <p className="text-gray-400">Unrealized Gains</p>
                             <p className="text-white font-medium">
-                                ${formatCurrency(user_investment.unrealized_gains)}
+                                ${formatCurrency(user_investment?.unrealized_gains)}
                             </p>
                         </div>
                         <div className="flex justify-between items-center">
                             <p className="text-gray-400">Total Gains</p>
                             <p className="text-white font-medium">
-                                ${formatCurrency(user_investment.total_gains)}
+                                ${formatCurrency(user_investment?.total_gains)}
                             </p>
                         </div>
                         <div className="flex justify-between items-center">
                             <p className="text-gray-400">Overall Profit/Loss</p>
-                            <p className={`font-medium ${user_investment.overall_profit_loss >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                ${formatCurrency(Math.abs(user_investment.overall_profit_loss))}
+                            <p className={`font-medium ${(user_investment?.overall_profit_loss ?? 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                ${formatCurrency(Math.abs(user_investment?.overall_profit_loss ?? 0))}
                             </p>
                         </div>
                         <div className="flex justify-between items-center">
                             <p className="text-gray-400">Performance</p>
-                            <p className={`font-medium ${user_investment.performance_percentage >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                {formatPercentage(user_investment.performance_percentage)}%
+                            <p className={`font-medium ${(user_investment?.performance_percentage ?? 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                {formatPercentage(user_investment?.performance_percentage)}%
                             </p>
                         </div>
                     </div>
                 </div>
 
                 {/* Portfolio Breakdown Section */}
-                {user_investment.portfolio_breakdown && (
+                {user_investment?.portfolio_breakdown && (
                     <div className="mb-6">
                         <h3 className="text-xl font-semibold text-white mb-4">Portfolio Breakdown</h3>
                         <div className="grid grid-cols-1 gap-4">
@@ -244,7 +250,7 @@ const InvestmentCard: React.FC<InvestmentCardProps> = ({ data }) => {
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <p className="text-gray-400">Overall Performance</p>
-                                    <p className={`font-medium ${coin_performance.overall_performance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                    <p className={`font-medium ${(coin_performance.overall_performance ?? 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                                         {formatPercentage(coin_performance.overall_performance)}%
                                     </p>
                                 </div>
