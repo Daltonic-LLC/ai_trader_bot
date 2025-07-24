@@ -379,3 +379,39 @@ class MongoUserService:
         except Exception as e:
             logging.error(f"Failed to retrieve profit trend: {str(e)}")
             return []
+
+
+    def reset_coin_records(self, coin: str) -> bool:
+        """Reset all records related to a specific coin, including user balances, trading state, and profit snapshots."""
+        try:
+            coin = coin.lower()
+            
+            # Reset user balances for the coin
+            result_users = self.users.update_many({}, {"$unset": {f"balances.{coin}": ""}})
+            logging.info(f"Removed balance for coin {coin} from {result_users.modified_count} user records")
+            
+            # Reset trading state for the coin
+            unset_fields = {
+                f"user_investments.{coin}": "",
+                f"total_deposits.{coin}": "",
+                f"capital.{coin}": "",
+                f"positions.{coin}": "",
+                f"total_cost.{coin}": "",
+                f"trade_records.{coin}": "",
+                f"user_withdrawals.{coin}": "",
+                f"total_withdrawals.{coin}": "",
+                f"realized_profits.{coin}": "",
+            }
+            result_trading = self.trading_state.update_one(
+                {"_id": "scheduler_state"}, {"$unset": unset_fields}
+            )
+            logging.info(f"Reset trading state for coin {coin}")
+            
+            # Reset profit snapshots for the coin
+            result_snapshots = self.db.profit_snapshots.delete_many({"coin": coin})
+            logging.info(f"Deleted {result_snapshots.deleted_count} profit snapshots for coin {coin}")
+            
+            return True
+        except Exception as e:
+            logging.error(f"Failed to reset coin records for {coin}: {str(e)}")
+            return False

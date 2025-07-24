@@ -481,6 +481,14 @@
         "documentation": {}
     },
     {
+        "label": "MongoUserService",
+        "importPath": "app.services.mongodb_service",
+        "description": "app.services.mongodb_service",
+        "isExtraImport": true,
+        "detail": "app.services.mongodb_service",
+        "documentation": {}
+    },
+    {
         "label": "CoinStatsService",
         "importPath": "app.services.coin_stats",
         "description": "app.services.coin_stats",
@@ -1959,6 +1967,60 @@
         "description": "backend.run_dev",
         "peekOfCode": "logger = logging.getLogger(\"server\")\nclass FastAPIServer:\n    def __init__(self):\n        self.config = uvicorn.Config(\n            \"app.main:app\",\n            host=\"0.0.0.0\",\n            port=config.get_port,\n            reload=False,  # We handle reload manually\n            loop=\"asyncio\",\n        )",
         "detail": "backend.run_dev",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "backend.test_reset_coin",
+        "description": "backend.test_reset_coin",
+        "peekOfCode": "def main():\n    \"\"\"Execute the coin reset operation for a specific coin and log to ./data/reset.log.\"\"\"\n    # Prompt for coin name\n    coin = input(\"Enter the coin to reset (e.g., bitcoin): \").strip().lower()\n    if not coin:\n        logger.warning(\"No coin specified. Operation cancelled.\")\n        print(\"❌ No coin specified. Operation cancelled.\")\n        return\n    # Confirmation\n    confirm = input(f\"Type 'RESET' to reset all records for {coin}: \").strip()",
+        "detail": "backend.test_reset_coin",
+        "documentation": {}
+    },
+    {
+        "label": "log_dir",
+        "kind": 5,
+        "importPath": "backend.test_reset_coin",
+        "description": "backend.test_reset_coin",
+        "peekOfCode": "log_dir = \"./data\"\nlog_file = os.path.join(log_dir, \"reset.log\")\n# Ensure the ./data directory exists\nos.makedirs(log_dir, exist_ok=True)\n# Set up logging with both console and file handlers\nlogger = logging.getLogger(\"CoinReset\")\nlogger.setLevel(logging.INFO)\n# File handler for reset.log\nfile_handler = logging.FileHandler(log_file)\nfile_handler.setFormatter(logging.Formatter(\"%(asctime)s - %(levelname)s - %(message)s\"))",
+        "detail": "backend.test_reset_coin",
+        "documentation": {}
+    },
+    {
+        "label": "log_file",
+        "kind": 5,
+        "importPath": "backend.test_reset_coin",
+        "description": "backend.test_reset_coin",
+        "peekOfCode": "log_file = os.path.join(log_dir, \"reset.log\")\n# Ensure the ./data directory exists\nos.makedirs(log_dir, exist_ok=True)\n# Set up logging with both console and file handlers\nlogger = logging.getLogger(\"CoinReset\")\nlogger.setLevel(logging.INFO)\n# File handler for reset.log\nfile_handler = logging.FileHandler(log_file)\nfile_handler.setFormatter(logging.Formatter(\"%(asctime)s - %(levelname)s - %(message)s\"))\nlogger.addHandler(file_handler)",
+        "detail": "backend.test_reset_coin",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "backend.test_reset_coin",
+        "description": "backend.test_reset_coin",
+        "peekOfCode": "logger = logging.getLogger(\"CoinReset\")\nlogger.setLevel(logging.INFO)\n# File handler for reset.log\nfile_handler = logging.FileHandler(log_file)\nfile_handler.setFormatter(logging.Formatter(\"%(asctime)s - %(levelname)s - %(message)s\"))\nlogger.addHandler(file_handler)\n# Console handler\nconsole_handler = logging.StreamHandler()\nconsole_handler.setFormatter(logging.Formatter(\"%(asctime)s - %(levelname)s - %(message)s\"))\nlogger.addHandler(console_handler)",
+        "detail": "backend.test_reset_coin",
+        "documentation": {}
+    },
+    {
+        "label": "file_handler",
+        "kind": 5,
+        "importPath": "backend.test_reset_coin",
+        "description": "backend.test_reset_coin",
+        "peekOfCode": "file_handler = logging.FileHandler(log_file)\nfile_handler.setFormatter(logging.Formatter(\"%(asctime)s - %(levelname)s - %(message)s\"))\nlogger.addHandler(file_handler)\n# Console handler\nconsole_handler = logging.StreamHandler()\nconsole_handler.setFormatter(logging.Formatter(\"%(asctime)s - %(levelname)s - %(message)s\"))\nlogger.addHandler(console_handler)\ndef main():\n    \"\"\"Execute the coin reset operation for a specific coin and log to ./data/reset.log.\"\"\"\n    # Prompt for coin name",
+        "detail": "backend.test_reset_coin",
+        "documentation": {}
+    },
+    {
+        "label": "console_handler",
+        "kind": 5,
+        "importPath": "backend.test_reset_coin",
+        "description": "backend.test_reset_coin",
+        "peekOfCode": "console_handler = logging.StreamHandler()\nconsole_handler.setFormatter(logging.Formatter(\"%(asctime)s - %(levelname)s - %(message)s\"))\nlogger.addHandler(console_handler)\ndef main():\n    \"\"\"Execute the coin reset operation for a specific coin and log to ./data/reset.log.\"\"\"\n    # Prompt for coin name\n    coin = input(\"Enter the coin to reset (e.g., bitcoin): \").strip().lower()\n    if not coin:\n        logger.warning(\"No coin specified. Operation cancelled.\")\n        print(\"❌ No coin specified. Operation cancelled.\")",
+        "detail": "backend.test_reset_coin",
         "documentation": {}
     },
     {
